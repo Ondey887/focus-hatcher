@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Focus Hatcher</title>
+    <title>Focus Game</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -12,26 +12,27 @@
     <div class="container">
         <h1>Focus Hatcher</h1>
         
-        <div id="egg-display" class="egg">🥚</div>
-        <div id="timer">00:00</div>
-        
-        <div id="mode-selection">
-            <p style="margin-bottom: 10px; opacity: 0.8;">Выберите сложность:</p>
-            <button class="btn mode-btn" onclick="selectMode(25)">
-                🥚 25 мин <br><span style="font-size: 12px; opacity: 0.7">Обычный шанс</span>
-            </button>
-            <button class="btn mode-btn gold" onclick="selectMode(60)">
-                🪺 60 мин <br><span style="font-size: 12px; opacity: 0.7">Высокий шанс 🔥</span>
-            </button>
+        <div class="slider-container">
+            <button id="prev-btn" class="arrow-btn">❮</button>
+            <div id="egg-display" class="egg">🥚</div>
+            <button id="next-btn" class="arrow-btn">❯</button>
         </div>
 
-        <button id="give-up-btn" class="btn stop" style="display: none;">Сдаться</button>
-        
-        <button id="share-btn" class="btn share-btn" style="display: none;">Похвастаться другом 📢</button>
-        
-        <p class="status" id="status-text">Выбери яйцо, чтобы начать!</p>
-        
+        <div id="mode-info">
+            <h2 id="mode-title">25 минут</h2>
+            <p id="mode-subtitle">Обычный шанс</p>
         </div>
+
+        <div id="timer">25:00</div>
+        
+        <button id="main-btn" class="btn">Начать фокус</button>
+        
+        <button id="share-btn" class="btn share-btn" style="display: none;">Похвастаться с другом 📢</button>
+        
+        <p class="status" id="status-text">Листай стрелочки, чтобы выбрать!</p>
+        
+        <div id="collection"></div>
+    </div>
 
     <script src="script.js"></script>
 </body>

@@ -1,113 +1,15 @@
 body {
-    background-color: #1c1c1e; /* Темный фон */
-    color: white;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden; /* Чтобы не скроллилось */
-}
-
-.container {
-    text-align: center;
-    width: 100%;
-    max-width: 350px;
-}
-
-h1 {
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: #ffd700; /* Золотой заголовок */
-}
-
-.egg {
-    font-size: 100px; /* Огромное яйцо */
-    margin: 20px auto;
-    transition: transform 0.3s;
-    cursor: pointer;
-}
-
-/* Анимация тряски */
-@keyframes shake {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(5deg); }
-    50% { transform: rotate(0deg); }
-    75% { transform: rotate(-5deg); }
-    100% { transform: rotate(0deg); }
-}
-
-.shaking {
-    animation: shake 0.5s infinite;
-}
-
-#timer {
-    font-size: 48px;
-    font-weight: bold;
-    margin: 20px 0;
-    font-variant-numeric: tabular-nums; /* Чтобы цифры не скакали */
-}
-
-.btn {
-    background-color: #007aff; /* Синий как в ТГ */
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    font-size: 18px;
-    border-radius: 12px;
-    width: 80%;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn:active {
-    background-color: #0056b3;
-    transform: scale(0.98);
-}
-
-.btn.stop {
-    background-color: #ff3b30; /* Красная кнопка стоп */
-}
-
-.status {
-    color: #8e8e93;
-    margin-top: 20px;
-    font-size: 14px;
-}/* ... старый код выше не трогай, или просто добавь это в конец ... */
-
-#collection {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 колонки */
-    gap: 10px;
-    margin-top: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 15px;
-    border-radius: 15px;
-}
-
-.pet-slot {
-    font-size: 30px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    padding: 10px;
-    text-align: center;
-    animation: popIn 0.3s ease-out;
-}
-
-@keyframes popIn {
-    0% { transform: scale(0); }
-    100% { transform: scale(1); }
-}body {
     background-color: #1c1c1e;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh; /* Используем min-height для прокрутки */
+    min-height: 100vh;
     margin: 0;
-    overflow-y: auto; /* Разрешаем скролл если коллекция большая */
+    overflow-y: auto;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .container {
@@ -119,16 +21,49 @@ h1 {
 
 h1 {
     font-size: 24px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     color: #ffd700;
+}
+
+/* Слайдер */
+.slider-container {
+    display: flex;
+    justify-content: space-between; /* Раскидываем по краям */
+    align-items: center;
+    margin: 20px 0;
+}
+
+.arrow-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4); /* Полупрозрачные */
+    font-size: 40px;
+    cursor: pointer;
+    padding: 10px;
+    transition: color 0.2s, transform 0.1s;
+}
+
+.arrow-btn:active {
+    color: white;
+    transform: scale(1.2);
 }
 
 .egg {
     font-size: 100px;
-    margin: 20px auto;
     transition: transform 0.3s;
-    cursor: pointer;
-    user-select: none;
+    /* Анимация дыхания */
+    animation: breathe 3s infinite ease-in-out;
+}
+
+@keyframes breathe {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Тряска (перебивает дыхание) */
+.shaking {
+    animation: shake 0.5s infinite !important;
 }
 
 @keyframes shake {
@@ -139,15 +74,24 @@ h1 {
     100% { transform: rotate(0deg); }
 }
 
-.shaking {
-    animation: shake 0.5s infinite;
+#mode-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#mode-subtitle {
+    margin: 5px 0 0 0;
+    font-size: 14px;
+    color: #8e8e93;
 }
 
 #timer {
-    font-size: 48px;
+    font-size: 56px;
     font-weight: bold;
-    margin: 20px 0;
+    margin: 15px 0;
     font-variant-numeric: tabular-nums;
+    color: #34c759; /* Зеленый по умолчанию */
 }
 
 .btn {
@@ -157,109 +101,48 @@ h1 {
     padding: 15px 30px;
     font-size: 18px;
     border-radius: 12px;
-    width: 100%; /* На всю ширину контейнера */
+    width: 100%;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    margin-bottom: 10px; /* Отступ между кнопками */
+    font-weight: bold;
+    margin-bottom: 10px;
+    transition: transform 0.1s;
 }
 
-.btn:active {
-    transform: scale(0.98);
-}
+.btn:active { transform: scale(0.96); }
 
-.btn.stop {
-    background-color: #ff3b30;
-}
+.btn.stop { background-color: #ff3b30; }
+.share-btn { background-color: #34c759; }
 
-/* Стиль для кнопки Поделиться */
-.share-btn {
-    background-color: #34c759; /* Зеленый цвет */
-    display: none; /* Скрыто по умолчанию */
-}
-
-.status {
-    color: #8e8e93;
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-/* Коллекция */
+/* Инвентарь */
 #collection {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    margin-top: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 15px;
+    gap: 8px;
+    margin-top: 25px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
     border-radius: 15px;
 }
 
 .pet-slot {
-    font-size: 30px;
+    font-size: 28px;
     background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     padding: 5px;
     text-align: center;
-    animation: popIn 0.3s ease-out;
 }
 
-@keyframes popIn {
-    0% { transform: scale(0); }
-    100% { transform: scale(1); }
-}/* ... старый код ... */
-
-/* Цвета для редкости */
-.pet-slot.common {
-    border: 2px solid #8e8e93; /* Серый */
-    box-shadow: none;
+/* Рамки редкости */
+.pet-slot.common { border: 2px solid #8e8e93; }
+.pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
+.pet-slot.legendary { 
+    border: 2px solid #ffd700; 
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    animation: glow 2s infinite;
 }
 
-.pet-slot.rare {
-    border: 2px solid #007aff; /* Синий */
-    background: rgba(0, 122, 255, 0.2);
-    box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
-}
-
-.pet-slot.legendary {
-    border: 2px solid #ffd700; /* Золотой */
-    background: rgba(255, 215, 0, 0.2);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-    animation: pulse 2s infinite; /* Пульсация */
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
-    50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 215, 0, 0.9); }
-    100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
-}/* ... старый код ... */
-
-/* Скрываем/показываем блоки */
-#mode-selection {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-}
-
-.mode-btn {
-    background-color: #3a3a3c; /* Темно-серый */
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-
-/* Золотая кнопка для хардкора */
-.mode-btn.gold {
-    background: linear-gradient(45deg, #ffd700, #ff8c00);
-    color: black;
-    font-weight: bold;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-}
-
-.mode-btn.gold:active {
-    transform: scale(0.98);
-    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+@keyframes glow {
+    0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); }
+    50% { box-shadow: 0 0 20px rgba(255, 215, 0, 1); }
+    100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); }
 }
