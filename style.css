@@ -21,14 +21,48 @@ body {
 
 h1 {
     font-size: 24px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     color: #ffd700;
 }
 
-/* Слайдер */
+/* === НОВОЕ: СИСТЕМА УРОВНЕЙ === */
+.level-container {
+    background: rgba(255, 255, 255, 0.1); /* Прозрачный фон */
+    padding: 10px 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: left;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.level-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #ffd700; /* Золотой текст */
+}
+
+.progress-bar-bg {
+    background: rgba(0, 0, 0, 0.5); /* Темная подложка */
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34c759, #32d74b); /* Зеленый градиент */
+    width: 0%; /* Меняется через JS */
+    transition: width 0.5s ease-out; /* Плавная анимация */
+    box-shadow: 0 0 10px rgba(52, 199, 89, 0.5); /* Свечение */
+}
+
+/* === СЛАЙДЕР === */
 .slider-container {
     display: flex;
-    justify-content: space-between; /* Раскидываем по краям */
+    justify-content: space-between;
     align-items: center;
     margin: 20px 0;
 }
@@ -36,7 +70,7 @@ h1 {
 .arrow-btn {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.4); /* Полупрозрачные */
+    color: rgba(255, 255, 255, 0.4);
     font-size: 40px;
     cursor: pointer;
     padding: 10px;
@@ -51,7 +85,6 @@ h1 {
 .egg {
     font-size: 100px;
     transition: transform 0.3s;
-    /* Анимация дыхания */
     animation: breathe 3s infinite ease-in-out;
 }
 
@@ -61,7 +94,6 @@ h1 {
     100% { transform: scale(1); }
 }
 
-/* Тряска (перебивает дыхание) */
 .shaking {
     animation: shake 0.5s infinite !important;
 }
@@ -74,6 +106,7 @@ h1 {
     100% { transform: rotate(0deg); }
 }
 
+/* === ТЕКСТ И ТАЙМЕР === */
 #mode-title {
     margin: 0;
     font-size: 24px;
@@ -91,9 +124,10 @@ h1 {
     font-weight: bold;
     margin: 15px 0;
     font-variant-numeric: tabular-nums;
-    color: #34c759; /* Зеленый по умолчанию */
+    color: #34c759;
 }
 
+/* === КНОПКИ === */
 .btn {
     background-color: #007aff;
     color: white;
@@ -109,11 +143,16 @@ h1 {
 }
 
 .btn:active { transform: scale(0.96); }
-
 .btn.stop { background-color: #ff3b30; }
 .share-btn { background-color: #34c759; }
 
-/* Инвентарь */
+.status {
+    color: #8e8e93;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* === КОЛЛЕКЦИЯ === */
 #collection {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -132,9 +171,14 @@ h1 {
     text-align: center;
 }
 
-/* Рамки редкости */
+/* РЕДКОСТЬ (РАМКИ) */
 .pet-slot.common { border: 2px solid #8e8e93; }
-.pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
+
+.pet-slot.rare { 
+    border: 2px solid #007aff; 
+    box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); 
+}
+
 .pet-slot.legendary { 
     border: 2px solid #ffd700; 
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);

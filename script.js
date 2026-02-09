@@ -2,28 +2,41 @@
 const MODES = [
     { 
         id: 'short', 
-        time: 10, // ТЕСТ: 10 сек (В релизе поставь: 25 * 60)
+        time: 10, // ТЕСТ: 10 сек (Релиз: 25 * 60)
+        xpReward: 250, // Награда опытом
         egg: '🥚', 
         title: '25 минут', 
         sub: 'Обычный шанс',
-        color: '#34c759' // Зеленый
+        color: '#34c759' 
     },
     { 
         id: 'long', 
-        time: 20, // ТЕСТ: 20 сек (В релизе поставь: 60 * 60)
+        time: 20, // ТЕСТ: 20 сек (Релиз: 60 * 60)
+        xpReward: 600, // Награда опытом (Бонус!)
         egg: '🪺', 
         title: '60 минут', 
         sub: 'Высокий шанс (x4) 🔥',
-        color: '#ff9500' // Оранжевый
+        color: '#ff9500' 
     }
 ];
 
-let currentModeIndex = 0; // 0 - это первый режим
+// === ЗВАНИЯ ===
+const RANKS = [
+    "Новичок",           // 1-4
+    "Искатель",          // 5-9
+    "Укротитель Яиц",    // 10-14
+    "Мастер Фокуса",     // 15-19
+    "Ниндзя Времени",    // 20-29
+    "Повелитель Дзена",  // 30-49
+    "ЛЕГЕНДА"            // 50+
+];
+
+let currentModeIndex = 0;
 let timeLeft = MODES[0].time;
 let timerInterval = null;
 let isRunning = false;
 let currentPet = null;
-const botLink = "https://t.me/FocusHatcher_Ondey_bot/game"; // ТВОЯ ССЫЛКА
+const botLink = "https://t.me/FocusHatcher_Ondey_bot/game"; 
 
 const petDatabase = {
     common: ["🐣", "🐱", "🐶", "🐹", "🐰", "🐸", "🐻"],
@@ -37,9 +50,13 @@ function getPetRarity(pet) {
     return "common";
 }
 
-// Загрузка
+// === ЗАГРУЗКА ДАННЫХ ===
 let collection = JSON.parse(localStorage.getItem('myCollection')) || [];
 collection = collection.map(pet => (pet === "panda" ? "🐼" : pet));
+
+// Загрузка XP и Уровня
+let userXP = parseInt(localStorage.getItem('userXP')) || 0;
+let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
 
 // Элементы
 const eggDisplay = document.getElementById('egg-display');
@@ -53,7 +70,50 @@ const modeSub = document.getElementById('mode-subtitle');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 
-// === ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ===
+// Элементы уровней
+const xpBar = document.getElementById('xp-bar');
+const levelNumber = document.getElementById('level-number');
+const rankName = document.getElementById('rank-name');
+
+// === СИСТЕМА УРОВНЕЙ ===
+function updateLevelUI() {
+    // Формула: нужно 100 * уровень опыта для следующего (100, 200, 300...)
+    const xpForNextLevel = userLevel * 200; 
+    
+    // Процент заполнения
+    let percentage = (userXP / xpForNextLevel) * 100;
+    if (percentage > 100) percentage = 100;
+    
+    xpBar.style.width = `${percentage}%`;
+    levelNumber.textContent = `Lvl ${userLevel}`;
+    
+    // Звания (каждые 5 уровней новое звание)
+    let rankIndex = Math.floor(userLevel / 5);
+    if (rankIndex >= RANKS.length) rankIndex = RANKS.length - 1;
+    rankName.textContent = RANKS[rankIndex];
+}
+
+function addXP(amount) {
+    userXP += amount;
+    
+    // Проверка повышения уровня
+    let xpNeeded = userLevel * 200;
+    
+    if (userXP >= xpNeeded) {
+        userXP = userXP - xpNeeded; // Оставляем остаток
+        userLevel++;
+        statusText.textContent = `УРОВЕНЬ ПОВЫШЕН! Теперь ты Lvl ${userLevel} 🎉`;
+        
+        if (window.navigator.vibrate) window.navigator.vibrate([100, 50, 100]);
+    }
+    
+    // Сохранение
+    localStorage.setItem('userXP', userXP);
+    localStorage.setItem('userLevel', userLevel);
+    updateLevelUI();
+}
+
+// === ФУНКЦИИ ИНТЕРФЕЙСА ===
 function updateUI() {
     const mode = MODES[currentModeIndex];
     if (!isRunning) {
@@ -63,16 +123,12 @@ function updateUI() {
     }
     modeTitle.textContent = mode.title;
     modeSub.textContent = mode.sub;
-    timerDisplay.style.color = mode.color; // Меняем цвет цифр
+    timerDisplay.style.color = mode.color;
 }
 
 function switchMode() {
-    if (isRunning) return; // Нельзя переключать во время таймера
-    
-    // Переключаем туда-сюда (0 -> 1 -> 0)
+    if (isRunning) return; 
     currentModeIndex = currentModeIndex === 0 ? 1 : 0;
-    
-    // Анимация
     eggDisplay.style.transform = "scale(0.5)";
     setTimeout(() => {
         updateUI();
@@ -100,8 +156,6 @@ function formatTime(seconds) {
 function startTimer() {
     if (isRunning) return;
     isRunning = true;
-    
-    // Прячем стрелки
     prevBtn.style.visibility = 'hidden';
     nextBtn.style.visibility = 'hidden';
     shareBtn.style.display = 'none';
@@ -110,7 +164,7 @@ function startTimer() {
     mainBtn.className = "btn stop";
     
     eggDisplay.classList.add('shaking');
-    statusText.textContent = "Не закрывай приложение...";
+    statusText.textContent = "Набираем опыт...";
 
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -122,17 +176,14 @@ function startTimer() {
 function stopTimer() {
     clearInterval(timerInterval);
     isRunning = false;
-    
-    // Возвращаем стрелки
     prevBtn.style.visibility = 'visible';
     nextBtn.style.visibility = 'visible';
     
     mainBtn.textContent = "Начать фокус";
     mainBtn.className = "btn";
-    
     eggDisplay.classList.remove('shaking');
-    updateUI(); // Сброс
-    statusText.textContent = "Эх, сорвалось!";
+    updateUI(); 
+    statusText.textContent = "Опыт потерян!";
 }
 
 function finishTimer() {
@@ -140,17 +191,21 @@ function finishTimer() {
     isRunning = false;
     eggDisplay.classList.remove('shaking');
     
-    // Шансы
     const mode = MODES[currentModeIndex];
+    
+    // === ВЫДАЧА НАГРАДЫ XP ===
+    addXP(mode.xpReward);
+    
+    // === ШАНСЫ ПИТОМЦЕВ ===
     const chance = Math.random() * 100;
     let pool, rarityName;
 
-    if (mode.id === 'short') { // 25 мин
+    if (mode.id === 'short') { 
         if (chance < 5) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ!"; }
         else if (chance < 40) { pool = petDatabase.rare; rarityName = "Редкий"; }
         else { pool = petDatabase.common; rarityName = "Обычный"; }
-    } else { // 60 мин (Хардкор)
-        if (chance < 20) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ!"; } // Шанс x4
+    } else { 
+        if (chance < 20) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ!"; } 
         else if (chance < 70) { pool = petDatabase.rare; rarityName = "Редкий"; }
         else { pool = petDatabase.common; rarityName = "Обычный"; }
     }
@@ -166,14 +221,20 @@ function finishTimer() {
     mainBtn.className = "btn";
     shareBtn.style.display = 'block';
     
-    statusText.textContent = `${rarityName} Ты получил: ${currentPet}`;
+    if (statusText.textContent.includes("УРОВЕНЬ ПОВЫШЕН")) {
+        // Если уже написано про уровень, добавляем инфо про питомца через 2 сек
+        setTimeout(() => {
+             statusText.textContent = `${rarityName} Ты получил: ${currentPet}`;
+        }, 2000);
+    } else {
+        statusText.textContent = `+${mode.xpReward} XP | ${rarityName}: ${currentPet}`;
+    }
     
     if (window.navigator.vibrate) {
         if (rarityName === "ЛЕГЕНДАРНЫЙ!") window.navigator.vibrate([100,50,100,50,500]);
         else window.navigator.vibrate([200]);
     }
     
-    // Вернем стрелки через 2 секунды
     setTimeout(() => {
         prevBtn.style.visibility = 'visible';
         nextBtn.style.visibility = 'visible';
@@ -191,9 +252,7 @@ mainBtn.addEventListener('click', () => {
 
 shareBtn.addEventListener('click', () => {
     const mode = MODES[currentModeIndex];
-    const rarity = getPetRarity(currentPet);
-    let extra = rarity === "legendary" ? "🔥 ЛЕГЕНДАРКА! " : "";
-    const text = `${extra}Я высидел ${currentPet} за ${mode.title}! А ты сможешь?`;
+    const text = `Я ${RANKS[Math.floor(userLevel/5)] || "Новичок"} Lvl ${userLevel}! Высидел ${currentPet}. Заходи качаться!`;
     const url = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(text)}`;
     
     if (window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
@@ -202,4 +261,5 @@ shareBtn.addEventListener('click', () => {
 
 // Старт
 renderCollection();
+updateLevelUI(); // Показываем уровень
 updateUI();
