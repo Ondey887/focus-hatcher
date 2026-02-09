@@ -74,4 +74,28 @@ h1 {
     color: #8e8e93;
     margin-top: 20px;
     font-size: 14px;
+}/* ... старый код выше не трогай, или просто добавь это в конец ... */
+
+#collection {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 колонки */
+    gap: 10px;
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 15px;
+}
+
+.pet-slot {
+    font-size: 30px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
 }
