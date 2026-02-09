@@ -1,66 +1,49 @@
 // === НАСТРОЙКИ ===
-// Пока ставим 10 секунд, чтобы ты быстро проверил.
-// Перед рекламой друзьям поменяешь на 25 * 60
-const focusTime = 10; 
+const focusTime = 10; // Пока 10 секунд для теста
+// const focusTime = 25 * 60; // Версия для релиза
+
+// Твоя ссылка на игру
+const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 let timeLeft = focusTime;
 let timerInterval = null;
 let isRunning = false;
+let currentPet = null; // Запоминаем последнего выпавшего питомца
 
-// Список всех возможных питомцев
 const pets = ["🐣", "🐱", "🐶", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯"];
 
-// === ЗАГРУЗКА И ИСПРАВЛЕНИЕ ОШИБОК ===
+// === ЗАГРУЗКА ===
 let collection = JSON.parse(localStorage.getItem('myCollection')) || [];
-
-// АВТО-ФИКС: Проверяем, есть ли глючная "panda" текстом и меняем на смайлик
-collection = collection.map(pet => {
-    if (pet === "panda") return "🐼"; // Если нашли текст, меняем на эмодзи
-    return pet; // Остальных не трогаем
-});
-
-// Сразу сохраняем исправленную версию обратно в телефон
+// Фикс панды (оставляем на всякий случай)
+collection = collection.map(pet => (pet === "panda" ? "🐼" : pet));
 localStorage.setItem('myCollection', JSON.stringify(collection));
 
-// === ЭЛЕМЕНТЫ ИНТЕРФЕЙСА ===
+// === ЭЛЕМЕНТЫ ===
 const eggDisplay = document.getElementById('egg-display');
 const timerDisplay = document.getElementById('timer');
 const actionBtn = document.getElementById('action-btn');
+const shareBtn = document.getElementById('share-btn'); // Кнопка поделиться
 const statusText = document.getElementById('status-text');
 
-// Создаем контейнер для коллекции, если его нет
+// Создаем контейнер коллекции
 let collectionContainer = document.getElementById('collection');
 if (!collectionContainer) {
     collectionContainer = document.createElement('div');
     collectionContainer.id = 'collection';
-    // Добавляем стили для сетки прямо здесь, если в CSS не подхватилось
-    collectionContainer.style.display = 'grid';
-    collectionContainer.style.gridTemplateColumns = 'repeat(5, 1fr)';
-    collectionContainer.style.gap = '10px';
-    collectionContainer.style.marginTop = '20px';
     document.querySelector('.container').appendChild(collectionContainer);
 }
 
 // === ФУНКЦИИ ===
-
-// Функция отрисовки коллекции
 function renderCollection() {
-    collectionContainer.innerHTML = ''; // Очищаем перед отрисовкой
-    
+    collectionContainer.innerHTML = '';
     if (collection.length === 0) {
         collectionContainer.innerHTML = '<p style="grid-column: span 5; font-size: 14px; opacity: 0.7;">Коллекция пуста...</p>';
         return;
     }
-
-    // Рисуем каждого питомца (новые сверху - reverse)
     [...collection].reverse().forEach(pet => {
         const slot = document.createElement('div');
+        slot.className = 'pet-slot';
         slot.textContent = pet;
-        slot.style.fontSize = '30px';
-        slot.style.background = 'rgba(255,255,255,0.1)';
-        slot.style.borderRadius = '8px';
-        slot.style.padding = '10px';
-        slot.style.textAlign = 'center';
         collectionContainer.appendChild(slot);
     });
 }
@@ -79,9 +62,13 @@ function startTimer() {
     if (isRunning) return;
     
     isRunning = true;
+    
+    // Прячем кнопку поделиться при новом старте
+    shareBtn.style.display = 'none'; 
+    
     actionBtn.textContent = "Сдаться";
-    actionBtn.classList.add('stop'); // Красим кнопку в красный
-    actionBtn.style.backgroundColor = "#ff3b30"; // Принудительно красим
+    actionBtn.classList.add('stop');
+    actionBtn.style.backgroundColor = "#ff3b30";
     
     eggDisplay.textContent = "🥚";
     eggDisplay.classList.add('shaking');
@@ -105,7 +92,7 @@ function stopTimer() {
     
     actionBtn.textContent = "Начать фокус";
     actionBtn.classList.remove('stop');
-    actionBtn.style.backgroundColor = "#007aff"; // Возвращаем синий
+    actionBtn.style.backgroundColor = "#007aff";
     
     eggDisplay.classList.remove('shaking');
     statusText.textContent = "Эх, сорвалось!";
@@ -118,36 +105,43 @@ function finishTimer() {
     
     eggDisplay.classList.remove('shaking');
     
-    // Выбираем случайного питомца
-    const randomPet = pets[Math.floor(Math.random() * pets.length)];
-    eggDisplay.textContent = randomPet;
+    // Рандом
+    currentPet = pets[Math.floor(Math.random() * pets.length)];
+    eggDisplay.textContent = currentPet;
     
-    // Добавляем в коллекцию и сохраняем
-    collection.push(randomPet);
+    collection.push(currentPet);
     localStorage.setItem('myCollection', JSON.stringify(collection));
-    
-    // Обновляем экран
     renderCollection();
     
-    actionBtn.textContent = "Забрать награду";
+    actionBtn.textContent = "Ещё раз";
     actionBtn.classList.remove('stop');
-    actionBtn.style.backgroundColor = "#34c759"; // Зеленый цвет победы
+    actionBtn.style.backgroundColor = "#007aff";
     
-    statusText.textContent = `Поздравляю! Это ${randomPet}`;
+    // ПОКАЗЫВАЕМ КНОПКУ ПОДЕЛИТЬСЯ
+    shareBtn.style.display = 'block';
     
-    // Вибрация (работает на телефонах)
+    statusText.textContent = `Поздравляю! Это ${currentPet}`;
     if (window.navigator.vibrate) window.navigator.vibrate([200, 100, 200]);
 }
 
-// === ИНИЦИАЛИЗАЦИЯ ПРИ ЗАПУСКЕ ===
-renderCollection(); // Показать коллекцию
-updateDisplay();    // Показать таймер
+// === ИНИЦИАЛИЗАЦИЯ ===
+renderCollection();
+updateDisplay();
 
-// Обработчик кнопки
 actionBtn.addEventListener('click', () => {
-    if (isRunning) {
-        stopTimer();
+    if (isRunning) stopTimer();
+    else startTimer();
+});
+
+// ОБРАБОТЧИК КНОПКИ ПОДЕЛИТЬСЯ
+shareBtn.addEventListener('click', () => {
+    const text = `Я высидел ${currentPet} за 25 минут фокуса! А ты сможешь? 🥚`;
+    const url = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(text)}`;
+    
+    // Открываем ссылку Телеграма
+    if (window.Telegram.WebApp) {
+        window.Telegram.WebApp.openTelegramLink(url);
     } else {
-        startTimer();
+        window.open(url, '_blank');
     }
 });

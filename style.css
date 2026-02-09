@@ -98,4 +98,112 @@ h1 {
 @keyframes popIn {
     0% { transform: scale(0); }
     100% { transform: scale(1); }
+}body {
+    background-color: #1c1c1e;
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Используем min-height для прокрутки */
+    margin: 0;
+    overflow-y: auto; /* Разрешаем скролл если коллекция большая */
+}
+
+.container {
+    text-align: center;
+    width: 100%;
+    max-width: 350px;
+    padding: 20px;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #ffd700;
+}
+
+.egg {
+    font-size: 100px;
+    margin: 20px auto;
+    transition: transform 0.3s;
+    cursor: pointer;
+    user-select: none;
+}
+
+@keyframes shake {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.shaking {
+    animation: shake 0.5s infinite;
+}
+
+#timer {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 20px 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.btn {
+    background-color: #007aff;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 12px;
+    width: 100%; /* На всю ширину контейнера */
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-bottom: 10px; /* Отступ между кнопками */
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn.stop {
+    background-color: #ff3b30;
+}
+
+/* Стиль для кнопки Поделиться */
+.share-btn {
+    background-color: #34c759; /* Зеленый цвет */
+    display: none; /* Скрыто по умолчанию */
+}
+
+.status {
+    color: #8e8e93;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* Коллекция */
+#collection {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 15px;
+}
+
+.pet-slot {
+    font-size: 30px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 5px;
+    text-align: center;
+    animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
 }
