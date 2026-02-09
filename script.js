@@ -1,35 +1,31 @@
-// === НАСТРОЙКИ РЕЖИМОВ ===
+// === НАСТРОЙКИ ===
 const MODES = [
     { 
         id: 'short', 
-        time: 10, // ТЕСТ: 10 сек (Релиз: 25 * 60)
-        xpReward: 250, // Награда опытом
+        time: 10, // ТЕСТ (Релиз: 25*60)
+        xpReward: 250, 
         egg: '🥚', 
         title: '25 минут', 
-        sub: 'Обычный шанс',
-        color: '#34c759' 
+        sub: 'Обычный шанс'
     },
     { 
         id: 'long', 
-        time: 20, // ТЕСТ: 20 сек (Релиз: 60 * 60)
-        xpReward: 600, // Награда опытом (Бонус!)
+        time: 20, // ТЕСТ (Релиз: 60*60)
+        xpReward: 600, 
         egg: '🪺', 
         title: '60 минут', 
-        sub: 'Высокий шанс (x4) 🔥',
-        color: '#ff9500' 
+        sub: 'Высокий шанс (x4) 🔥'
     }
 ];
 
-// === ЗВАНИЯ ===
-const RANKS = [
-    "Новичок",           // 1-4
-    "Искатель",          // 5-9
-    "Укротитель Яиц",    // 10-14
-    "Мастер Фокуса",     // 15-19
-    "Ниндзя Времени",    // 20-29
-    "Повелитель Дзена",  // 30-49
-    "ЛЕГЕНДА"            // 50+
-];
+// === ЦЕНЫ (ЭКОНОМИКА) ===
+const PRICES = {
+    common: 10,
+    rare: 50,
+    legendary: 1000
+};
+
+const RANKS = ["Новичок", "Искатель", "Укротитель", "Мастер", "Ниндзя", "Легенда"];
 
 let currentModeIndex = 0;
 let timeLeft = MODES[0].time;
@@ -50,11 +46,10 @@ function getPetRarity(pet) {
     return "common";
 }
 
-// === ЗАГРУЗКА ДАННЫХ ===
+// === ЗАГРУЗКА ===
 let collection = JSON.parse(localStorage.getItem('myCollection')) || [];
 collection = collection.map(pet => (pet === "panda" ? "🐼" : pet));
 
-// Загрузка XP и Уровня
 let userXP = parseInt(localStorage.getItem('userXP')) || 0;
 let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
 
@@ -70,24 +65,32 @@ const modeSub = document.getElementById('mode-subtitle');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 
-// Элементы уровней
 const xpBar = document.getElementById('xp-bar');
 const levelNumber = document.getElementById('level-number');
 const rankName = document.getElementById('rank-name');
+const totalMoneyDisplay = document.getElementById('total-money'); // Элемент денег
+
+// === ФУНКЦИЯ ПОДСЧЕТА ДЕНЕГ ===
+function calculateMoney() {
+    let total = 0;
+    collection.forEach(pet => {
+        const rarity = getPetRarity(pet);
+        total += PRICES[rarity];
+    });
+    // Форматируем число (например 1500 -> 1,500)
+    totalMoneyDisplay.textContent = `💰 ${total.toLocaleString()}`;
+    return total;
+}
 
 // === СИСТЕМА УРОВНЕЙ ===
 function updateLevelUI() {
-    // Формула: нужно 100 * уровень опыта для следующего (100, 200, 300...)
     const xpForNextLevel = userLevel * 200; 
-    
-    // Процент заполнения
     let percentage = (userXP / xpForNextLevel) * 100;
     if (percentage > 100) percentage = 100;
     
     xpBar.style.width = `${percentage}%`;
     levelNumber.textContent = `Lvl ${userLevel}`;
     
-    // Звания (каждые 5 уровней новое звание)
     let rankIndex = Math.floor(userLevel / 5);
     if (rankIndex >= RANKS.length) rankIndex = RANKS.length - 1;
     rankName.textContent = RANKS[rankIndex];
@@ -95,25 +98,21 @@ function updateLevelUI() {
 
 function addXP(amount) {
     userXP += amount;
-    
-    // Проверка повышения уровня
     let xpNeeded = userLevel * 200;
     
     if (userXP >= xpNeeded) {
-        userXP = userXP - xpNeeded; // Оставляем остаток
+        userXP = userXP - xpNeeded;
         userLevel++;
-        statusText.textContent = `УРОВЕНЬ ПОВЫШЕН! Теперь ты Lvl ${userLevel} 🎉`;
-        
+        statusText.textContent = `УРОВЕНЬ ПОВЫШЕН! Lvl ${userLevel} 🎉`;
         if (window.navigator.vibrate) window.navigator.vibrate([100, 50, 100]);
     }
     
-    // Сохранение
     localStorage.setItem('userXP', userXP);
     localStorage.setItem('userLevel', userLevel);
     updateLevelUI();
 }
 
-// === ФУНКЦИИ ИНТЕРФЕЙСА ===
+// === ИНТЕРФЕЙС ===
 function updateUI() {
     const mode = MODES[currentModeIndex];
     if (!isRunning) {
@@ -123,7 +122,7 @@ function updateUI() {
     }
     modeTitle.textContent = mode.title;
     modeSub.textContent = mode.sub;
-    timerDisplay.style.color = mode.color;
+    // timerDisplay.style.color = mode.color; <--- УДАЛИЛИ ЭТУ СТРОКУ, ЧТОБЫ БЫЛ БЕЛЫЙ
 }
 
 function switchMode() {
@@ -136,15 +135,17 @@ function switchMode() {
     }, 150);
 }
 
-// === ЛОГИКА ИГРЫ ===
 function renderCollection() {
     collectionContainer.innerHTML = '';
     [...collection].reverse().forEach(pet => {
         const slot = document.createElement('div');
-        slot.className = `pet-slot ${getPetRarity(pet)}`;
+        const rarity = getPetRarity(pet);
+        slot.className = `pet-slot ${rarity}`;
         slot.textContent = pet;
         collectionContainer.appendChild(slot);
     });
+    // Пересчитываем деньги при каждой отрисовке
+    calculateMoney();
 }
 
 function formatTime(seconds) {
@@ -164,7 +165,7 @@ function startTimer() {
     mainBtn.className = "btn stop";
     
     eggDisplay.classList.add('shaking');
-    statusText.textContent = "Набираем опыт...";
+    statusText.textContent = "Фармим капитал...";
 
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -178,12 +179,11 @@ function stopTimer() {
     isRunning = false;
     prevBtn.style.visibility = 'visible';
     nextBtn.style.visibility = 'visible';
-    
     mainBtn.textContent = "Начать фокус";
     mainBtn.className = "btn";
     eggDisplay.classList.remove('shaking');
     updateUI(); 
-    statusText.textContent = "Опыт потерян!";
+    statusText.textContent = "Потеряно время = потеряны деньги!";
 }
 
 function finishTimer() {
@@ -192,20 +192,17 @@ function finishTimer() {
     eggDisplay.classList.remove('shaking');
     
     const mode = MODES[currentModeIndex];
-    
-    // === ВЫДАЧА НАГРАДЫ XP ===
     addXP(mode.xpReward);
     
-    // === ШАНСЫ ПИТОМЦЕВ ===
     const chance = Math.random() * 100;
     let pool, rarityName;
 
     if (mode.id === 'short') { 
-        if (chance < 5) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ!"; }
+        if (chance < 5) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ"; }
         else if (chance < 40) { pool = petDatabase.rare; rarityName = "Редкий"; }
         else { pool = petDatabase.common; rarityName = "Обычный"; }
     } else { 
-        if (chance < 20) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ!"; } 
+        if (chance < 20) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ"; } 
         else if (chance < 70) { pool = petDatabase.rare; rarityName = "Редкий"; }
         else { pool = petDatabase.common; rarityName = "Обычный"; }
     }
@@ -215,23 +212,21 @@ function finishTimer() {
     
     collection.push(currentPet);
     localStorage.setItem('myCollection', JSON.stringify(collection));
-    renderCollection();
+    renderCollection(); // Это обновит и деньги тоже!
     
     mainBtn.textContent = "Ещё раз";
     mainBtn.className = "btn";
     shareBtn.style.display = 'block';
     
-    if (statusText.textContent.includes("УРОВЕНЬ ПОВЫШЕН")) {
-        // Если уже написано про уровень, добавляем инфо про питомца через 2 сек
-        setTimeout(() => {
-             statusText.textContent = `${rarityName} Ты получил: ${currentPet}`;
-        }, 2000);
-    } else {
-        statusText.textContent = `+${mode.xpReward} XP | ${rarityName}: ${currentPet}`;
+    // Показываем цену выпавшего
+    const price = PRICES[getPetRarity(currentPet)];
+    
+    if (!statusText.textContent.includes("УРОВЕНЬ")) {
+        statusText.textContent = `+${price}$ | ${rarityName}: ${currentPet}`;
     }
     
     if (window.navigator.vibrate) {
-        if (rarityName === "ЛЕГЕНДАРНЫЙ!") window.navigator.vibrate([100,50,100,50,500]);
+        if (rarityName === "ЛЕГЕНДАРНЫЙ") window.navigator.vibrate([100,50,100,50,500]);
         else window.navigator.vibrate([200]);
     }
     
@@ -241,18 +236,10 @@ function finishTimer() {
     }, 2000);
 }
 
-// === СОБЫТИЯ ===
-prevBtn.addEventListener('click', switchMode);
-nextBtn.addEventListener('click', switchMode);
-
-mainBtn.addEventListener('click', () => {
-    if (isRunning) stopTimer();
-    else startTimer();
-});
-
+// === ШЕРИНГ (Добавляем инфу про деньги) ===
 shareBtn.addEventListener('click', () => {
-    const mode = MODES[currentModeIndex];
-    const text = `Я ${RANKS[Math.floor(userLevel/5)] || "Новичок"} Lvl ${userLevel}! Высидел ${currentPet}. Заходи качаться!`;
+    const totalMoney = calculateMoney(); // Получаем текущую сумму
+    const text = `💰 Мой капитал: $${totalMoney}! Высидел ${currentPet}. Сможешь богаче?`;
     const url = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(text)}`;
     
     if (window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
@@ -261,5 +248,5 @@ shareBtn.addEventListener('click', () => {
 
 // Старт
 renderCollection();
-updateLevelUI(); // Показываем уровень
+updateLevelUI();
 updateUI();

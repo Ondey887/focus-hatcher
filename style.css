@@ -25,9 +25,9 @@ h1 {
     color: #ffd700;
 }
 
-/* === НОВОЕ: СИСТЕМА УРОВНЕЙ === */
+/* === УРОВЕНЬ И ДЕНЬГИ === */
 .level-container {
-    background: rgba(255, 255, 255, 0.1); /* Прозрачный фон */
+    background: rgba(255, 255, 255, 0.1);
     padding: 10px 15px;
     border-radius: 12px;
     margin-bottom: 20px;
@@ -35,17 +35,28 @@ h1 {
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
 
-.level-info {
+.stats-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.level-info {
     font-size: 14px;
     font-weight: bold;
-    margin-bottom: 8px;
-    color: #ffd700; /* Золотой текст */
+    color: #ffd700;
+}
+
+.money-display {
+    font-size: 16px;
+    font-weight: bold;
+    color: #85bb65; /* Зеленый цвет денег */
+    text-shadow: 0 0 5px rgba(133, 187, 101, 0.3);
 }
 
 .progress-bar-bg {
-    background: rgba(0, 0, 0, 0.5); /* Темная подложка */
+    background: rgba(0, 0, 0, 0.5);
     height: 8px;
     border-radius: 4px;
     overflow: hidden;
@@ -53,10 +64,9 @@ h1 {
 
 .progress-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #34c759, #32d74b); /* Зеленый градиент */
-    width: 0%; /* Меняется через JS */
-    transition: width 0.5s ease-out; /* Плавная анимация */
-    box-shadow: 0 0 10px rgba(52, 199, 89, 0.5); /* Свечение */
+    background: linear-gradient(90deg, #34c759, #32d74b);
+    width: 0%;
+    transition: width 0.5s ease-out;
 }
 
 /* === СЛАЙДЕР === */
@@ -106,7 +116,7 @@ h1 {
     100% { transform: rotate(0deg); }
 }
 
-/* === ТЕКСТ И ТАЙМЕР === */
+/* === ТЕКСТ === */
 #mode-title {
     margin: 0;
     font-size: 24px;
@@ -119,12 +129,13 @@ h1 {
     color: #8e8e93;
 }
 
+/* === ТАЙМЕР (БЕЛЫЙ) === */
 #timer {
     font-size: 56px;
     font-weight: bold;
     margin: 15px 0;
     font-variant-numeric: tabular-nums;
-    color: #34c759;
+    color: white; /* Всегда белый */
 }
 
 /* === КНОПКИ === */
@@ -171,14 +182,9 @@ h1 {
     text-align: center;
 }
 
-/* РЕДКОСТЬ (РАМКИ) */
+/* Рамки редкости */
 .pet-slot.common { border: 2px solid #8e8e93; }
-
-.pet-slot.rare { 
-    border: 2px solid #007aff; 
-    box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); 
-}
-
+.pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { 
     border: 2px solid #ffd700; 
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
