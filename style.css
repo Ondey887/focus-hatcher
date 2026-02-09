@@ -231,4 +231,35 @@ h1 {
     0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
     50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 215, 0, 0.9); }
     100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+}/* ... старый код ... */
+
+/* Скрываем/показываем блоки */
+#mode-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.mode-btn {
+    background-color: #3a3a3c; /* Темно-серый */
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Золотая кнопка для хардкора */
+.mode-btn.gold {
+    background: linear-gradient(45deg, #ffd700, #ff8c00);
+    color: black;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.mode-btn.gold:active {
+    transform: scale(0.98);
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
 }

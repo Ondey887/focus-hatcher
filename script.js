@@ -1,21 +1,26 @@
-// === НАСТРОЙКИ ===
-const focusTime = 25 * 60; // 25 минут (1500 секунд)
+// === НАСТРОЙКИ (ТЕСТОВЫЙ РЕЖИМ) ===
+// Чтобы сделать РЕАЛЬНОЕ время, замени цифры:
+// const SHORT_TIME = 25 * 60; 
+// const LONG_TIME = 60 * 60;
+
+const SHORT_TIME = 10; // Тест: 10 секунд вместо 25 мин
+const LONG_TIME = 20;  // Тест: 20 секунд вместо 60 мин
+
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
-let timeLeft = focusTime;
+let timeLeft = SHORT_TIME;
 let timerInterval = null;
 let isRunning = false;
 let currentPet = null;
+let currentMode = 'short'; // 'short' или 'long'
 
-// === БАЗА ДАННЫХ ПИТОМЦЕВ ===
-// Мы разделили их по редкости, чтобы знать, какой цвет давать
 const petDatabase = {
-    common: ["🐣", "🐱", "🐶", "🐹", "🐰", "🐻", "🐨"], // Обычные
-    rare: ["🦊", "🐼", "🐯", "🦁", "🐮", "🐷"],         // Редкие
-    legendary: ["🦄", "🐲", "👽", "🤖", "🦖"]           // ЛЕГЕНДАРНЫЕ
+    common: ["🐣", "🐱", "🐶", "🐹", "🐰", "🐻", "🐨", "🐸"],
+    rare: ["🦊", "🐼", "🐯", "🦁", "🐮", "🐷", "🐵", "🦉"],
+    legendary: ["🦄", "🐲", "👽", "🤖", "🦖", "🔥", "💎"]
 };
 
-// Функция определения редкости по смайлику (чтобы раскрасить инвентарь)
+// Функция определения редкости
 function getPetRarity(petEmoji) {
     if (petDatabase.legendary.includes(petEmoji)) return "legendary";
     if (petDatabase.rare.includes(petEmoji)) return "rare";
@@ -24,13 +29,13 @@ function getPetRarity(petEmoji) {
 
 // === ЗАГРУЗКА ===
 let collection = JSON.parse(localStorage.getItem('myCollection')) || [];
-// Фикс панды (на всякий случай оставляем)
 collection = collection.map(pet => (pet === "panda" ? "🐼" : pet));
 
 // === ЭЛЕМЕНТЫ ===
 const eggDisplay = document.getElementById('egg-display');
 const timerDisplay = document.getElementById('timer');
-const actionBtn = document.getElementById('action-btn');
+const modeSelection = document.getElementById('mode-selection'); // Блок с кнопками выбора
+const giveUpBtn = document.getElementById('give-up-btn'); // Кнопка сдаться
 const shareBtn = document.getElementById('share-btn');
 const statusText = document.getElementById('status-text');
 
@@ -48,12 +53,10 @@ function renderCollection() {
         collectionContainer.innerHTML = '<p style="grid-column: span 5; font-size: 14px; opacity: 0.7;">Коллекция пуста...</p>';
         return;
     }
-    // Рисуем с учетом редкости
     [...collection].reverse().forEach(pet => {
         const slot = document.createElement('div');
-        const rarity = getPetRarity(pet); // Узнаем редкость
-        
-        slot.className = `pet-slot ${rarity}`; // Добавляем класс (common/rare/legendary)
+        const rarity = getPetRarity(pet);
+        slot.className = `pet-slot ${rarity}`;
         slot.textContent = pet;
         collectionContainer.appendChild(slot);
     });
@@ -69,16 +72,30 @@ function updateDisplay() {
     timerDisplay.textContent = formatTime(timeLeft);
 }
 
-function startTimer() {
+// ГЛАВНАЯ ФУНКЦИЯ ЗАПУСКА
+window.selectMode = function(minutes) {
     if (isRunning) return;
+    
+    // Определяем режим
+    if (minutes === 25) {
+        timeLeft = SHORT_TIME;
+        currentMode = 'short';
+        eggDisplay.textContent = "🥚";
+    } else {
+        timeLeft = LONG_TIME;
+        currentMode = 'long';
+        eggDisplay.textContent = "🪺"; // Другое яйцо!
+    }
+    
     isRunning = true;
-    shareBtn.style.display = 'none'; 
-    actionBtn.textContent = "Сдаться";
-    actionBtn.classList.add('stop');
-    actionBtn.style.backgroundColor = "#ff3b30";
-    eggDisplay.textContent = "🥚";
+    
+    // Переключаем интерфейс
+    modeSelection.style.display = 'none'; // Скрываем выбор
+    giveUpBtn.style.display = 'block'; // Показываем кнопку "Сдаться"
+    shareBtn.style.display = 'none';
+    
     eggDisplay.classList.add('shaking');
-    statusText.textContent = "Магия происходит...";
+    statusText.textContent = currentMode === 'short' ? "Фокус 25 минут..." : "ХАРДКОР! Не сдавайся!";
 
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -90,38 +107,40 @@ function startTimer() {
 function stopTimer() {
     clearInterval(timerInterval);
     isRunning = false;
-    timeLeft = focusTime;
-    updateDisplay();
-    actionBtn.textContent = "Начать фокус";
-    actionBtn.classList.remove('stop');
-    actionBtn.style.backgroundColor = "#007aff";
+    
+    // Возвращаем интерфейс обратно
+    modeSelection.style.display = 'flex';
+    giveUpBtn.style.display = 'none';
+    
     eggDisplay.classList.remove('shaking');
-    statusText.textContent = "Попробуй снова!";
+    eggDisplay.textContent = "🥚";
+    timeLeft = 0;
+    updateDisplay();
+    statusText.textContent = "Эх, яйцо остыло!";
 }
 
 function finishTimer() {
     clearInterval(timerInterval);
     isRunning = false;
-    timeLeft = focusTime;
     eggDisplay.classList.remove('shaking');
     
-    // === ЛОГИКА ШАНСОВ ===
-    const chance = Math.random() * 100; // Число от 0 до 100
-    let rarityPool;
-    let rarityName;
+    // === МАТЕМАТИКА ШАНСОВ ===
+    const chance = Math.random() * 100;
+    let rarityPool, rarityName;
 
-    if (chance < 10) { // 10% шанс (0-10)
-        rarityPool = petDatabase.legendary;
-        rarityName = "ЛЕГЕНДАРНЫЙ!";
-    } else if (chance < 40) { // 30% шанс (10-40)
-        rarityPool = petDatabase.rare;
-        rarityName = "Редкий!";
-    } else { // 60% шанс (40-100)
-        rarityPool = petDatabase.common;
-        rarityName = "Обычный";
+    // ШАНСЫ ЗАВИСЯТ ОТ РЕЖИМА
+    if (currentMode === 'short') {
+        // Обычный режим (25 мин): 60% Обычный, 35% Редкий, 5% Легендарный
+        if (chance < 5) { rarityPool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ!"; }
+        else if (chance < 40) { rarityPool = petDatabase.rare; rarityName = "Редкий!"; }
+        else { rarityPool = petDatabase.common; rarityName = "Обычный"; }
+    } else {
+        // Хардкор режим (60 мин): 30% Обычный, 50% Редкий, 20% Легендарный
+        if (chance < 20) { rarityPool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ!"; }
+        else if (chance < 70) { rarityPool = petDatabase.rare; rarityName = "Редкий!"; }
+        else { rarityPool = petDatabase.common; rarityName = "Обычный"; }
     }
 
-    // Выбираем случайного из пула
     currentPet = rarityPool[Math.floor(Math.random() * rarityPool.length)];
     eggDisplay.textContent = currentPet;
     
@@ -129,14 +148,21 @@ function finishTimer() {
     localStorage.setItem('myCollection', JSON.stringify(collection));
     renderCollection();
     
-    actionBtn.textContent = "Ещё раз";
-    actionBtn.classList.remove('stop');
-    actionBtn.style.backgroundColor = "#007aff";
+    // Показываем кнопки финала
+    giveUpBtn.style.display = 'none'; // Скрываем сдаться
+    // Кнопку "выбрать режим" НЕ показываем сразу, чтобы игрок насладился победой.
+    // Вместо этого добавим кнопку "Ещё раз" (или используем логику перезагрузки, но пока так):
+    
+    // Лайфхак: Просто возвращаем выбор режимов, чтобы играть снова
+    setTimeout(() => {
+        modeSelection.style.display = 'flex'; 
+        statusText.textContent = "Сыграем еще?";
+    }, 3000); // Через 3 секунды меню вернется само
+
     shareBtn.style.display = 'block';
     
     statusText.textContent = `${rarityName} Ты получил: ${currentPet}`;
     
-    // Вибрация: если легендарка — долгая вибрация
     if (window.navigator.vibrate) {
         if (rarityName === "ЛЕГЕНДАРНЫЙ!") window.navigator.vibrate([100, 50, 100, 50, 500]);
         else window.navigator.vibrate([200, 100, 200]);
@@ -145,17 +171,19 @@ function finishTimer() {
 
 // === ЗАПУСК ===
 renderCollection();
-updateDisplay();
+// Навешиваем обработчик на кнопку "Сдаться"
+giveUpBtn.addEventListener('click', stopTimer);
 
-actionBtn.addEventListener('click', () => { if (isRunning) stopTimer(); else startTimer(); });
-
+// Кнопка поделиться
 shareBtn.addEventListener('click', () => {
-    // В тексте теперь тоже пишем, если это легендарка
     const rarity = getPetRarity(currentPet);
     let extraText = "";
     if (rarity === "legendary") extraText = "🔥 МНЕ ВЫПАЛА ЛЕГЕНДАРКА! ";
     
-    const text = `${extraText}Я получил ${currentPet} за 25 минут фокуса! Сможешь повторить?`;
+    // Пишем, сколько времени потратили
+    const timeSpent = currentMode === 'short' ? "25 минут" : "ЧАС";
+    
+    const text = `${extraText}Я получил ${currentPet} за ${timeSpent} работы! Сможешь повторить?`;
     const url = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(text)}`;
     
     if (window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
