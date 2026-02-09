@@ -206,4 +206,29 @@ h1 {
 @keyframes popIn {
     0% { transform: scale(0); }
     100% { transform: scale(1); }
+}/* ... старый код ... */
+
+/* Цвета для редкости */
+.pet-slot.common {
+    border: 2px solid #8e8e93; /* Серый */
+    box-shadow: none;
+}
+
+.pet-slot.rare {
+    border: 2px solid #007aff; /* Синий */
+    background: rgba(0, 122, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
+}
+
+.pet-slot.legendary {
+    border: 2px solid #ffd700; /* Золотой */
+    background: rgba(255, 215, 0, 0.2);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    animation: pulse 2s infinite; /* Пульсация */
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+    50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 215, 0, 0.9); }
+    100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
 }
