@@ -1,5 +1,5 @@
 // === НАСТРОЙКИ ===
-const focusTime = 10; // 10 секунд для теста (перед релизом поставь 25 * 60)
+const focusTime = 25 * 60; // 25 минут (1500 секунд)
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 let timeLeft = focusTime;
