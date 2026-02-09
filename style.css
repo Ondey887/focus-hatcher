@@ -1,0 +1,77 @@
+body {
+    background-color: #1c1c1e; /* Темный фон */
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden; /* Чтобы не скроллилось */
+}
+
+.container {
+    text-align: center;
+    width: 100%;
+    max-width: 350px;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #ffd700; /* Золотой заголовок */
+}
+
+.egg {
+    font-size: 100px; /* Огромное яйцо */
+    margin: 20px auto;
+    transition: transform 0.3s;
+    cursor: pointer;
+}
+
+/* Анимация тряски */
+@keyframes shake {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.shaking {
+    animation: shake 0.5s infinite;
+}
+
+#timer {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 20px 0;
+    font-variant-numeric: tabular-nums; /* Чтобы цифры не скакали */
+}
+
+.btn {
+    background-color: #007aff; /* Синий как в ТГ */
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 12px;
+    width: 80%;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn:active {
+    background-color: #0056b3;
+    transform: scale(0.98);
+}
+
+.btn.stop {
+    background-color: #ff3b30; /* Красная кнопка стоп */
+}
+
+.status {
+    color: #8e8e93;
+    margin-top: 20px;
+    font-size: 14px;
+}
