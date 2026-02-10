@@ -9,7 +9,25 @@
 </head>
 <body>
 
+    <div id="shop-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Магазин</h2>
+                <button id="close-shop" class="close-btn">✖</button>
+            </div>
+            
+            <div class="shop-tabs">
+                <button class="tab-btn active" onclick="switchShopTab('themes')">Фоны</button>
+                <button class="tab-btn" onclick="switchShopTab('eggs')">Яйца</button>
+            </div>
+
+            <div id="shop-items" class="shop-grid"></div>
+        </div>
+    </div>
+
     <div class="container">
+        <button id="open-shop-btn" class="icon-btn">🛍️</button>
+
         <h1>Focus Hatcher</h1>
 
         <div class="level-container">
@@ -19,11 +37,9 @@
                 </div>
                 <div class="money-display" id="total-money">💰 0</div>
             </div>
-            
             <div id="unique-count" style="font-size: 12px; color: #8e8e93; margin-bottom: 5px; text-align: left;">
                 Коллекция: 0 / 20
             </div>
-
             <div class="progress-bar-bg">
                 <div id="xp-bar" class="progress-bar-fill" style="width: 0%;"></div>
             </div>
