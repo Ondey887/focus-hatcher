@@ -109,3 +109,21 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
 @keyframes glow { 0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); } 50% { box-shadow: 0 0 20px rgba(255, 215, 0, 1); } 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); } }
+/* ЯЙЦО И СКИНЫ */
+.egg { font-size: 100px; transition: transform 0.3s; animation: breathe 3s infinite ease-in-out; }
+/* Стиль для Алмазного яйца (Hardcore) */
+.egg.hardcore-egg { 
+    filter: drop-shadow(0 0 15px cyan); /* Голубое свечение */
+    animation: breathe 3s infinite ease-in-out, sparkle 2s infinite alternate;
+}
+
+@keyframes sparkle {
+    0% { filter: drop-shadow(0 0 10px cyan) brightness(1); }
+    100% { filter: drop-shadow(0 0 20px cyan) brightness(1.3); }
+}
+
+/* Остальные скины... */
+.egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
+.egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
+.egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
+.egg.skin-ice { filter: drop-shadow(0 0 10px #00ffff) hue-rotate(180deg); }

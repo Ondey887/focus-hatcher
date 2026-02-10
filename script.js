@@ -1,8 +1,24 @@
-// === НАСТРОЙКИ (ТЕСТОВОЕ ВРЕМЯ) ===
+// === НАСТРОЙКИ ===
 // ПЕРЕД РЕЛИЗОМ: Замени 10 и 20 на (25 * 60) и (60 * 60)
 const MODES = [
-    { id: 'short', time: 10, xpReward: 250, egg: '🥚', title: '25 минут', sub: 'Шанс Легендарки: 1%', style: '' },
-    { id: 'long', time: 20, xpReward: 1000, egg: '🥚', title: '60 минут', sub: 'Шанс Легендарки: 5% 🔥', style: 'hardcore' }
+    { 
+        id: 'short', 
+        time: 10, // 25 минут
+        xpReward: 250, 
+        egg: '🥚', // Обычное яйцо
+        title: '25 минут', 
+        sub: 'Шанс Легендарки: 1%', 
+        style: '' 
+    },
+    { 
+        id: 'long', 
+        time: 20, // 60 минут
+        xpReward: 1000, 
+        egg: '💎', // АЛМАЗНОЕ ЯЙЦО
+        title: '60 минут', 
+        sub: 'Шанс Легендарки: 5% 🔥', 
+        style: 'hardcore' 
+    }
 ];
 
 const PRICES = { common: 15, rare: 150, legendary: 5000 };
@@ -24,7 +40,7 @@ const SHOP_DATA = {
         { id: 'gold', name: 'Мажор', price: 10000, cssClass: 'theme-gold' }
     ],
     eggs: [
-        { id: 'default', name: 'Обычное', price: 0, skinClass: '' },
+        { id: 'default', name: 'Стандарт', price: 0, skinClass: '' },
         { id: 'glow', name: 'Сияние', price: 1000, skinClass: 'skin-glow' },
         { id: 'ice', name: 'Лед', price: 3000, skinClass: 'skin-ice' },
         { id: 'glitch', name: 'Глюк', price: 7777, skinClass: 'skin-glitch' },
@@ -271,14 +287,19 @@ window.handleShopClick = function(id, price) {
 };
 
 function applyTheme() { const t = SHOP_DATA.themes.find(x => x.id === activeTheme); document.body.className = t ? t.cssClass : ''; }
+
 function applyEggSkin() { 
     const s = SHOP_DATA.eggs.find(x => x.id === activeEggSkin); 
     if(eggDisplay) {
+        // СБРОС СТИЛЕЙ
         eggDisplay.className = 'egg'; 
+        
+        // ЕСЛИ ЭТО 60 МИНУТ -> ДОБАВЛЯЕМ АЛМАЗНЫЙ ЭФФЕКТ
         const mode = MODES[currentModeIndex];
-        if (mode.style === 'hardcore' && activeEggSkin === 'default') {
-            eggDisplay.classList.add('hardcore');
+        if (mode.style === 'hardcore') {
+            eggDisplay.classList.add('hardcore-egg'); // Специальный класс для алмаза
         }
+        
         if(isRunning) eggDisplay.classList.add('shaking'); 
         if(s && s.skinClass && activeEggSkin !== 'default') eggDisplay.classList.add(s.skinClass); 
     }
@@ -332,7 +353,8 @@ function stopTimer() {
 
 function finishTimer() {
     clearInterval(timerInterval); isRunning=false; 
-    // СБРОС ЦВЕТА ПИТОМЦА
+    
+    // СБРОС СТИЛЕЙ
     if(eggDisplay) eggDisplay.className = 'egg'; 
     
     const mode = MODES[currentModeIndex];
