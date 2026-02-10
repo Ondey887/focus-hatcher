@@ -1,4 +1,4 @@
-// === НАСТРОЙКИ ===
+// === НАСТРОЙКИ (ТЕСТОВОЕ ВРЕМЯ) ===
 // ПЕРЕД РЕЛИЗОМ: Замени 10 и 20 на (25 * 60) и (60 * 60)
 const MODES = [
     { 
@@ -126,6 +126,10 @@ function checkAchievements() {
     let uniqueCount = new Set(collection).size;
     ACHIEVEMENTS_DATA.forEach(ach => {
         if (claimedAchievements.includes(ach.id)) return; 
+        
+        // Защита от кривых данных
+        if (!userStats) userStats = { hatched: 0, earned: 0 };
+
         let completed = false;
         if (ach.type === 'money' && userStats.earned >= ach.goal) completed = true;
         else if (ach.type === 'unique' && uniqueCount >= ach.goal) completed = true;
@@ -139,6 +143,8 @@ function renderAchievements() {
     let uniqueCount = new Set(collection).size;
 
     ACHIEVEMENTS_DATA.forEach(ach => {
+        if (!userStats) userStats = { hatched: 0, earned: 0 }; // Защита
+        
         let current = userStats.hatched;
         if (ach.type === 'money') current = userStats.earned;
         if (ach.type === 'unique') current = uniqueCount;
@@ -230,7 +236,10 @@ window.sellPet = function() {
     const pet = collection[selectedPetIndex];
     const price = PRICES[getPetRarity(pet)];
     walletBalance += price;
+    
+    if (!userStats) userStats = { hatched: 0, earned: 0 };
     userStats.earned += price; 
+    
     localStorage.setItem('walletBalance', walletBalance);
     localStorage.setItem('userStats', JSON.stringify(userStats));
     collection.splice(selectedPetIndex, 1);
@@ -321,8 +330,6 @@ function startTimer() {
     if (isRunning) return;
     const mode = MODES[currentModeIndex];
     timeLeft = mode.time; 
-    
-    // ПРИНУДИТЕЛЬНО УСТАНАВЛИВАЕМ ВРЕМЯ (Защита от бага)
     if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
     if (eggDisplay) eggDisplay.textContent = mode.egg;
     
@@ -339,30 +346,20 @@ function startTimer() {
     timerInterval = setInterval(() => {
         timeLeft--;
         if(timerDisplay) timerDisplay.textContent=formatTime(timeLeft);
-        
-        // ЗАЩИТА ОТ ЗАВИСАНИЯ
-        if(timeLeft <= 0) {
-            finishTimer();
-        }
+        if(timeLeft<=0) finishTimer();
     }, 1000);
 }
 
 function stopTimer() {
-    clearInterval(timerInterval); 
-    isRunning=false;
-    
+    clearInterval(timerInterval); isRunning=false;
     if(prevBtn) prevBtn.style.visibility='visible'; 
     if(nextBtn) nextBtn.style.visibility='visible';
     if(mainBtn) { mainBtn.textContent="Начать фокус"; mainBtn.className="btn"; }
     
-    // Убираем анимации
-    if(eggDisplay) {
-        eggDisplay.classList.remove('shaking');
-        // Возвращаем обычное состояние яйца (без алмазного эффекта или с ним, как положено)
-        applyEggSkin();
-    }
+    if(eggDisplay) eggDisplay.classList.remove('shaking');
+    applyEggSkin(); // Возвращаем вид яйца
     
-    // СБРАСЫВАЕМ ТАЙМЕР ОБРАТНО
+    // СБРАСЫВАЕМ ТАЙМЕР
     const mode = MODES[currentModeIndex];
     timeLeft = mode.time;
     if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
@@ -371,43 +368,52 @@ function stopTimer() {
 }
 
 function finishTimer() {
-    // 1. ОСТАНАВЛИВАЕМ ВСЁ
+    // 1. СТОП
     clearInterval(timerInterval); 
     isRunning=false; 
     
-    // 2. СБРАСЫВАЕМ ИНТЕРФЕЙС
-    if(eggDisplay) eggDisplay.className = 'egg'; // Убираем алмазность и тряску
-    if(mainBtn) { mainBtn.textContent="Ещё раз"; mainBtn.className="btn"; }
-    if(shareBtn) shareBtn.style.display='block';
+    // 2. СБРОС СТИЛЕЙ (Убираем алмазность)
+    if(eggDisplay) eggDisplay.className = 'egg'; 
     
-    // 3. НАЧИСЛЯЕМ
+    // 3. БЕЗОПАСНАЯ ЛОГИКА
     const mode = MODES[currentModeIndex];
     userXP+=mode.xpReward;
     if(userXP>=userLevel*200) { userXP-=userLevel*200; userLevel++; if(statusText) statusText.textContent=`LVL UP! ${userLevel}`; }
     localStorage.setItem('userXP', userXP); localStorage.setItem('userLevel', userLevel); updateLevelUI();
 
+    // ВОТ ТУТ БЫЛА ОШИБКА -> ТЕПЕРЬ ЗАЩИТА
+    if (!userStats) userStats = { hatched: 0, earned: 0 };
     userStats.hatched += 1;
     localStorage.setItem('userStats', JSON.stringify(userStats));
 
+    // 4. ГЕНЕРАЦИЯ ПИТОМЦА
     const chance = Math.random()*100;
-    let pool, rarityName;
+    let pool;
     if (mode.id === 'short') { 
-        if (chance < 1) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ"; }
-        else if (chance < 16) { pool = petDatabase.rare; rarityName = "Редкий"; }
-        else { pool = petDatabase.common; rarityName = "Обычный"; }
+        if (chance < 1) pool = petDatabase.legendary;
+        else if (chance < 16) pool = petDatabase.rare;
+        else pool = petDatabase.common;
     } else { 
-        if (chance < 5) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ"; } 
-        else if (chance < 35) { pool = petDatabase.rare; rarityName = "Редкий"; }
-        else { pool = petDatabase.common; rarityName = "Обычный"; }
+        if (chance < 5) pool = petDatabase.legendary;
+        else if (chance < 35) pool = petDatabase.rare;
+        else pool = petDatabase.common;
     }
+    
     currentPet = pool[Math.floor(Math.random()*pool.length)];
+    
+    // 5. ВЫВОД НА ЭКРАН (Теперь точно сработает)
     if(eggDisplay) eggDisplay.textContent = currentPet;
     
     collection.push(currentPet);
     localStorage.setItem('myCollection', JSON.stringify(collection));
     renderCollection(); 
     
+    // 6. UI
+    if(mainBtn) { mainBtn.textContent="Ещё раз"; mainBtn.className="btn"; }
+    if(shareBtn) shareBtn.style.display='block';
+    
     const price = PRICES[getPetRarity(currentPet)];
+    const rarityName = getPetRarity(currentPet) === "legendary" ? "ЛЕГЕНДА" : (getPetRarity(currentPet) === "rare" ? "Редкий" : "Обычный");
     if(statusText) statusText.textContent = `+${price}$ | ${rarityName}`;
     if(window.navigator.vibrate) window.navigator.vibrate(200);
     setTimeout(() => { if(prevBtn) prevBtn.style.visibility='visible'; if(nextBtn) nextBtn.style.visibility='visible'; }, 2000);
