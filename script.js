@@ -3,18 +3,18 @@
 const MODES = [
     { 
         id: 'short', 
-        time: 10, // 25 минут
+        time: 10, 
         xpReward: 250, 
-        egg: '🥚', // Обычное яйцо
+        egg: '🥚', 
         title: '25 минут', 
         sub: 'Шанс Легендарки: 1%', 
         style: '' 
     },
     { 
         id: 'long', 
-        time: 20, // 60 минут
+        time: 20, 
         xpReward: 1000, 
-        egg: '💎', // АЛМАЗНОЕ ЯЙЦО
+        egg: '💎', // АЛМАЗ
         title: '60 минут', 
         sub: 'Шанс Легендарки: 5% 🔥', 
         style: 'hardcore' 
@@ -296,7 +296,7 @@ function applyEggSkin() {
         
         // ЕСЛИ ЭТО 60 МИНУТ -> ДОБАВЛЯЕМ АЛМАЗНЫЙ ЭФФЕКТ
         const mode = MODES[currentModeIndex];
-        if (mode.style === 'hardcore') {
+        if (mode.style === 'hardcore' && activeEggSkin === 'default') {
             eggDisplay.classList.add('hardcore-egg'); // Специальный класс для алмаза
         }
         
