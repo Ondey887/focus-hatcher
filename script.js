@@ -45,7 +45,6 @@ collection = collection.map(pet => (pet === "panda" ? "🐼" : pet));
 let userXP = parseInt(localStorage.getItem('userXP')) || 0;
 let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
 
-// Кошелек
 let walletBalance = parseInt(localStorage.getItem('walletBalance'));
 if (isNaN(walletBalance)) {
     let migrationMoney = 0;
@@ -57,12 +56,11 @@ if (isNaN(walletBalance)) {
     localStorage.setItem('walletBalance', walletBalance);
 }
 
-// Магазин
 let ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
 let activeTheme = localStorage.getItem('activeTheme') || 'default';
 let activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
 
-// === ПОИСК ЭЛЕМЕНТОВ (Безопасный) ===
+// === ПОИСК ЭЛЕМЕНТОВ ===
 const getEl = (id) => document.getElementById(id);
 const eggDisplay = getEl('egg-display');
 const timerDisplay = getEl('timer');
@@ -87,7 +85,7 @@ const nextBtn = getEl('next-btn');
 let currentShopTab = 'themes';
 let selectedPetIndex = null;
 
-// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+// === ФУНКЦИИ ===
 function getPetRarity(pet) {
     if (petDatabase.legendary.includes(pet)) return "legendary";
     if (petDatabase.rare.includes(pet)) return "rare";
@@ -120,7 +118,6 @@ window.toggleInventory = function() {
 function renderCollection() {
     if (!collectionContainer) return;
     collectionContainer.innerHTML = '';
-    
     for (let i = collection.length - 1; i >= 0; i--) {
         const pet = collection[i];
         const slot = document.createElement('div');
@@ -133,7 +130,7 @@ function renderCollection() {
     updateBalanceUI();
 }
 
-// === ПРОДАЖА ПИТОМЦА ===
+// === ПРОДАЖА ===
 function openPetModal(index) {
     selectedPetIndex = index;
     const pet = collection[index];
@@ -162,13 +159,10 @@ window.sellPet = function() {
     if (selectedPetIndex === null) return;
     const pet = collection[selectedPetIndex];
     const price = PRICES[getPetRarity(pet)];
-    
     walletBalance += price;
     localStorage.setItem('walletBalance', walletBalance);
-    
     collection.splice(selectedPetIndex, 1);
     localStorage.setItem('myCollection', JSON.stringify(collection));
-    
     updateBalanceUI();
     renderCollection();
     closePetModal();
@@ -187,7 +181,6 @@ function renderShop() {
     if(!shopItemsContainer) return;
     shopItemsContainer.innerHTML = '';
     const items = SHOP_DATA[currentShopTab];
-    
     items.forEach(item => {
         const div = document.createElement('div');
         const isOwned = ownedItems[currentShopTab].includes(item.id);
@@ -210,7 +203,6 @@ function renderShop() {
 
 window.handleShopClick = function(id, price) {
     const isOwned = ownedItems[currentShopTab].includes(id);
-
     if (isOwned) {
         if (currentShopTab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
         else { activeEggSkin = id; localStorage.setItem('activeEggSkin', id); applyEggSkin(); }
@@ -224,7 +216,6 @@ window.handleShopClick = function(id, price) {
             
             if (currentShopTab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
             else { activeEggSkin = id; localStorage.setItem('activeEggSkin', id); applyEggSkin(); }
-            
             updateBalanceUI();
             renderShop();
         } else {
@@ -241,7 +232,7 @@ function applyTheme() {
 function applyEggSkin() { 
     const s = SHOP_DATA.eggs.find(x => x.id === activeEggSkin); 
     if(eggDisplay) {
-        eggDisplay.className = 'egg'; 
+        eggDisplay.className = 'egg'; // Сброс
         if(isRunning) eggDisplay.classList.add('shaking'); 
         if(s && s.skinClass) eggDisplay.classList.add(s.skinClass); 
     }
@@ -259,7 +250,7 @@ function updateLevelUI() {
     if(rankName) rankName.textContent = RANKS[Math.min(rankIndex, RANKS.length - 1)];
 }
 
-// === ОСНОВНОЙ ЦИКЛ ИГРЫ ===
+// === ИГРА ===
 function updateUI() {
     const mode = MODES[currentModeIndex];
     if(!isRunning) { 
@@ -307,7 +298,11 @@ function stopTimer() {
 
 function finishTimer() {
     clearInterval(timerInterval); isRunning=false; 
-    if(eggDisplay) eggDisplay.classList.remove('shaking');
+    
+    // === ИСПРАВЛЕНИЕ ЦВЕТА ПИТОМЦА ===
+    if(eggDisplay) eggDisplay.className = 'egg'; // Убираем скин и тряску
+    // =================================
+    
     const mode = MODES[currentModeIndex];
     
     userXP+=mode.xpReward;
@@ -341,7 +336,7 @@ function finishTimer() {
     setTimeout(() => { if(prevBtn) prevBtn.style.visibility='visible'; if(nextBtn) nextBtn.style.visibility='visible'; }, 2000);
 }
 
-// === ПОДКЛЮЧЕНИЕ СОБЫТИЙ (Event Listeners) ===
+// EVENTS
 if(getEl('open-shop-btn')) getEl('open-shop-btn').onclick = () => { if(shopModal) shopModal.style.display='flex'; switchShopTab('themes'); };
 if(getEl('close-shop')) getEl('close-shop').onclick = () => { if(shopModal) shopModal.style.display='none'; };
 if(prevBtn) prevBtn.onclick = () => { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); }};
@@ -355,9 +350,8 @@ if(shareBtn) shareBtn.onclick = () => {
     else window.open(url, '_blank');
 };
 
-// === ИНИЦИАЛИЗАЦИЯ ===
-// Эти функции запускаются при старте, чтобы всё работало
-applyTheme(); // Красим фон (Космос/Лес)
-renderCollection(); // Рисуем инвентарь
-updateLevelUI(); // Рисуем уровень
-updateUI(); // Рисуем таймер
+// INIT
+applyTheme();
+renderCollection();
+updateLevelUI();
+updateUI();
