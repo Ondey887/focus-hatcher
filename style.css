@@ -1,6 +1,6 @@
-/* === БАЗОВЫЕ СТИЛИ === */
+/* === БАЗА === */
 body {
-    background-color: #1c1c1e; /* Стандартный темный */
+    background-color: #1c1c1e;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     display: flex;
@@ -11,136 +11,77 @@ body {
     overflow-y: auto;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.5s ease; /* Плавная смена темы */
+    transition: background-color 0.5s ease;
 }
 
-/* === ТЕМЫ (Фоны) === */
+/* ТЕМЫ */
 body.theme-forest { background: linear-gradient(135deg, #134e5e, #71b280); }
 body.theme-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); }
 body.theme-gold { background: linear-gradient(135deg, #3e2b0e, #d4af37); }
 body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
-
-/* === СКИНЫ ЯИЦ === */
-.egg {
-    font-size: 100px;
-    transition: transform 0.3s;
-    animation: breathe 3s infinite ease-in-out;
-}
-/* Свечение */
-.egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
-/* Золотая аура */
-.egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
-/* Глюк */
-.egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
-/* Ледяной */
-.egg.skin-ice { filter: drop-shadow(0 0 10px #00ffff) hue-rotate(180deg); }
 
 .container {
     text-align: center;
     width: 100%;
     max-width: 350px;
     padding: 20px;
-    position: relative; /* Для позиционирования кнопки магазина */
+    position: relative;
+    padding-bottom: 50px; /* Место для скролла */
 }
 
 /* Кнопка магазина */
 .icon-btn {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 10px; left: 10px;
     background: rgba(255,255,255,0.1);
-    border: none;
-    font-size: 24px;
-    padding: 10px;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 10;
+    border: none; font-size: 24px; padding: 10px;
+    border-radius: 50%; cursor: pointer; z-index: 10;
 }
 
-/* === МОДАЛЬНОЕ ОКНО МАГАЗИНА === */
+/* === МОДАЛКИ (Магазин + Питомец) === */
 .modal {
-    position: fixed;
-    top: 0; left: 0;
+    position: fixed; top: 0; left: 0;
     width: 100%; height: 100%;
     background: rgba(0,0,0,0.8);
     z-index: 100;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: flex; justify-content: center; align-items: center;
     backdrop-filter: blur(5px);
 }
-
 .modal-content {
-    background: #2c2c2e;
-    width: 90%;
-    max-width: 320px;
-    border-radius: 20px;
-    padding: 20px;
+    background: #2c2c2e; width: 90%; max-width: 320px;
+    border-radius: 20px; padding: 20px;
     text-align: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.1);
 }
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .modal-header h2 { margin: 0; color: #fff; }
 .close-btn { background: none; border: none; color: #8e8e93; font-size: 24px; cursor: pointer; }
 
-/* Табы */
+/* Карточка питомца */
+.pet-big-icon { font-size: 80px; margin: 10px 0; animation: breathe 3s infinite; }
+.pet-name { font-size: 24px; margin: 5px 0; }
+.pet-rarity { font-size: 14px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+.pet-rarity.common { color: #8e8e93; }
+.pet-rarity.rare { color: #007aff; }
+.pet-rarity.legendary { color: #ffd700; }
+.pet-price { font-size: 18px; color: #85bb65; margin-bottom: 15px; }
+.sell-action { background-color: #ff3b30; margin-top: 10px; }
+
+/* Магазин */
 .shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-.tab-btn {
-    flex: 1;
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: #fff;
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-}
+.tab-btn { flex: 1; background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; }
 .tab-btn.active { background: #007aff; }
-
-/* Сетка товаров */
-.shop-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.shop-item {
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: 2px solid transparent;
-}
-
-.shop-item.active { border-color: #34c759; } /* Выбранный товар */
-
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 300px; overflow-y: auto; }
+.shop-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; }
+.shop-item.active { border-color: #34c759; }
 .shop-item-icon { font-size: 30px; margin-bottom: 5px; }
 .shop-item-name { font-size: 14px; margin-bottom: 5px; font-weight: bold; }
-.buy-btn {
-    background: #34c759;
-    border: none;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    width: 100%;
-    cursor: pointer;
-}
+.buy-btn { background: #34c759; border: none; color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 12px; width: 100%; cursor: pointer; }
 .buy-btn.locked { background: #3a3a3c; color: #8e8e93; }
 .buy-btn.owned { background: #007aff; }
 
-/* === ОСТАЛЬНОЕ (Старый CSS) === */
+/* === ОСНОВНОЙ ИНТЕРФЕЙС === */
 h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .level-container { background: rgba(255, 255, 255, 0.1); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
 .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -148,22 +89,56 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .money-display { font-size: 16px; font-weight: bold; color: #85bb65; text-shadow: 0 0 5px rgba(133, 187, 101, 0.3); }
 .progress-bar-bg { background: rgba(0, 0, 0, 0.5); height: 8px; border-radius: 4px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #34c759, #32d74b); width: 0%; transition: width 0.5s ease-out; }
+
+/* Слайдер и яйцо */
 .slider-container { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
 .arrow-btn { background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 40px; cursor: pointer; padding: 10px; }
 .arrow-btn:active { transform: scale(1.2); }
+.egg { font-size: 100px; transition: transform 0.3s; animation: breathe 3s infinite ease-in-out; }
+.egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
+.egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
+.egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
+.egg.skin-ice { filter: drop-shadow(0 0 10px #00ffff) hue-rotate(180deg); }
 @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 .shaking { animation: shake 0.5s infinite !important; }
 @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
-#mode-title { margin: 0; font-size: 24px; font-weight: bold; }
-#mode-subtitle { margin: 5px 0 0 0; font-size: 14px; color: #8e8e93; }
+
 #timer { font-size: 56px; font-weight: bold; margin: 15px 0; font-variant-numeric: tabular-nums; color: white; }
 .btn { background-color: #007aff; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: transform 0.1s; }
 .btn:active { transform: scale(0.96); }
 .btn.stop { background-color: #ff3b30; }
 .share-btn { background-color: #34c759; }
-.status { color: #8e8e93; margin-top: 10px; font-size: 14px; }
-#collection { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 25px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 15px; }
-.pet-slot { font-size: 28px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; text-align: center; }
+
+/* === ИНВЕНТАРЬ (Сворачиваемый) === */
+.inventory-header {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,0.05);
+    padding: 10px 15px; border-radius: 10px;
+    margin-top: 20px; cursor: pointer;
+    font-weight: bold; color: #8e8e93;
+}
+.inventory-header:active { background: rgba(255,255,255,0.1); }
+
+#collection {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px; border-radius: 15px;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    overflow: hidden;
+}
+
+#collection.hidden {
+    display: none; /* Скрываем */
+}
+
+.pet-slot { 
+    font-size: 28px; background: rgba(0, 0, 0, 0.3); 
+    border-radius: 8px; padding: 5px; text-align: center; 
+    cursor: pointer; position: relative;
+}
+.pet-slot:active { transform: scale(0.9); }
+
 .pet-slot.common { border: 2px solid #8e8e93; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }

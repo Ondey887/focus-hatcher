@@ -15,13 +15,27 @@
                 <h2>Магазин</h2>
                 <button id="close-shop" class="close-btn">✖</button>
             </div>
-            
             <div class="shop-tabs">
                 <button class="tab-btn active" onclick="switchShopTab('themes')">Фоны</button>
                 <button class="tab-btn" onclick="switchShopTab('eggs')">Яйца</button>
             </div>
-
             <div id="shop-items" class="shop-grid"></div>
+        </div>
+    </div>
+
+    <div id="pet-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Питомец</h2>
+                <button onclick="closePetModal()" class="close-btn">✖</button>
+            </div>
+            <div id="pet-detail-view">
+                <div class="pet-big-icon">🐼</div>
+                <h3 class="pet-name">Панда</h3>
+                <p class="pet-rarity rare">Редкий</p>
+                <p class="pet-price">Цена: $150</p>
+                <button id="sell-btn" class="btn sell-action">Продать за $150</button>
+            </div>
         </div>
     </div>
 
@@ -38,7 +52,7 @@
                 <div class="money-display" id="total-money">💰 0</div>
             </div>
             <div id="unique-count" style="font-size: 12px; color: #8e8e93; margin-bottom: 5px; text-align: left;">
-                Коллекция: 0 / 20
+                Коллекция: 0 / 24
             </div>
             <div class="progress-bar-bg">
                 <div id="xp-bar" class="progress-bar-fill" style="width: 0%;"></div>
@@ -61,7 +75,10 @@
         <button id="main-btn" class="btn">Начать фокус</button>
         <button id="share-btn" class="btn share-btn" style="display: none;">Похвастаться с другом 📢</button>
         
-        <p class="status" id="status-text">Листай стрелочки, чтобы выбрать!</p>
+        <div class="inventory-header" onclick="toggleInventory()">
+            <span>Моя коллекция</span>
+            <span id="inventory-arrow">▼</span>
+        </div>
         
         <div id="collection"></div>
     </div>
