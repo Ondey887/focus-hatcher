@@ -57,7 +57,7 @@ collection = collection.map(pet => (pet === "panda" ? "🐼" : pet));
 let userXP = parseInt(localStorage.getItem('userXP')) || 0;
 let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
 
-// Элементы (безопасный поиск)
+// Элементы
 const getEl = (id) => document.getElementById(id);
 const eggDisplay = getEl('egg-display');
 const timerDisplay = getEl('timer');
@@ -126,7 +126,7 @@ function updateUI() {
     if (!isRunning) {
         if (eggDisplay) eggDisplay.textContent = mode.egg;
         if (timerDisplay) timerDisplay.textContent = formatTime(mode.time);
-        timeLeft = mode.time; // Сброс времени при обновлении интерфейса
+        timeLeft = mode.time;
     }
     if (modeTitle) modeTitle.textContent = mode.title;
     if (modeSub) modeSub.textContent = mode.sub;
@@ -163,12 +163,13 @@ function formatTime(seconds) {
 function startTimer() {
     if (isRunning) return;
     
-    // === ИСПРАВЛЕНИЕ БАГА ТУТ ===
-    // Принудительно сбрасываем время на старте!
     const mode = MODES[currentModeIndex];
     timeLeft = mode.time; 
     if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
-    // ============================
+    
+    // === ВОЗВРАЩАЕМ ЯЙЦО ===
+    if (eggDisplay) eggDisplay.textContent = mode.egg; 
+    // ======================
     
     isRunning = true;
     if (prevBtn) prevBtn.style.visibility = 'hidden';
@@ -197,7 +198,7 @@ function stopTimer() {
     if (mainBtn) { mainBtn.textContent = "Начать фокус"; mainBtn.className = "btn"; }
     if (eggDisplay) eggDisplay.classList.remove('shaking');
     
-    updateUI(); // Это тоже вернет время в норму
+    updateUI(); 
     
     if (statusText) statusText.textContent = "Сдался = нет награды";
 }
