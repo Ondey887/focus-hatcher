@@ -39,16 +39,14 @@ const petDatabase = {
 };
 const TOTAL_PETS_COUNT = 24;
 
-// === ЗАГРУЗКА И МИГРАЦИЯ ЭКОНОМИКИ ===
+// === ЗАГРУЗКА И ДАННЫЕ ===
 let collection = JSON.parse(localStorage.getItem('myCollection')) || [];
 collection = collection.map(pet => (pet === "panda" ? "🐼" : pet));
 let userXP = parseInt(localStorage.getItem('userXP')) || 0;
 let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
 
-// НОВОЕ: Реальный баланс кошелька
+// Кошелек
 let walletBalance = parseInt(localStorage.getItem('walletBalance'));
-
-// Если баланса нет (старый игрок), считаем капитал по коллекции и дарим его
 if (isNaN(walletBalance)) {
     let migrationMoney = 0;
     collection.forEach(pet => {
@@ -64,7 +62,7 @@ let ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['d
 let activeTheme = localStorage.getItem('activeTheme') || 'default';
 let activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
 
-// === ЭЛЕМЕНТЫ ===
+// === ПОИСК ЭЛЕМЕНТОВ (Безопасный) ===
 const getEl = (id) => document.getElementById(id);
 const eggDisplay = getEl('egg-display');
 const timerDisplay = getEl('timer');
@@ -77,12 +75,16 @@ const levelNumber = getEl('level-number');
 const rankName = getEl('rank-name');
 const totalMoneyDisplay = getEl('total-money');
 const uniqueCountDisplay = getEl('unique-count');
-// Магазин
 const shopModal = getEl('shop-modal');
 const shopItemsContainer = getEl('shop-items');
-// Пет Модалка
 const petModal = getEl('pet-modal');
 const inventoryArrow = getEl('inventory-arrow');
+const modeTitle = getEl('mode-title');
+const modeSub = getEl('mode-subtitle');
+const prevBtn = getEl('prev-btn');
+const nextBtn = getEl('next-btn');
+
+let currentShopTab = 'themes';
 let selectedPetIndex = null;
 
 // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
@@ -93,24 +95,45 @@ function getPetRarity(pet) {
 }
 
 function updateBalanceUI() {
-    totalMoneyDisplay.textContent = `💰 $${walletBalance.toLocaleString()}`;
-    if (uniqueCountDisplay) {
-        uniqueCountDisplay.textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
-    }
+    if(totalMoneyDisplay) totalMoneyDisplay.textContent = `💰 $${walletBalance.toLocaleString()}`;
+    if(uniqueCountDisplay) uniqueCountDisplay.textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
 }
 
-// === ЛОГИКА ИНВЕНТАРЯ (Сворачивание) ===
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+// === ИНВЕНТАРЬ ===
 window.toggleInventory = function() {
+    if (!collectionContainer) return;
     if (collectionContainer.classList.contains('hidden')) {
         collectionContainer.classList.remove('hidden');
-        inventoryArrow.textContent = "▼";
+        if(inventoryArrow) inventoryArrow.textContent = "▼";
     } else {
         collectionContainer.classList.add('hidden');
-        inventoryArrow.textContent = "▲";
+        if(inventoryArrow) inventoryArrow.textContent = "▲";
     }
 }
 
-// === ЛОГИКА ПРОДАЖИ (Pet Inspector) ===
+function renderCollection() {
+    if (!collectionContainer) return;
+    collectionContainer.innerHTML = '';
+    
+    for (let i = collection.length - 1; i >= 0; i--) {
+        const pet = collection[i];
+        const slot = document.createElement('div');
+        const rarity = getPetRarity(pet);
+        slot.className = `pet-slot ${rarity}`;
+        slot.textContent = pet;
+        slot.onclick = () => openPetModal(i);
+        collectionContainer.appendChild(slot);
+    }
+    updateBalanceUI();
+}
+
+// === ПРОДАЖА ПИТОМЦА ===
 function openPetModal(index) {
     selectedPetIndex = index;
     const pet = collection[index];
@@ -118,154 +141,152 @@ function openPetModal(index) {
     const price = PRICES[rarity];
     const names = { common: "Обычный", rare: "Редкий", legendary: "ЛЕГЕНДАРНЫЙ" };
 
-    petModal.style.display = 'flex';
-    
-    // Заполняем инфу
-    getEl('pet-detail-view').innerHTML = `
-        <div class="pet-big-icon">${pet}</div>
-        <h3 class="pet-name">Питомец</h3>
-        <p class="pet-rarity ${rarity}">${names[rarity]}</p>
-        <p class="pet-price">Цена продажи: $${price}</p>
-        <button onclick="sellPet()" class="btn sell-action">Продать за $${price}</button>
-    `;
+    if(petModal) {
+        petModal.style.display = 'flex';
+        getEl('pet-detail-view').innerHTML = `
+            <div class="pet-big-icon">${pet}</div>
+            <h3 class="pet-name">Питомец</h3>
+            <p class="pet-rarity ${rarity}">${names[rarity]}</p>
+            <p class="pet-price">Цена продажи: $${price}</p>
+            <button onclick="sellPet()" class="btn sell-action">Продать за $${price}</button>
+        `;
+    }
 }
 
 window.closePetModal = function() {
-    petModal.style.display = 'none';
+    if(petModal) petModal.style.display = 'none';
     selectedPetIndex = null;
 }
 
 window.sellPet = function() {
     if (selectedPetIndex === null) return;
-    
     const pet = collection[selectedPetIndex];
     const price = PRICES[getPetRarity(pet)];
     
-    // 1. Добавляем деньги
     walletBalance += price;
     localStorage.setItem('walletBalance', walletBalance);
     
-    // 2. Удаляем из коллекции
     collection.splice(selectedPetIndex, 1);
     localStorage.setItem('myCollection', JSON.stringify(collection));
     
-    // 3. Обновляем интерфейс
     updateBalanceUI();
     renderCollection();
     closePetModal();
-    
-    // Звук монеток (вибрация)
     if (window.navigator.vibrate) window.navigator.vibrate([50, 50, 50]);
 }
 
-function renderCollection() {
-    if (!collectionContainer) return;
-    collectionContainer.innerHTML = '';
-    
-    // Переворачиваем копию массива, чтобы новые были сверху, 
-    // НО нам нужны правильные индексы для удаления.
-    // Поэтому просто бежим с конца.
-    for (let i = collection.length - 1; i >= 0; i--) {
-        const pet = collection[i];
-        const slot = document.createElement('div');
-        const rarity = getPetRarity(pet);
-        
-        slot.className = `pet-slot ${rarity}`;
-        slot.textContent = pet;
-        
-        // Клик открывает модалку
-        slot.onclick = () => openPetModal(i);
-        
-        collectionContainer.appendChild(slot);
-    }
-    updateBalanceUI();
-}
-
-// === ЛОГИКА МАГАЗИНА ===
+// === МАГАЗИН ===
 window.switchShopTab = function(tab) {
-    // ... тот же код ...
+    currentShopTab = tab;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    renderShop(tab);
+    if(event.target) event.target.classList.add('active');
+    renderShop();
 }
 
-function renderShop(tab = 'themes') {
+function renderShop() {
+    if(!shopItemsContainer) return;
     shopItemsContainer.innerHTML = '';
-    const items = SHOP_DATA[tab];
+    const items = SHOP_DATA[currentShopTab];
     
     items.forEach(item => {
         const div = document.createElement('div');
-        const isOwned = ownedItems[tab].includes(item.id);
-        const isActive = (tab === 'themes' && activeTheme === item.id) || 
-                         (tab === 'eggs' && activeEggSkin === item.id);
+        const isOwned = ownedItems[currentShopTab].includes(item.id);
+        const isActive = (currentShopTab === 'themes' && activeTheme === item.id) || 
+                         (currentShopTab === 'eggs' && activeEggSkin === item.id);
         
         let btnText = isOwned ? (isActive ? "Выбрано" : "Выбрать") : `$${item.price}`;
         let btnClass = isOwned ? "buy-btn owned" : "buy-btn";
-        if (!isOwned && walletBalance < item.price) btnClass += " locked"; // Проверка Wallet
+        if (!isOwned && walletBalance < item.price) btnClass += " locked";
 
         div.className = `shop-item ${isActive ? 'active' : ''}`;
         div.innerHTML = `
-            <div class="shop-item-icon">${tab === 'themes' ? '🎨' : '🥚'}</div>
+            <div class="shop-item-icon">${currentShopTab === 'themes' ? '🎨' : '🥚'}</div>
             <div class="shop-item-name">${item.name}</div>
-            <button class="${btnClass}" onclick="handleShopClick('${item.id}', ${item.price}, '${tab}')">${btnText}</button>
+            <button class="${btnClass}" onclick="handleShopClick('${item.id}', ${item.price})">${btnText}</button>
         `;
         shopItemsContainer.appendChild(div);
     });
 }
 
-window.handleShopClick = function(id, price, tab) {
-    const isOwned = ownedItems[tab].includes(id);
+window.handleShopClick = function(id, price) {
+    const isOwned = ownedItems[currentShopTab].includes(id);
 
     if (isOwned) {
-        // Активация
-        if (tab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
+        if (currentShopTab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
         else { activeEggSkin = id; localStorage.setItem('activeEggSkin', id); applyEggSkin(); }
-        renderShop(tab);
+        renderShop();
     } else {
-        // Покупка
         if (walletBalance >= price) {
-            walletBalance -= price; // Вычитаем из кошелька
+            walletBalance -= price;
             localStorage.setItem('walletBalance', walletBalance);
-            
-            ownedItems[tab].push(id);
+            ownedItems[currentShopTab].push(id);
             localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
             
-            // Активируем
-            if (tab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
+            if (currentShopTab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
             else { activeEggSkin = id; localStorage.setItem('activeEggSkin', id); applyEggSkin(); }
             
             updateBalanceUI();
-            renderShop(tab);
+            renderShop();
         } else {
             if (window.navigator.vibrate) window.navigator.vibrate([50, 50]);
         }
     }
 };
 
-// ... (Функции applyTheme, applyEggSkin, startTimer, stopTimer, finishTimer - ТЕ ЖЕ, что в прошлом коде) ...
-// ВАЖНО: Вставь их сюда из прошлого ответа или я могу дать полный код, если нужно.
+function applyTheme() { 
+    const t = SHOP_DATA.themes.find(x => x.id === activeTheme); 
+    document.body.className = t ? t.cssClass : ''; 
+}
 
-// === ВСЕ СТАРЫЕ ФУНКЦИИ (Сокращенно для вставки) ===
-function applyTheme() { const t = SHOP_DATA.themes.find(x=>x.id===activeTheme); document.body.className=t?t.cssClass:''; }
-function applyEggSkin() { const s = SHOP_DATA.eggs.find(x=>x.id===activeEggSkin); eggDisplay.className='egg'; if(isRunning) eggDisplay.classList.add('shaking'); if(s&&s.skinClass) eggDisplay.classList.add(s.skinClass); }
-function formatTime(s) { const m=Math.floor(s/60).toString().padStart(2,'0'); const sc=(s%60).toString().padStart(2,'0'); return `${m}:${sc}`; }
-function updateLevelUI() { /* ... старый код ... */ xpBar.style.width = `${(userXP/(userLevel*200))*100}%`; levelNumber.textContent=`Lvl ${userLevel}`; } 
+function applyEggSkin() { 
+    const s = SHOP_DATA.eggs.find(x => x.id === activeEggSkin); 
+    if(eggDisplay) {
+        eggDisplay.className = 'egg'; 
+        if(isRunning) eggDisplay.classList.add('shaking'); 
+        if(s && s.skinClass) eggDisplay.classList.add(s.skinClass); 
+    }
+}
 
-// ОБНОВЛЕННЫЙ START TIMER (С возвратом яйца)
+// === УРОВНИ ===
+function updateLevelUI() {
+    if (!xpBar) return;
+    const xpForNextLevel = userLevel * 200; 
+    let percentage = (userXP / xpForNextLevel) * 100;
+    if (percentage > 100) percentage = 100;
+    xpBar.style.width = `${percentage}%`;
+    if(levelNumber) levelNumber.textContent = `Lvl ${userLevel}`;
+    let rankIndex = Math.floor(userLevel / 5);
+    if(rankName) rankName.textContent = RANKS[Math.min(rankIndex, RANKS.length - 1)];
+}
+
+// === ОСНОВНОЙ ЦИКЛ ИГРЫ ===
+function updateUI() {
+    const mode = MODES[currentModeIndex];
+    if(!isRunning) { 
+        if(eggDisplay) eggDisplay.textContent = mode.egg; 
+        if(timerDisplay) timerDisplay.textContent = formatTime(mode.time); 
+    }
+    if(modeTitle) modeTitle.textContent = mode.title; 
+    if(modeSub) modeSub.textContent = mode.sub;
+}
+
 function startTimer() {
     if (isRunning) return;
     const mode = MODES[currentModeIndex];
     timeLeft = mode.time; 
+    
     if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
-    if (eggDisplay) eggDisplay.textContent = mode.egg; // ЯЙЦО!
+    if (eggDisplay) eggDisplay.textContent = mode.egg;
     
     isRunning = true;
-    prevBtn.style.visibility='hidden'; nextBtn.style.visibility='hidden'; shareBtn.style.display='none';
-    mainBtn.textContent="Сдаться"; mainBtn.className="btn stop";
+    if(prevBtn) prevBtn.style.visibility='hidden'; 
+    if(nextBtn) nextBtn.style.visibility='hidden'; 
+    if(shareBtn) shareBtn.style.display='none';
+    if(mainBtn) { mainBtn.textContent="Сдаться"; mainBtn.className="btn stop"; }
     
     applyEggSkin();
-    eggDisplay.classList.add('shaking');
-    statusText.textContent="Фармим...";
+    if(eggDisplay) eggDisplay.classList.add('shaking');
+    if(statusText) statusText.textContent="Фармим...";
 
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -276,22 +297,23 @@ function startTimer() {
 
 function stopTimer() {
     clearInterval(timerInterval); isRunning=false;
-    prevBtn.style.visibility='visible'; nextBtn.style.visibility='visible';
-    mainBtn.textContent="Начать фокус"; mainBtn.className="btn";
-    eggDisplay.classList.remove('shaking');
+    if(prevBtn) prevBtn.style.visibility='visible'; 
+    if(nextBtn) nextBtn.style.visibility='visible';
+    if(mainBtn) { mainBtn.textContent="Начать фокус"; mainBtn.className="btn"; }
+    if(eggDisplay) eggDisplay.classList.remove('shaking');
     updateUI();
+    if(statusText) statusText.textContent="Сдался = нет награды";
 }
 
 function finishTimer() {
-    clearInterval(timerInterval); isRunning=false; eggDisplay.classList.remove('shaking');
+    clearInterval(timerInterval); isRunning=false; 
+    if(eggDisplay) eggDisplay.classList.remove('shaking');
     const mode = MODES[currentModeIndex];
     
-    // XP
     userXP+=mode.xpReward;
-    if(userXP>=userLevel*200) { userXP-=userLevel*200; userLevel++; statusText.textContent=`LVL UP! ${userLevel}`; }
+    if(userXP>=userLevel*200) { userXP-=userLevel*200; userLevel++; if(statusText) statusText.textContent=`LVL UP! ${userLevel}`; }
     localStorage.setItem('userXP', userXP); localStorage.setItem('userLevel', userLevel); updateLevelUI();
 
-    // DROP
     const chance = Math.random()*100;
     let pool, rarityName;
     if (mode.id === 'short') { 
@@ -304,36 +326,38 @@ function finishTimer() {
         else { pool = petDatabase.common; rarityName = "Обычный"; }
     }
     currentPet = pool[Math.floor(Math.random()*pool.length)];
-    eggDisplay.textContent = currentPet;
+    if(eggDisplay) eggDisplay.textContent = currentPet;
     
     collection.push(currentPet);
     localStorage.setItem('myCollection', JSON.stringify(collection));
-    renderCollection(); // Обновит и добавит клик
+    renderCollection(); 
     
-    mainBtn.textContent="Ещё раз"; mainBtn.className="btn";
-    shareBtn.style.display='block';
+    if(mainBtn) { mainBtn.textContent="Ещё раз"; mainBtn.className="btn"; }
+    if(shareBtn) shareBtn.style.display='block';
     
     const price = PRICES[getPetRarity(currentPet)];
-    statusText.textContent = `+${price}$ (стоимость) | ${rarityName}`;
+    if(statusText) statusText.textContent = `+${price}$ | ${rarityName}`;
     if(window.navigator.vibrate) window.navigator.vibrate(200);
-    setTimeout(() => { prevBtn.style.visibility='visible'; nextBtn.style.visibility='visible'; }, 2000);
+    setTimeout(() => { if(prevBtn) prevBtn.style.visibility='visible'; if(nextBtn) nextBtn.style.visibility='visible'; }, 2000);
 }
 
-function updateUI() {
-    const mode = MODES[currentModeIndex];
-    if(!isRunning) { eggDisplay.textContent=mode.egg; timerDisplay.textContent=formatTime(mode.time); }
-    getEl('mode-title').textContent=mode.title; getEl('mode-subtitle').textContent=mode.sub;
-}
+// === ПОДКЛЮЧЕНИЕ СОБЫТИЙ (Event Listeners) ===
+if(getEl('open-shop-btn')) getEl('open-shop-btn').onclick = () => { if(shopModal) shopModal.style.display='flex'; switchShopTab('themes'); };
+if(getEl('close-shop')) getEl('close-shop').onclick = () => { if(shopModal) shopModal.style.display='none'; };
+if(prevBtn) prevBtn.onclick = () => { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); }};
+if(nextBtn) nextBtn.onclick = () => { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); }};
+if(mainBtn) mainBtn.onclick = () => isRunning ? stopTimer() : startTimer();
+if(shareBtn) shareBtn.onclick = () => {
+    let uniqueCount = new Set(collection).size;
+    const text = `У меня ${uniqueCount} петов и $${walletBalance} в Focus Hatcher! Заходи.`;
+    const url = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(text)}`;
+    if (window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
+    else window.open(url, '_blank');
+};
 
-// LISTENERS
-getEl('open-shop-btn').onclick = () => { getEl('shop-modal').style.display='flex'; switchShopTab('themes'); };
-getEl('close-shop').onclick = () => getEl('shop-modal').style.display='none';
-prevBtn.onclick = () => { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); }};
-nextBtn.onclick = () => { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); }};
-mainBtn.onclick = () => isRunning ? stopTimer() : startTimer();
-
-// INIT
-renderCollection();
-updateLevelUI();
-updateUI();
-applyTheme();
+// === ИНИЦИАЛИЗАЦИЯ ===
+// Эти функции запускаются при старте, чтобы всё работало
+applyTheme(); // Красим фон (Космос/Лес)
+renderCollection(); // Рисуем инвентарь
+updateLevelUI(); // Рисуем уровень
+updateUI(); // Рисуем таймер
