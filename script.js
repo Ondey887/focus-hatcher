@@ -1,6 +1,5 @@
-// === НАСТРОЙКИ ===
-// ВАЖНО: Я оставил тестовое время (10 и 20 сек), чтобы ты мог проверить.
-// Перед отправкой другу поменяй на 25*60 и 60*60!
+// === НАСТРОЙКИ (ТЕСТОВОЕ ВРЕМЯ) ===
+// ПЕРЕД РЕЛИЗОМ: Замени 10 и 20 на (25 * 60) и (60 * 60)
 const MODES = [
     { 
         id: 'short', 
@@ -8,23 +7,23 @@ const MODES = [
         xpReward: 250, 
         egg: '🥚', 
         title: '25 минут', 
-        sub: 'Шанс Легендарки: 1%' // Честно пишем шанс
+        sub: 'Шанс Легендарки: 1%' 
     },
     { 
         id: 'long', 
         time: 20, 
-        xpReward: 1000, // Больше опыта за час
+        xpReward: 1000, 
         egg: '🪺', 
         title: '60 минут', 
         sub: 'Шанс Легендарки: 5% 🔥' 
     }
 ];
 
-// === НОВАЯ ЭКОНОМИКА ===
+// === ЭКОНОМИКА ===
 const PRICES = {
-    common: 15,       // Чуть подняли базу
-    rare: 150,        // Редкие стали ценнее
-    legendary: 5000   // ДЖЕКПОТ!
+    common: 15,
+    rare: 150,
+    legendary: 5000
 };
 
 const RANKS = ["Новичок", "Искатель", "Укротитель", "Мастер", "Ниндзя", "Легенда", "Бог Фокуса"];
@@ -36,14 +35,13 @@ let isRunning = false;
 let currentPet = null;
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game"; 
 
-// База всех возможных питомцев (Всего 20 штук)
 const petDatabase = {
     common: ["🐣", "🐱", "🐶", "🐹", "🐰", "🐸", "🐻", "🐨", "🐤", "🐛"],
     rare: ["🦊", "🐼", "🐯", "🦁", "🐮", "🐷", "🐵", "🦉"],
-    legendary: ["🦄", "🐲", "👽", "🤖", "🦖", "🔥"] // Их мало и они редкие
+    legendary: ["🦄", "🐲", "👽", "🤖", "🦖", "🔥"]
 };
 
-// Всего уникальных существ для счетчика
+// Всего уникальных существ
 const TOTAL_PETS_COUNT = petDatabase.common.length + petDatabase.rare.length + petDatabase.legendary.length;
 
 function getPetRarity(pet) {
@@ -59,7 +57,7 @@ collection = collection.map(pet => (pet === "panda" ? "🐼" : pet));
 let userXP = parseInt(localStorage.getItem('userXP')) || 0;
 let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
 
-// Элементы
+// Элементы (безопасный поиск)
 const getEl = (id) => document.getElementById(id);
 const eggDisplay = getEl('egg-display');
 const timerDisplay = getEl('timer');
@@ -75,15 +73,13 @@ const xpBar = getEl('xp-bar');
 const levelNumber = getEl('level-number');
 const rankName = getEl('rank-name');
 const totalMoneyDisplay = getEl('total-money');
-const uniqueCountDisplay = getEl('unique-count'); // Новый элемент
+const uniqueCountDisplay = getEl('unique-count');
 
 // === ЛОГИКА ===
 
 function calculateStats() {
     if (!totalMoneyDisplay) return;
-    
     let totalMoney = 0;
-    // Используем Set, чтобы посчитать только уникальных
     let uniquePets = new Set(collection);
     
     collection.forEach(pet => {
@@ -92,12 +88,9 @@ function calculateStats() {
     });
     
     totalMoneyDisplay.textContent = `💰 $${totalMoney.toLocaleString()}`;
-    
-    // Обновляем счетчик коллекции
     if (uniqueCountDisplay) {
         uniqueCountDisplay.textContent = `Коллекция: ${uniquePets.size} / ${TOTAL_PETS_COUNT}`;
     }
-    
     return totalMoney;
 }
 
@@ -133,7 +126,7 @@ function updateUI() {
     if (!isRunning) {
         if (eggDisplay) eggDisplay.textContent = mode.egg;
         if (timerDisplay) timerDisplay.textContent = formatTime(mode.time);
-        timeLeft = mode.time;
+        timeLeft = mode.time; // Сброс времени при обновлении интерфейса
     }
     if (modeTitle) modeTitle.textContent = mode.title;
     if (modeSub) modeSub.textContent = mode.sub;
@@ -169,6 +162,14 @@ function formatTime(seconds) {
 
 function startTimer() {
     if (isRunning) return;
+    
+    // === ИСПРАВЛЕНИЕ БАГА ТУТ ===
+    // Принудительно сбрасываем время на старте!
+    const mode = MODES[currentModeIndex];
+    timeLeft = mode.time; 
+    if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+    // ============================
+    
     isRunning = true;
     if (prevBtn) prevBtn.style.visibility = 'hidden';
     if (nextBtn) nextBtn.style.visibility = 'hidden';
@@ -195,7 +196,9 @@ function stopTimer() {
     if (nextBtn) nextBtn.style.visibility = 'visible';
     if (mainBtn) { mainBtn.textContent = "Начать фокус"; mainBtn.className = "btn"; }
     if (eggDisplay) eggDisplay.classList.remove('shaking');
-    updateUI(); 
+    
+    updateUI(); // Это тоже вернет время в норму
+    
     if (statusText) statusText.textContent = "Сдался = нет награды";
 }
 
@@ -210,14 +213,12 @@ function finishTimer() {
     const chance = Math.random() * 100;
     let pool, rarityName;
 
-    // === НОВЫЙ ЖЕСТКИЙ БАЛАНС ===
+    // ШАНСЫ
     if (mode.id === 'short') { 
-        // 25 МИН: Легендарка 1%, Редкий 15%
         if (chance < 1) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ"; }
         else if (chance < 16) { pool = petDatabase.rare; rarityName = "Редкий"; }
         else { pool = petDatabase.common; rarityName = "Обычный"; }
     } else { 
-        // 60 МИН: Легендарка 5%, Редкий 30%
         if (chance < 5) { pool = petDatabase.legendary; rarityName = "ЛЕГЕНДАРНЫЙ"; } 
         else if (chance < 35) { pool = petDatabase.rare; rarityName = "Редкий"; }
         else { pool = petDatabase.common; rarityName = "Обычный"; }
@@ -254,7 +255,6 @@ function finishTimer() {
 if (shareBtn) {
     shareBtn.addEventListener('click', () => {
         const totalMoney = calculateStats(); 
-        // В сообщении теперь пишем про уникальность
         let uniqueCount = new Set(collection).size;
         const text = `Я собрал ${uniqueCount}/20 питомцев и заработал $${totalMoney}! Выпал ${currentPet}. Догоняй!`;
         const url = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(text)}`;
