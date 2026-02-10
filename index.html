@@ -29,18 +29,26 @@
                 <h2>Питомец</h2>
                 <button onclick="closePetModal()" class="close-btn">✖</button>
             </div>
-            <div id="pet-detail-view">
-                <div class="pet-big-icon">🐼</div>
-                <h3 class="pet-name">Панда</h3>
-                <p class="pet-rarity rare">Редкий</p>
-                <p class="pet-price">Цена: $150</p>
-                <button id="sell-btn" class="btn sell-action">Продать за $150</button>
+            <div id="pet-detail-view"></div>
+        </div>
+    </div>
+
+    <div id="achievements-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Достижения</h2>
+                <button id="close-achievements" class="close-btn">✖</button>
             </div>
+            <div id="achievements-list" class="shop-grid" style="display: flex; flex-direction: column; gap: 10px;">
+                </div>
         </div>
     </div>
 
     <div class="container">
-        <button id="open-shop-btn" class="icon-btn">🛍️</button>
+        <div class="top-bar">
+            <button id="open-shop-btn" class="icon-btn">🛍️</button>
+            <button id="achievements-btn" class="icon-btn">🏆</button>
+        </div>
 
         <h1>Focus Hatcher</h1>
 
@@ -61,7 +69,9 @@
         
         <div class="slider-container">
             <button id="prev-btn" class="arrow-btn">❮</button>
-            <div id="egg-display" class="egg">🥚</div>
+            <div id="egg-wrapper">
+                <div id="egg-display" class="egg">🥚</div>
+            </div>
             <button id="next-btn" class="arrow-btn">❯</button>
         </div>
 
