@@ -321,6 +321,8 @@ function startTimer() {
     if (isRunning) return;
     const mode = MODES[currentModeIndex];
     timeLeft = mode.time; 
+    
+    // ПРИНУДИТЕЛЬНО УСТАНАВЛИВАЕМ ВРЕМЯ (Защита от бага)
     if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
     if (eggDisplay) eggDisplay.textContent = mode.egg;
     
@@ -337,26 +339,48 @@ function startTimer() {
     timerInterval = setInterval(() => {
         timeLeft--;
         if(timerDisplay) timerDisplay.textContent=formatTime(timeLeft);
-        if(timeLeft<=0) finishTimer();
+        
+        // ЗАЩИТА ОТ ЗАВИСАНИЯ
+        if(timeLeft <= 0) {
+            finishTimer();
+        }
     }, 1000);
 }
 
 function stopTimer() {
-    clearInterval(timerInterval); isRunning=false;
+    clearInterval(timerInterval); 
+    isRunning=false;
+    
     if(prevBtn) prevBtn.style.visibility='visible'; 
     if(nextBtn) nextBtn.style.visibility='visible';
     if(mainBtn) { mainBtn.textContent="Начать фокус"; mainBtn.className="btn"; }
-    if(eggDisplay) eggDisplay.classList.remove('shaking');
-    updateUI();
+    
+    // Убираем анимации
+    if(eggDisplay) {
+        eggDisplay.classList.remove('shaking');
+        // Возвращаем обычное состояние яйца (без алмазного эффекта или с ним, как положено)
+        applyEggSkin();
+    }
+    
+    // СБРАСЫВАЕМ ТАЙМЕР ОБРАТНО
+    const mode = MODES[currentModeIndex];
+    timeLeft = mode.time;
+    if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+    
     if(statusText) statusText.textContent="Сдался = нет награды";
 }
 
 function finishTimer() {
-    clearInterval(timerInterval); isRunning=false; 
+    // 1. ОСТАНАВЛИВАЕМ ВСЁ
+    clearInterval(timerInterval); 
+    isRunning=false; 
     
-    // СБРОС СТИЛЕЙ
-    if(eggDisplay) eggDisplay.className = 'egg'; 
+    // 2. СБРАСЫВАЕМ ИНТЕРФЕЙС
+    if(eggDisplay) eggDisplay.className = 'egg'; // Убираем алмазность и тряску
+    if(mainBtn) { mainBtn.textContent="Ещё раз"; mainBtn.className="btn"; }
+    if(shareBtn) shareBtn.style.display='block';
     
+    // 3. НАЧИСЛЯЕМ
     const mode = MODES[currentModeIndex];
     userXP+=mode.xpReward;
     if(userXP>=userLevel*200) { userXP-=userLevel*200; userLevel++; if(statusText) statusText.textContent=`LVL UP! ${userLevel}`; }
@@ -382,9 +406,6 @@ function finishTimer() {
     collection.push(currentPet);
     localStorage.setItem('myCollection', JSON.stringify(collection));
     renderCollection(); 
-    
-    if(mainBtn) { mainBtn.textContent="Ещё раз"; mainBtn.className="btn"; }
-    if(shareBtn) shareBtn.style.display='block';
     
     const price = PRICES[getPetRarity(currentPet)];
     if(statusText) statusText.textContent = `+${price}$ | ${rarityName}`;

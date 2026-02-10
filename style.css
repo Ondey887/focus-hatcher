@@ -82,31 +82,32 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 /* ЯЙЦО И СКИНЫ */
 .egg { font-size: 100px; transition: transform 0.3s; animation: breathe 3s infinite ease-in-out; }
 
-/* 🔥 ХАРДКОРНЫЙ АЛМАЗ (Перевернут + Светится) 🔥 */
+/* === НОВОЕ: Перевернутый алмаз с дыханием === */
+/* Чтобы алмаз был острием вверх, поворачиваем на 180 градусов */
 .egg.hardcore-egg { 
     filter: drop-shadow(0 0 15px cyan); 
-    /* Используем специальную анимацию, которая сохраняет поворот */
+    /* ВАЖНО: Анимация должна включать в себя поворот, чтобы он не сбрасывался */
     animation: breathe-diamond 3s infinite ease-in-out !important;
 }
 
-/* Обычное дыхание */
+/* Обычное дыхание (для нормальных яиц) */
 @keyframes breathe { 
     0% { transform: scale(1); } 
     50% { transform: scale(1.05); } 
     100% { transform: scale(1); } 
 }
 
-/* Дыхание для перевернутого алмаза (чтобы не сбрасывался поворот) */
+/* Дыхание для Алмаза (Повернут на 180) */
 @keyframes breathe-diamond { 
     0% { transform: rotate(180deg) scale(1); } 
     50% { transform: rotate(180deg) scale(1.05); } 
     100% { transform: rotate(180deg) scale(1); } 
 }
 
-/* Тряска */
+/* Тряска (обычная) */
 .shaking { animation: shake 0.5s infinite !important; }
 
-/* Тряска для алмаза (тоже перевернутая) */
+/* Тряска для Алмаза (Повернутая) */
 .egg.hardcore-egg.shaking { animation: shake-diamond 0.5s infinite !important; }
 
 @keyframes shake { 
@@ -118,8 +119,8 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
     0% { transform: rotate(180deg) rotate(0deg); } 25% { transform: rotate(180deg) rotate(5deg); } 
     50% { transform: rotate(180deg) rotate(0deg); } 75% { transform: rotate(180deg) rotate(-5deg); } 100% { transform: rotate(180deg) rotate(0deg); } 
 }
+/* ============================================= */
 
-/* Остальные скины */
 .egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
 .egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
 .egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
