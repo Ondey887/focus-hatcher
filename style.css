@@ -44,28 +44,6 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 .ach-title { font-size: 14px; font-weight: bold; margin: 0; }
 .ach-desc { font-size: 12px; color: #8e8e93; margin: 2px 0 0 0; }
 
-/* СТИЛИ ПИТОМЦА И МАГАЗИНА */
-.pet-big-icon { font-size: 80px; margin: 10px 0; animation: breathe 3s infinite; }
-.pet-name { font-size: 24px; margin: 5px 0; }
-.pet-rarity { font-size: 14px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-.pet-rarity.common { color: #8e8e93; }
-.pet-rarity.rare { color: #007aff; }
-.pet-rarity.legendary { color: #ffd700; }
-.pet-price { font-size: 18px; color: #85bb65; margin-bottom: 15px; }
-.sell-action { background-color: #ff3b30; margin-top: 10px; }
-
-.shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-.tab-btn { flex: 1; background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; }
-.tab-btn.active { background: #007aff; }
-.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.shop-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; }
-.shop-item.active { border-color: #34c759; }
-.shop-item-icon { font-size: 30px; margin-bottom: 5px; }
-.shop-item-name { font-size: 14px; margin-bottom: 5px; font-weight: bold; }
-.buy-btn { background: #34c759; border: none; color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 12px; width: 100%; cursor: pointer; }
-.buy-btn.locked { background: #3a3a3c; color: #8e8e93; }
-.buy-btn.owned { background: #007aff; }
-
 /* ИНТЕРФЕЙС */
 h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .level-container { background: rgba(255, 255, 255, 0.1); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
@@ -79,16 +57,8 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .arrow-btn { background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 40px; cursor: pointer; padding: 10px; }
 .arrow-btn:active { transform: scale(1.2); }
 
-/* ЯЙЦО И СКИНЫ */
+/* === ЯЙЦА И АНИМАЦИИ (ГЛАВНОЕ ИСПРАВЛЕНИЕ) === */
 .egg { font-size: 100px; transition: transform 0.3s; animation: breathe 3s infinite ease-in-out; }
-
-/* 🔥 ХАРДКОРНЫЙ АЛМАЗ (Перевернут + Светится) 🔥 */
-.egg.hardcore-egg { 
-    filter: drop-shadow(0 0 15px cyan); 
-    /* ВАЖНО: transform здесь фиксирует поворот */
-    transform: rotate(180deg);
-    animation: breathe-diamond 3s infinite ease-in-out !important;
-}
 
 /* Обычное дыхание */
 @keyframes breathe { 
@@ -98,34 +68,41 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 }
 
 /* Дыхание для перевернутого алмаза */
-@keyframes breathe-diamond { 
+@keyframes breathe-inverted { 
     0% { transform: rotate(180deg) scale(1); } 
     50% { transform: rotate(180deg) scale(1.05); } 
     100% { transform: rotate(180deg) scale(1); } 
 }
 
-/* Тряска */
+/* КЛАСС ДЛЯ АЛМАЗА (Принудительно!) */
+.egg.diamond-egg { 
+    filter: drop-shadow(0 0 15px cyan) !important;
+    animation: breathe-inverted 3s infinite ease-in-out !important; 
+}
+
+/* Тряска обычная */
 .shaking { animation: shake 0.5s infinite !important; }
 
 /* Тряска для алмаза (тоже перевернутая) */
-.egg.hardcore-egg.shaking { animation: shake-diamond 0.5s infinite !important; }
+.egg.diamond-egg.shaking { animation: shake-inverted 0.5s infinite !important; }
 
 @keyframes shake { 
     0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 
     50% { transform: rotate(0deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } 
 }
 
-@keyframes shake-diamond { 
-    0% { transform: rotate(180deg) rotate(0deg); } 25% { transform: rotate(180deg) rotate(5deg); } 
-    50% { transform: rotate(180deg) rotate(0deg); } 75% { transform: rotate(180deg) rotate(-5deg); } 100% { transform: rotate(180deg) rotate(0deg); } 
+@keyframes shake-inverted { 
+    0% { transform: rotate(180deg); } 25% { transform: rotate(185deg); } 
+    50% { transform: rotate(180deg); } 75% { transform: rotate(175deg); } 100% { transform: rotate(180deg); } 
 }
 
-/* Остальные скины */
+/* Скины (работают только на обычном яйце) */
 .egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
 .egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
 .egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
 .egg.skin-ice { filter: drop-shadow(0 0 10px #00ffff) hue-rotate(180deg); }
 
+/* Остальное */
 #timer { font-size: 56px; font-weight: bold; margin: 15px 0; font-variant-numeric: tabular-nums; color: white; }
 .btn { background-color: #007aff; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: transform 0.1s; }
 .btn:active { transform: scale(0.96); }
@@ -140,4 +117,12 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .pet-slot.common { border: 2px solid #8e8e93; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
-@keyframes glow { 0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); } 50% { box-shadow: 0 0 20px rgba(255, 215, 0, 1); } 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); } }
+/* Элементы магазина и питомца */
+.pet-big-icon { font-size: 80px; margin: 10px 0; animation: breathe 3s infinite; }
+.pet-name { font-size: 24px; margin: 5px 0; }
+.pet-rarity { font-size: 14px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+.pet-rarity.common { color: #8e8e93; }
+.pet-rarity.rare { color: #007aff; }
+.pet-rarity.legendary { color: #ffd700; }
+.pet-price { font-size: 18px; color: #85bb65; margin-bottom: 15px; }
+.sell-action { background-color: #ff3b30; margin-top: 10px; }
