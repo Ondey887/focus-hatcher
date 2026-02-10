@@ -14,7 +14,7 @@ body.theme-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e
 body.theme-gold { background: linear-gradient(135deg, #3e2b0e, #d4af37); }
 body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 
-.container { text-align: center; width: 100%; max-width: 350px; padding: 20px; position: relative; padding-bottom: 50px; }
+.container { text-align: center; width: 100%; max-width: 350px; padding: 20px; position: relative; padding-bottom: 80px; }
 
 /* КНОПКИ МЕНЮ */
 .top-bar { position: absolute; top: 10px; left: 10px; z-index: 10; display: flex; gap: 10px; }
@@ -32,17 +32,30 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 .modal-header h2 { margin: 0; color: #fff; }
 .close-btn { background: none; border: none; color: #8e8e93; font-size: 24px; cursor: pointer; }
 
-/* КАРТОЧКА АЧИВКИ */
-.achievement-card {
-    background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px;
-    display: flex; align-items: center; gap: 10px; text-align: left;
-    border: 1px solid transparent; opacity: 0.8;
+/* МАГАЗИН (ПОЧИНИЛ РАЗМЕРЫ) */
+.shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+.tab-btn { 
+    flex: 1; 
+    background: rgba(255,255,255,0.1); 
+    border: none; 
+    color: #fff; 
+    padding: 10px; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    font-weight: bold;
+    min-width: 80px; /* Минимальная ширина */
 }
-.achievement-card.unlocked { opacity: 1; border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
-.ach-icon { font-size: 24px; }
-.ach-info { flex: 1; }
-.ach-title { font-size: 14px; font-weight: bold; margin: 0; }
-.ach-desc { font-size: 12px; color: #8e8e93; margin: 2px 0 0 0; }
+.tab-btn.active { background: #007aff; }
+
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.shop-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; }
+.shop-item.active { border-color: #34c759; }
+.shop-item-icon { font-size: 30px; margin-bottom: 5px; }
+.shop-item-name { font-size: 14px; margin-bottom: 5px; font-weight: bold; }
+.buy-btn { background: #34c759; border: none; color: #fff; padding: 8px; border-radius: 8px; font-size: 12px; width: 100%; cursor: pointer; font-weight: bold; }
+.buy-btn.locked { background: #3a3a3c; color: #8e8e93; }
+.buy-btn.owned { background: #007aff; }
 
 /* ИНТЕРФЕЙС */
 h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
@@ -57,67 +70,84 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .arrow-btn { background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 40px; cursor: pointer; padding: 10px; }
 .arrow-btn:active { transform: scale(1.2); }
 
-/* === ЯЙЦА И АНИМАЦИИ (ГЛАВНОЕ ИСПРАВЛЕНИЕ) === */
-.egg { font-size: 100px; transition: transform 0.3s; animation: breathe 3s infinite ease-in-out; }
-
-/* Обычное дыхание */
-@keyframes breathe { 
-    0% { transform: scale(1); } 
-    50% { transform: scale(1.05); } 
-    100% { transform: scale(1); } 
+/* ЯЙЦО (ПОЧИНИЛ ПОВОРОТ) */
+.egg { 
+    font-size: 100px; 
+    display: inline-block; /* ОБЯЗАТЕЛЬНО ДЛЯ ПОВОРОТА */
+    transition: transform 0.3s; 
+    animation: breathe 3s infinite ease-in-out; 
 }
 
-/* Дыхание для перевернутого алмаза */
-@keyframes breathe-inverted { 
+/* Перевернутый алмаз */
+.egg.diamond-egg { 
+    filter: drop-shadow(0 0 15px cyan); 
+    transform: rotate(180deg);
+    animation: breathe-diamond 3s infinite ease-in-out !important;
+}
+
+@keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes breathe-diamond { 
     0% { transform: rotate(180deg) scale(1); } 
     50% { transform: rotate(180deg) scale(1.05); } 
     100% { transform: rotate(180deg) scale(1); } 
 }
 
-/* КЛАСС ДЛЯ АЛМАЗА (Принудительно!) */
-.egg.diamond-egg { 
-    filter: drop-shadow(0 0 15px cyan) !important;
-    animation: breathe-inverted 3s infinite ease-in-out !important; 
-}
-
-/* Тряска обычная */
 .shaking { animation: shake 0.5s infinite !important; }
-
-/* Тряска для алмаза (тоже перевернутая) */
 .egg.diamond-egg.shaking { animation: shake-inverted 0.5s infinite !important; }
 
-@keyframes shake { 
-    0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 
-    50% { transform: rotate(0deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } 
-}
+@keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
+@keyframes shake-inverted { 0% { transform: rotate(180deg); } 25% { transform: rotate(185deg); } 50% { transform: rotate(180deg); } 75% { transform: rotate(175deg); } 100% { transform: rotate(180deg); } }
 
-@keyframes shake-inverted { 
-    0% { transform: rotate(180deg); } 25% { transform: rotate(185deg); } 
-    50% { transform: rotate(180deg); } 75% { transform: rotate(175deg); } 100% { transform: rotate(180deg); } 
-}
-
-/* Скины (работают только на обычном яйце) */
+/* Скины */
 .egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
 .egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
 .egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
 .egg.skin-ice { filter: drop-shadow(0 0 10px #00ffff) hue-rotate(180deg); }
 
-/* Остальное */
 #timer { font-size: 56px; font-weight: bold; margin: 15px 0; font-variant-numeric: tabular-nums; color: white; }
 .btn { background-color: #007aff; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: transform 0.1s; }
 .btn:active { transform: scale(0.96); }
 .btn.stop { background-color: #ff3b30; }
 .share-btn { background-color: #34c759; }
 
-.inventory-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; margin-top: 20px; cursor: pointer; font-weight: bold; color: #8e8e93; }
+/* ИНВЕНТАРЬ (ПОЧИНИЛ РАЗМЕРЫ) */
+.inventory-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    background: rgba(255,255,255,0.05); padding: 15px; 
+    border-radius: 10px; margin-top: 20px; cursor: pointer; 
+    font-weight: bold; color: #fff; border: 1px solid rgba(255,255,255,0.1); 
+}
 .inventory-header:active { background: rgba(255,255,255,0.1); }
-#collection { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 15px; transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden; }
-#collection.hidden { display: none; }
+
+#collection { 
+    display: grid; 
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 8px; 
+    margin-top: 10px; 
+    background: rgba(255, 255, 255, 0.05); 
+    padding: 10px; 
+    border-radius: 15px; 
+    transition: all 0.3s ease-in-out;
+    overflow: hidden; 
+}
+
+/* Скрытый инвентарь */
+#collection.hidden { 
+    display: none; 
+}
+
 .pet-slot { font-size: 28px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; text-align: center; cursor: pointer; position: relative; }
 .pet-slot.common { border: 2px solid #8e8e93; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
-/* Элементы магазина и питомца */
+
+/* Достижения и Питомец */
+.achievement-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid transparent; opacity: 0.8; }
+.achievement-card.unlocked { opacity: 1; border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+.ach-icon { font-size: 24px; }
+.ach-info { flex: 1; }
+.ach-title { font-size: 14px; font-weight: bold; margin: 0; }
+.ach-desc { font-size: 12px; color: #8e8e93; margin: 2px 0 0 0; }
 .pet-big-icon { font-size: 80px; margin: 10px 0; animation: breathe 3s infinite; }
 .pet-name { font-size: 24px; margin: 5px 0; }
 .pet-rarity { font-size: 14px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
