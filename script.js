@@ -55,7 +55,7 @@ const petDatabase = {
 };
 const TOTAL_PETS_COUNT = 24;
 
-// Загрузка
+// === ЗАГРУЗКА (С ПРОВЕРКОЙ НА NULL) ===
 let collection = JSON.parse(localStorage.getItem('myCollection')) || [];
 let userXP = parseInt(localStorage.getItem('userXP')) || 0;
 let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
@@ -63,16 +63,27 @@ let walletBalance = parseInt(localStorage.getItem('walletBalance')) || 0;
 let ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
 let activeTheme = localStorage.getItem('activeTheme') || 'default';
 let activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
-let userStats = JSON.parse(localStorage.getItem('userStats')) || { hatched: 0, earned: 0, invites: 0 };
+
+// Статистика (с защитой)
+let userStats = { hatched: 0, earned: 0, invites: 0 };
+try {
+    let saved = JSON.parse(localStorage.getItem('userStats'));
+    if (saved) userStats = saved;
+} catch(e) {}
+
+// Бустеры (с защитой)
+let myBoosters = { luck: 0, speed: 0 };
+try {
+    let savedBoosters = JSON.parse(localStorage.getItem('myBoosters'));
+    if (savedBoosters) myBoosters = savedBoosters;
+} catch(e) {}
+
 let claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
 let claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
 let isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
 
-// БУСТЕРЫ ИНИЦИАЛИЗАЦИЯ (ИСПРАВЛЕНО)
-let myBoosters = JSON.parse(localStorage.getItem('myBoosters')) || { luck: 0, speed: 0 };
-// Гарантируем, что переменная всегда есть
-if (!myBoosters) myBoosters = { luck: 0, speed: 0 };
-let activeBoosters = { luck: false, speed: false }; 
+// Активные бустеры в текущем раунде
+let activeBoosters = { luck: false, speed: false };
 
 // === ЭЛЕМЕНТЫ ===
 const getEl = (id) => document.getElementById(id);
@@ -145,17 +156,17 @@ function getPetRarity(pet) {
     return "common";
 }
 
-// === БУСТЕРЫ ===
+// === БУСТЕРЫ UI ===
 function renderBoostersPanel() {
     if(!boostersPanel) return;
     boostersPanel.innerHTML = '';
     
-    // Безопасная проверка
-    const luckCount = myBoosters.luck || 0;
-    const speedCount = myBoosters.speed || 0;
+    // Защита от undefined
+    if(!myBoosters.luck) myBoosters.luck = 0;
+    if(!myBoosters.speed) myBoosters.speed = 0;
 
-    const luckBtn = createBoosterBtn('luck', '🍀', luckCount, activeBoosters.luck);
-    const speedBtn = createBoosterBtn('speed', '⏳', speedCount, activeBoosters.speed);
+    const luckBtn = createBoosterBtn('luck', '🍀', myBoosters.luck, activeBoosters.luck);
+    const speedBtn = createBoosterBtn('speed', '⏳', myBoosters.speed, activeBoosters.speed);
     
     boostersPanel.appendChild(luckBtn);
     boostersPanel.appendChild(speedBtn);
@@ -176,7 +187,7 @@ function createBoosterBtn(type, icon, count, isActive) {
     return div;
 }
 
-// === ИГРА (ИСПРАВЛЕНО ЗАВИСАНИЕ) ===
+// === ИГРА ===
 function updateUI() {
     const mode = MODES[currentModeIndex];
     if(!isRunning) { 
@@ -192,7 +203,6 @@ function updateUI() {
 
 function startTimer() {
     if (isRunning) return;
-    // Очистка старых интервалов на всякий случай
     if(timerInterval) clearInterval(timerInterval);
 
     const mode = MODES[currentModeIndex];
@@ -206,6 +216,7 @@ function startTimer() {
     applyEggSkin();
     if(eggDisplay) eggDisplay.classList.add('shaking');
     
+    // Блокируем бустеры
     renderBoostersPanel();
 
     timerInterval = setInterval(() => {
@@ -260,10 +271,9 @@ function finishTimer() {
         localStorage.setItem('myCollection', JSON.stringify(collection));
         renderCollection(); 
         
-        // ВАЖНО: Принудительное открытие инвентаря
         if(collectionContainer.classList.contains('hidden')) toggleInventory();
         
-        // Списание бустеров
+        // Списание
         if(activeBoosters.luck) { myBoosters.luck--; activeBoosters.luck = false; }
         if(activeBoosters.speed) { myBoosters.speed--; activeBoosters.speed = false; }
         localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
@@ -338,8 +348,7 @@ window.handleShopClick = function(id, price) {
     }
 };
 
-// ... (Функции вкладок ачивок/квестов и другие, их можно оставить из прошлого кода, но для надежности вставь всё целиком)
-
+// === ОСТАЛЬНЫЕ ФУНКЦИИ ===
 window.switchAchTab = function(tab) {
     currentAchTab = tab;
     document.querySelectorAll('#achievements-modal .tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -427,7 +436,26 @@ window.sellPet = function() {
     showToast(`Продано за $${price}`, "💰");
     if (isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(50);
 }
-
+function applyTheme() { const t = SHOP_DATA.themes.find(x => x.id === activeTheme); document.body.className = t ? t.cssClass : ''; }
+function applyEggSkin() { 
+    if(!eggDisplay) return;
+    const mode = MODES[currentModeIndex];
+    const s = SHOP_DATA.eggs.find(x => x.id === activeEggSkin); 
+    eggDisplay.className = 'egg'; 
+    if (mode.style === 'hardcore') { eggDisplay.classList.add('diamond-egg'); } 
+    else { if (s && s.skinClass && activeEggSkin !== 'default') eggDisplay.classList.add(s.skinClass); }
+    if(isRunning) eggDisplay.classList.add('shaking'); 
+}
+function updateLevelUI() {
+    if (!xpBar) return;
+    const xpForNextLevel = userLevel * 200; 
+    let percentage = (userXP / xpForNextLevel) * 100;
+    if (percentage > 100) percentage = 100;
+    xpBar.style.width = `${percentage}%`;
+    if(levelNumber) levelNumber.textContent = `Lvl ${userLevel}`;
+    let rankIndex = Math.floor(userLevel / 5);
+    if(rankName) rankName.textContent = RANKS[Math.min(rankIndex, RANKS.length - 1)];
+}
 // Events
 if(getEl('open-shop-btn')) getEl('open-shop-btn').onclick = () => { if(shopModal) shopModal.style.display='flex'; switchShopTab('themes'); };
 if(getEl('close-shop')) getEl('close-shop').onclick = () => { if(shopModal) shopModal.style.display='none'; };
