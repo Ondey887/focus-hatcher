@@ -3,9 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Focus Game</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* === СТИЛИ (CSS) === */
+        body { background-color: #1c1c1e; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow-y: auto; user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 0.5s ease; }
+        
+        /* Темы */
+        body.theme-forest { background: linear-gradient(135deg, #134e5e, #71b280); }
+        body.theme-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); }
+        body.theme-gold { background: linear-gradient(135deg, #3e2b0e, #d4af37); }
+        body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
+
+        .container { text-align: center; width: 100%; max-width: 350px; padding: 20px; position: relative; padding-bottom: 80px; }
+
+        /* Верхнее меню */
+        .top-bar { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 10; display: flex; justify-content: space-between; }
+        .left-buttons { display: flex; gap: 10px; }
+        .icon-btn { background: rgba(255,255,255,0.1); border: none; font-size: 20px; padding: 0; border-radius: 50%; cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); transition: transform 0.1s; }
+        .icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+        .red-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; }
+
+        /* Основные элементы */
+        h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
+        .level-container { background: rgba(255, 255, 255, 0.1); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
+        .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .level-info { font-size: 14px; font-weight: bold; color: #ffd700; }
+        .money-display { font-size: 16px; font-weight: bold; color: #85bb65; text-shadow: 0 0 5px rgba(133, 187, 101, 0.3); }
+        .progress-bar-bg { background: rgba(0, 0, 0, 0.5); height: 8px; border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #34c759, #32d74b); width: 0%; transition: width 0.5s ease-out; }
+        
+        .slider-container { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
+        .arrow-btn { background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 40px; cursor: pointer; padding: 10px; }
+        .arrow-btn:active { transform: scale(1.2); }
+        
+        #timer { font-size: 56px; font-weight: bold; margin: 15px 0; font-variant-numeric: tabular-nums; color: white; }
+        .btn { background-color: #007aff; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.96); }
+        .btn.stop { background-color: #ff3b30; }
+        .share-btn { background-color: #34c759; }
+
+        /* Яйцо и Анимации */
+        .egg { font-size: 100px; display: inline-block; transition: transform 0.3s; animation: breathe 3s infinite ease-in-out; }
+        .egg.diamond-egg { filter: drop-shadow(0 0 15px cyan); transform: rotate(180deg); animation: breathe-diamond 3s infinite ease-in-out !important; }
+        @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes breathe-diamond { 0% { transform: rotate(180deg) scale(1); } 50% { transform: rotate(180deg) scale(1.05); } 100% { transform: rotate(180deg) scale(1); } }
+        .shaking { animation: shake 0.5s infinite !important; }
+        .egg.diamond-egg.shaking { animation: shake-inverted 0.5s infinite !important; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
+        @keyframes shake-inverted { 0% { transform: rotate(180deg); } 25% { transform: rotate(185deg); } 50% { transform: rotate(180deg); } 75% { transform: rotate(175deg); } 100% { transform: rotate(180deg); } }
+        
+        .egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
+        .egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
+        .egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
+        .egg.skin-ice { filter: drop-shadow(0 0 10px #00ffff) hue-rotate(180deg); }
+
+        /* Бустеры */
+        .boosters-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; min-height: 50px; }
+        .booster-slot { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; position: relative; border: 2px solid transparent; transition: all 0.2s; }
+        .booster-slot.active { background: rgba(52, 199, 89, 0.2); border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.5); transform: scale(1.1); }
+        .booster-slot.empty { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+        .booster-count { position: absolute; bottom: -5px; right: -5px; background: #007aff; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        /* Инвентарь */
+        .inventory-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 20px; cursor: pointer; font-weight: bold; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .inventory-header:active { background: rgba(255,255,255,0.1); }
+        #collection { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 15px; overflow: hidden; }
+        #collection.hidden { display: none; }
+        
+        .pet-slot { font-size: 28px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; text-align: center; cursor: pointer; position: relative; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .pet-slot.common { border: 2px solid #8e8e93; }
+        .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
+        .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
+        .pet-slot.locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); }
+        .pet-silhouette { filter: brightness(0) opacity(0.3); pointer-events: none; }
+        .slot-count { position: absolute; bottom: -2px; right: -2px; background: #007aff; color: white; font-size: 9px; padding: 1px 4px; border-radius: 6px; font-weight: bold; }
+
+        /* Модальные окна */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #2c2c2e; width: 90%; max-width: 320px; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-header h2 { margin: 0; color: #fff; font-size: 20px; }
+        .close-btn { background: none; border: none; color: #8e8e93; font-size: 24px; cursor: pointer; padding: 5px; }
+
+        /* Магазин и Табы */
+        .shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+        .tab-btn { flex: 1; background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: bold; min-width: 70px; }
+        .tab-btn.active { background: #007aff; }
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .shop-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; }
+        .shop-item.active { border-color: #34c759; }
+        .shop-item-icon { font-size: 30px; margin-bottom: 5px; }
+        .shop-item-name { font-size: 14px; margin-bottom: 5px; font-weight: bold; }
+        .buy-btn { background: #34c759; border: none; color: #fff; padding: 8px; border-radius: 8px; font-size: 12px; width: 100%; cursor: pointer; font-weight: bold; }
+        .buy-btn.locked { background: #3a3a3c; color: #8e8e93; }
+        .buy-btn.owned { background: #007aff; }
+
+        /* Настройки */
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3a3c; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .4s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #34c759; }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .slider.round { border-radius: 34px; }
+        .slider.round:before { border-radius: 50%; }
+
+        /* Уведомления */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: rgba(44, 44, 46, 0.95); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; animation: slideIn 0.3s ease-out forwards; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+        .toast.fade-out { animation: fadeOut 0.3s ease-in forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
+
+        /* Элементы питомца */
+        .pet-big-icon { font-size: 80px; margin: 10px 0; animation: breathe 3s infinite; }
+        .pet-name { font-size: 24px; margin: 5px 0; }
+        .pet-rarity { font-size: 14px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        .pet-rarity.common { color: #8e8e93; }
+        .pet-rarity.rare { color: #007aff; }
+        .pet-rarity.legendary { color: #ffd700; }
+        .pet-price { font-size: 18px; color: #85bb65; margin-bottom: 15px; }
+        .sell-action { background-color: #ff3b30; margin-top: 10px; }
+        .achievement-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid transparent; opacity: 0.8; }
+        .achievement-card.unlocked { opacity: 1; border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+        .ach-icon { font-size: 24px; }
+        .ach-info { flex: 1; }
+        .ach-title { font-size: 14px; font-weight: bold; margin: 0; }
+        .ach-desc { font-size: 12px; color: #8e8e93; margin: 2px 0 0 0; }
+    </style>
 </head>
 <body>
 
@@ -134,6 +261,473 @@
         <div id="collection" class="hidden"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // === КОНФИГУРАЦИЯ ===
+        const MODES = [
+            { id: 'short', time: 10, xpReward: 250, egg: '🥚', title: '25 минут', sub: 'Шанс Легендарки: 1%', style: '' },
+            { id: 'long', time: 20, xpReward: 1000, egg: '💎', title: '60 минут', sub: 'Шанс Легендарки: 5% 🔥', style: 'hardcore' }
+        ];
+        const PRICES = { common: 15, rare: 150, legendary: 5000 };
+        const RANKS = ["Новичок", "Искатель", "Укротитель", "Мастер", "Ниндзя", "Легенда", "Бог Фокуса"];
+        const ACHIEVEMENTS_DATA = [
+            { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
+            { id: 'rich_kid', title: 'Богач', desc: 'Заработай $1000', goal: 1000, type: 'money', reward: 500 },
+            { id: 'collector', title: 'Коллекционер', desc: 'Собери 5 уникальных', goal: 5, type: 'unique', reward: 1000 },
+            { id: 'hard_worker', title: 'Трудяга', desc: 'Вырасти 10 питомцев', goal: 10, reward: 2000 }
+        ];
+        const QUESTS_DATA = [
+            { id: 'sub_channel', title: 'Подписка', desc: 'Подпишись на канал', reward: 1000, type: 'link', url: 'https://t.me/focushatch' },
+            { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
+        ];
+        const SHOP_DATA = {
+            themes: [
+                { id: 'default', name: 'Тьма', price: 0, cssClass: '' },
+                { id: 'forest', name: 'Лес', price: 500, cssClass: 'theme-forest' },
+                { id: 'space', name: 'Космос', price: 2000, cssClass: 'theme-space' },
+                { id: 'neon', name: 'Неон', price: 5000, cssClass: 'theme-neon' },
+                { id: 'gold', name: 'Мажор', price: 10000, cssClass: 'theme-gold' }
+            ],
+            eggs: [
+                { id: 'default', name: 'Стандарт', price: 0, skinClass: '' },
+                { id: 'glow', name: 'Сияние', price: 1000, skinClass: 'skin-glow' },
+                { id: 'ice', name: 'Лед', price: 3000, skinClass: 'skin-ice' },
+                { id: 'glitch', name: 'Глюк', price: 7777, skinClass: 'skin-glitch' },
+                { id: 'gold', name: 'Золото', price: 15000, skinClass: 'skin-gold' }
+            ],
+            boosters: [
+                { id: 'luck', name: 'Зелье Удачи', price: 200, icon: '🍀', desc: 'Шанс x5' },
+                { id: 'speed', name: 'Ускоритель', price: 500, icon: '⏳', desc: 'Время / 2' }
+            ]
+        };
+        const petDatabase = {
+            common: ["🐣", "🐱", "🐶", "🐹", "🐰", "🐸", "🐻", "🐨", "🐤", "🐛"],
+            rare: ["🦊", "🐼", "🐯", "🦁", "🐮", "🐷", "🐵", "🦉"],
+            legendary: ["🦄", "🐲", "👽", "🤖", "🦖", "🔥"]
+        };
+        const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary];
+        const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
+        const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
+
+        // === СОСТОЯНИЕ ===
+        let collection = JSON.parse(localStorage.getItem('myCollection')) || [];
+        let userXP = parseInt(localStorage.getItem('userXP')) || 0;
+        let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
+        let walletBalance = parseInt(localStorage.getItem('walletBalance')) || 0;
+        let ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
+        let activeTheme = localStorage.getItem('activeTheme') || 'default';
+        let activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
+        let claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
+        let claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
+        let isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
+        
+        let userStats = { hatched: 0, earned: 0, invites: 0 };
+        try { let s = JSON.parse(localStorage.getItem('userStats')); if(s) userStats = s; } catch(e){}
+        
+        let myBoosters = { luck: 0, speed: 0 };
+        try { let b = JSON.parse(localStorage.getItem('myBoosters')); if(b) myBoosters = b; } catch(e){}
+
+        let currentModeIndex = 0;
+        let timeLeft = MODES[0].time;
+        let timerInterval = null;
+        let isRunning = false;
+        let currentPet = null;
+        let activeBoosters = { luck: false, speed: false };
+        let currentShopTab = 'themes';
+        let selectedPet = null;
+
+        // === ФУНКЦИИ ===
+        const getEl = (id) => document.getElementById(id);
+
+        function initGame() {
+            // Исправление бага "undefined" бустеров
+            if(!myBoosters) myBoosters = { luck: 0, speed: 0 };
+            
+            updateLevelUI();
+            renderCollection();
+            applyTheme();
+            updateUI();
+            updateBalanceUI();
+            
+            // Навешивание событий
+            getEl('open-shop-btn').onclick = () => { getEl('shop-modal').style.display='flex'; switchShopTab('themes'); };
+            getEl('close-shop').onclick = () => getEl('shop-modal').style.display='none';
+            getEl('open-settings-btn').onclick = () => getEl('settings-modal').style.display='flex';
+            getEl('close-settings').onclick = () => getEl('settings-modal').style.display='none';
+            getEl('achievements-btn').onclick = () => { getEl('achievements-modal').style.display='flex'; switchAchTab('achievements'); };
+            getEl('close-achievements').onclick = () => getEl('achievements-modal').style.display='none';
+            
+            getEl('prev-btn').onclick = () => { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); }};
+            getEl('next-btn').onclick = () => { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); }};
+            getEl('main-btn').onclick = () => isRunning ? stopTimer() : startTimer();
+            getEl('inventory-btn').onclick = toggleInventory;
+            getEl('share-btn').onclick = handleShare;
+            getEl('reset-progress-btn').onclick = () => { if(confirm("Точно сбросить?")) { localStorage.clear(); location.reload(); }};
+            
+            if(getEl('vibration-toggle')) {
+                getEl('vibration-toggle').checked = isVibrationOn;
+                getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); };
+            }
+        }
+
+        function handleShare() {
+            if(!userStats.invites) userStats.invites = 0; 
+            userStats.invites++; 
+            localStorage.setItem('userStats', JSON.stringify(userStats)); 
+            checkAchievements();
+            const text = `У меня ${new Set(collection).size} петов в Focus Hatcher!`;
+            const url = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(text)}`;
+            if (window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url); else window.open(url, '_blank');
+        }
+
+        function showToast(message, icon = '🔔') {
+            const container = getEl('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<span style="font-size:18px">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function updateBalanceUI() {
+            getEl('total-money').textContent = `💰 $${walletBalance.toLocaleString()}`;
+            getEl('unique-count').textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
+            checkAchievements();
+            renderBoostersPanel();
+        }
+
+        function checkAchievements() {
+            let hasUnclaimed = false;
+            let uniqueCount = new Set(collection).size;
+            ACHIEVEMENTS_DATA.forEach(ach => {
+                if (!claimedAchievements.includes(ach.id)) {
+                    let completed = false;
+                    if (ach.type === 'money' && userStats.earned >= ach.goal) completed = true;
+                    else if (ach.type === 'unique' && uniqueCount >= ach.goal) completed = true;
+                    else if (!ach.type && userStats.hatched >= ach.goal) completed = true;
+                    if(completed) hasUnclaimed = true;
+                }
+            });
+            QUESTS_DATA.forEach(q => {
+                if (!claimedQuests.includes(q.id) && q.type === 'invite' && (userStats.invites || 0) >= q.goal) hasUnclaimed = true;
+            });
+            getEl('ach-badge').style.display = hasUnclaimed ? 'block' : 'none';
+        }
+
+        // --- БУСТЕРЫ ---
+        function renderBoostersPanel() {
+            const panel = getEl('boosters-panel');
+            panel.innerHTML = '';
+            const luckBtn = createBoosterBtn('luck', '🍀', myBoosters.luck || 0, activeBoosters.luck);
+            const speedBtn = createBoosterBtn('speed', '⏳', myBoosters.speed || 0, activeBoosters.speed);
+            panel.appendChild(luckBtn);
+            panel.appendChild(speedBtn);
+        }
+
+        function createBoosterBtn(type, icon, count, isActive) {
+            const div = document.createElement('div');
+            div.className = `booster-slot ${isActive ? 'active' : ''} ${count === 0 ? 'empty' : ''}`;
+            div.innerHTML = `${icon} <div class="booster-count">${count}</div>`;
+            div.onclick = () => {
+                if (count > 0 && !isRunning) {
+                    activeBoosters[type] = !activeBoosters[type];
+                    if(activeBoosters[type]) showToast(type === 'luck' ? "Удача повышена!" : "Время ускорено!", icon);
+                    renderBoostersPanel();
+                    updateUI(); 
+                }
+            };
+            return div;
+        }
+
+        // --- ИГРА ---
+        function updateUI() {
+            const mode = MODES[currentModeIndex];
+            if(!isRunning) { 
+                let time = mode.time;
+                if (activeBoosters.speed) time = Math.floor(time / 2);
+                getEl('egg-display').textContent = mode.egg; 
+                getEl('timer').textContent = formatTime(time); 
+                applyEggSkin(); 
+            }
+            getEl('mode-title').textContent = mode.title; 
+            getEl('mode-subtitle').textContent = mode.sub;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            if(timerInterval) clearInterval(timerInterval);
+            const mode = MODES[currentModeIndex];
+            timeLeft = activeBoosters.speed ? Math.floor(mode.time / 2) : mode.time;
+            
+            getEl('timer').textContent = formatTime(timeLeft);
+            getEl('egg-display').textContent = mode.egg;
+            isRunning = true;
+            
+            getEl('prev-btn').style.visibility='hidden'; 
+            getEl('next-btn').style.visibility='hidden'; 
+            getEl('share-btn').style.display='none';
+            getEl('main-btn').textContent="Сдаться"; 
+            getEl('main-btn').className="btn stop";
+            
+            applyEggSkin();
+            getEl('egg-display').classList.add('shaking');
+            renderBoostersPanel();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                getEl('timer').textContent=formatTime(timeLeft);
+                if(timeLeft <= 0) finishTimer();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval); isRunning=false;
+            getEl('prev-btn').style.visibility='visible'; 
+            getEl('next-btn').style.visibility='visible';
+            getEl('main-btn').textContent="Начать фокус"; 
+            getEl('main-btn').className="btn";
+            getEl('egg-display').classList.remove('shaking'); 
+            applyEggSkin();
+            updateUI(); 
+            renderBoostersPanel(); 
+            showToast("Фокус прерван!", "⚠️");
+        }
+
+        function finishTimer() {
+            clearInterval(timerInterval); isRunning=false; 
+            getEl('egg-display').className = 'egg'; 
+            getEl('main-btn').textContent="Ещё раз"; 
+            getEl('main-btn').className="btn";
+            getEl('share-btn').style.display='block';
+            getEl('prev-btn').style.visibility='visible'; 
+            getEl('next-btn').style.visibility='visible';
+
+            try {
+                const mode = MODES[currentModeIndex];
+                userXP+=mode.xpReward;
+                if(userXP>=userLevel*200) { userXP-=userLevel*200; userLevel++; showToast(`Уровень повышен! Lvl ${userLevel}`, "🎉"); }
+                localStorage.setItem('userXP', userXP); localStorage.setItem('userLevel', userLevel); updateLevelUI();
+
+                userStats.hatched += 1;
+                localStorage.setItem('userStats', JSON.stringify(userStats));
+
+                let legendaryChance = mode.id === 'short' ? 1 : 5;
+                let rareChance = mode.id === 'short' ? 15 : 30; 
+                if (activeBoosters.luck) { legendaryChance *= 5; myBoosters.luck--; activeBoosters.luck = false; }
+                if (activeBoosters.speed) { myBoosters.speed--; activeBoosters.speed = false; }
+                localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
+                renderBoostersPanel();
+
+                const chance = Math.random() * 100;
+                let pool;
+                if (chance < legendaryChance) pool = petDatabase.legendary;
+                else if (chance < (legendaryChance + rareChance)) pool = petDatabase.rare;
+                else pool = petDatabase.common;
+                
+                currentPet = pool[Math.floor(Math.random()*pool.length)];
+                getEl('egg-display').textContent = currentPet;
+                collection.push(currentPet);
+                localStorage.setItem('myCollection', JSON.stringify(collection));
+                renderCollection(); 
+                
+                if(getEl('collection').classList.contains('hidden')) toggleInventory();
+                
+                const price = PRICES[getPetRarity(currentPet)];
+                showToast(`Выпал питомец: ${currentPet} (+$${price})`, "🐣");
+                updateBalanceUI();
+                if (isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(200);
+            } catch(e) { console.log(e); }
+        }
+
+        // --- МАГАЗИН И ПРОЧЕЕ ---
+        window.switchShopTab = function(tab) {
+            currentShopTab = tab;
+            document.querySelectorAll('#shop-modal .tab-btn').forEach(btn => btn.classList.remove('active'));
+            if(event.target) event.target.classList.add('active');
+            renderShop();
+        }
+        function renderShop() {
+            const container = getEl('shop-items');
+            container.innerHTML = '';
+            const items = SHOP_DATA[currentShopTab];
+            items.forEach(item => {
+                const div = document.createElement('div');
+                let btnHTML = '';
+                if (currentShopTab === 'boosters') {
+                    btnHTML = `<button class="buy-btn" onclick="handleShopClick('${item.id}', ${item.price})">$${item.price}</button>`;
+                    div.innerHTML = `<div class="shop-item-icon">${item.icon}</div><div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#8e8e93;margin-bottom:5px">${item.desc}</div>${btnHTML}`;
+                } else {
+                    const isOwned = ownedItems[currentShopTab].includes(item.id);
+                    const isActive = (currentShopTab === 'themes' && activeTheme === item.id) || (currentShopTab === 'eggs' && activeEggSkin === item.id);
+                    let btnClass = isOwned ? "buy-btn owned" : "buy-btn";
+                    if (!isOwned && walletBalance < item.price) btnClass += " locked";
+                    let btnText = isOwned ? (isActive ? "Выбрано" : "Выбрать") : `$${item.price}`;
+                    btnHTML = `<button class="${btnClass}" onclick="handleShopClick('${item.id}', ${item.price})">${btnText}</button>`;
+                    div.innerHTML = `<div class="shop-item-icon">${currentShopTab === 'themes' ? '🎨' : '🥚'}</div><div class="shop-item-name">${item.name}</div>${btnHTML}`;
+                }
+                div.className = `shop-item`;
+                container.appendChild(div);
+            });
+        }
+        window.handleShopClick = function(id, price) {
+            if (currentShopTab === 'boosters') {
+                if (walletBalance >= price) {
+                    walletBalance -= price; localStorage.setItem('walletBalance', walletBalance);
+                    if (!myBoosters[id]) myBoosters[id] = 0; myBoosters[id]++; localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
+                    updateBalanceUI(); showToast(`Куплено: ${id === 'luck' ? 'Удача' : 'Скорость'}`, "🧪");
+                } else { showToast("Не хватает денег!", "🚫"); }
+                return;
+            }
+            const isOwned = ownedItems[currentShopTab].includes(id);
+            if (isOwned) {
+                if (currentShopTab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
+                else { activeEggSkin = id; localStorage.setItem('activeEggSkin', id); applyEggSkin(); }
+                renderShop(); showToast("Установлено!", "✨");
+            } else {
+                if (walletBalance >= price) {
+                    walletBalance -= price; localStorage.setItem('walletBalance', walletBalance);
+                    ownedItems[currentShopTab].push(id); localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
+                    if (currentShopTab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
+                    else { activeEggSkin = id; localStorage.setItem('activeEggSkin', id); applyEggSkin(); }
+                    updateBalanceUI(); renderShop(); showToast("Куплено!", "🛍️");
+                } else { showToast("Не хватает денег!", "🚫"); }
+            }
+        };
+
+        // --- ОСТАЛЬНОЕ ---
+        window.toggleInventory = function() {
+            const col = getEl('collection');
+            if (col.classList.contains('hidden')) { col.classList.remove('hidden'); getEl('inventory-arrow').textContent = "▼"; } 
+            else { col.classList.add('hidden'); getEl('inventory-arrow').textContent = "▲"; }
+        }
+        function renderCollection() {
+            const container = getEl('collection');
+            container.innerHTML = '';
+            ALL_PETS_FLAT.forEach(pet => {
+                const count = collection.filter(p => p === pet).length;
+                const rarity = getPetRarity(pet);
+                const slot = document.createElement('div');
+                if (count > 0) {
+                    slot.className = `pet-slot ${rarity}`; slot.textContent = pet;
+                    if (count > 1) { const b = document.createElement('div'); b.className = 'slot-count'; b.textContent = `x${count}`; slot.appendChild(b); }
+                    slot.onclick = () => openPetModal(pet, true);
+                } else {
+                    slot.className = `pet-slot locked`;
+                    const sil = document.createElement('span'); sil.className = 'pet-silhouette'; sil.textContent = pet; slot.appendChild(sil);
+                    slot.onclick = () => openPetModal(pet, false);
+                }
+                container.appendChild(slot);
+            });
+        }
+        function openPetModal(pet, isOwned) {
+            selectedPet = pet;
+            const rarity = getPetRarity(pet);
+            const price = PRICES[rarity];
+            getEl('pet-modal').style.display = 'flex';
+            if (isOwned) getEl('pet-detail-view').innerHTML = `<div class="pet-big-icon">${pet}</div><h3 class="pet-name">Питомец</h3><p class="pet-rarity ${rarity}">${rarity}</p><p class="pet-price">Цена: $${price}</p><button onclick="sellPet()" class="btn sell-action">Продать ($${price})</button>`;
+            else getEl('pet-detail-view').innerHTML = `<div class="pet-big-icon" style="filter: brightness(0); opacity: 0.3;">${pet}</div><h3 class="pet-name">???</h3><p class="pet-rarity ${rarity}">Редкость: ${rarity}</p><button onclick="closePetModal()" class="btn" style="background:#3a3a3c">Закрыть</button>`;
+        }
+        window.closePetModal = function() { getEl('pet-modal').style.display = 'none'; selectedPet = null; }
+        window.sellPet = function() {
+            if (!selectedPet) return;
+            const index = collection.indexOf(selectedPet);
+            if (index === -1) return;
+            const price = PRICES[getPetRarity(selectedPet)];
+            walletBalance += price; userStats.earned += price; 
+            localStorage.setItem('walletBalance', walletBalance); localStorage.setItem('userStats', JSON.stringify(userStats));
+            collection.splice(index, 1); localStorage.setItem('myCollection', JSON.stringify(collection));
+            updateBalanceUI(); renderCollection(); closePetModal(); showToast(`Продано за $${price}`, "💰");
+        }
+        window.switchAchTab = function(tab) {
+            currentAchTab = tab;
+            document.querySelectorAll('#achievements-modal .tab-btn').forEach(btn => btn.classList.remove('active'));
+            if(event.target) event.target.classList.add('active');
+            if (tab === 'achievements') renderAchievements(); else renderQuests();
+        }
+        function renderAchievements() {
+            const container = getEl('achievements-list'); container.innerHTML = '';
+            let uniqueCount = new Set(collection).size;
+            ACHIEVEMENTS_DATA.forEach(ach => {
+                let current = userStats.hatched;
+                if (ach.type === 'money') current = userStats.earned;
+                if (ach.type === 'unique') current = uniqueCount;
+                const isClaimed = claimedAchievements.includes(ach.id);
+                const isCompleted = current >= ach.goal;
+                const div = document.createElement('div');
+                div.className = `achievement-card ${isCompleted ? 'unlocked' : ''}`;
+                let buttonHTML = '';
+                if (isCompleted && !isClaimed) buttonHTML = `<button onclick="claimAchievement('${ach.id}', ${ach.reward})" style="padding:5px; background:#34c759; border:none; border-radius:5px; color:#fff; font-size:10px;">Забрать $${ach.reward}</button>`; 
+                else if (isClaimed) buttonHTML = `<span style="font-size:16px;">✅</span>`;
+                else buttonHTML = `<span style="font-size:12px; color:#8e8e93;">${current}/${ach.goal}</span>`;
+                div.innerHTML = `<div class="ach-icon">${isCompleted ? '🏆' : '🔒'}</div><div class="ach-info"><p class="ach-title">${ach.title}</p><p class="ach-desc">${ach.desc}</p></div><div class="ach-action">${buttonHTML}</div>`;
+                container.appendChild(div);
+            });
+        }
+        function renderQuests() {
+            const container = getEl('achievements-list'); container.innerHTML = '';
+            QUESTS_DATA.forEach(q => {
+                const isClaimed = claimedQuests.includes(q.id);
+                const div = document.createElement('div');
+                div.className = `achievement-card ${isClaimed ? 'unlocked' : ''}`;
+                let buttonHTML = '';
+                if (isClaimed) { buttonHTML = `<span style="font-size:16px;">✅</span>`; } 
+                else if (q.type === 'link') { buttonHTML = `<button id="btn-${q.id}" onclick="handleQuestClick('${q.id}', '${q.url}', ${q.reward})" style="padding:5px; background:#007aff; border:none; border-radius:5px; color:#fff; font-size:10px;">Выполнить</button>`; } 
+                else if (q.type === 'invite') {
+                    let invites = userStats.invites || 0;
+                    if (invites >= q.goal) buttonHTML = `<button onclick="claimQuest('${q.id}', ${q.reward})" style="padding:5px; background:#34c759; border:none; border-radius:5px; color:#fff; font-size:10px;">Забрать $${q.reward}</button>`; 
+                    else buttonHTML = `<span style="font-size:12px; color:#8e8e93;">${invites}/${q.goal}</span>`;
+                }
+                div.innerHTML = `<div class="ach-icon">📜</div><div class="ach-info"><p class="ach-title">${q.title} (+$${q.reward})</p><p class="ach-desc">${q.desc}</p></div><div class="ach-action">${buttonHTML}</div>`;
+                container.appendChild(div);
+            });
+        }
+        window.handleQuestClick = function(id, url, reward) {
+            if (window.Telegram.WebApp) window.Telegram.WebApp.openLink(url); else window.open(url, '_blank');
+            const btn = document.getElementById(`btn-${id}`);
+            if (btn) { btn.textContent = "Проверяю..."; btn.disabled = true; btn.style.background = "#8e8e93"; setTimeout(() => { claimQuest(id, reward); }, 4000); }
+        }
+        window.claimQuest = function(id, reward) {
+            if (claimedQuests.includes(id)) return;
+            claimedQuests.push(id); localStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+            walletBalance += reward; localStorage.setItem('walletBalance', walletBalance);
+            showToast(`Квест выполнен! +$${reward}`, "📜"); updateBalanceUI(); renderQuests();
+        }
+        window.claimAchievement = function(id, reward) {
+            if (claimedAchievements.includes(id)) return;
+            claimedAchievements.push(id); localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
+            walletBalance += reward; localStorage.setItem('walletBalance', walletBalance);
+            showToast(`Награда: +$${reward}`, "🏆"); updateBalanceUI(); renderAchievements();
+        }
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+        function getPetRarity(pet) {
+            if (petDatabase.legendary.includes(pet)) return "legendary";
+            if (petDatabase.rare.includes(pet)) return "rare";
+            return "common";
+        }
+        function applyTheme() { const t = SHOP_DATA.themes.find(x => x.id === activeTheme); document.body.className = t ? t.cssClass : ''; }
+        function applyEggSkin() { 
+            if(!eggDisplay) return;
+            const mode = MODES[currentModeIndex];
+            const s = SHOP_DATA.eggs.find(x => x.id === activeEggSkin); 
+            eggDisplay.className = 'egg'; 
+            if (mode.style === 'hardcore') { eggDisplay.classList.add('diamond-egg'); } 
+            else { if (s && s.skinClass && activeEggSkin !== 'default') eggDisplay.classList.add(s.skinClass); }
+            if(isRunning) eggDisplay.classList.add('shaking'); 
+        }
+        function updateLevelUI() {
+            const xpForNextLevel = userLevel * 200; 
+            let percentage = (userXP / xpForNextLevel) * 100;
+            if (percentage > 100) percentage = 100;
+            getEl('xp-bar').style.width = `${percentage}%`;
+            getEl('level-number').textContent = `Lvl ${userLevel}`;
+            let rankIndex = Math.floor(userLevel / 5);
+            getEl('rank-name').textContent = RANKS[Math.min(rankIndex, RANKS.length - 1)];
+        }
+
+        window.onload = initGame;
+    </script>
 </body>
 </html>
