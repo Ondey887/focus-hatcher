@@ -25,13 +25,6 @@
                         <span class="slider round"></span>
                     </label>
                 </div>
-                <div class="setting-item">
-                    <span>Звук (Скоро)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="sound-toggle" disabled>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
                 <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
                 <button id="reset-progress-btn" class="btn stop" style="font-size: 14px; padding: 10px;">Сброс прогресса 🗑️</button>
             </div>
@@ -47,6 +40,7 @@
             <div class="shop-tabs">
                 <button class="tab-btn active" onclick="switchShopTab('themes')">Фоны</button>
                 <button class="tab-btn" onclick="switchShopTab('eggs')">Яйца</button>
+                <button class="tab-btn" onclick="switchShopTab('boosters')">Бустеры</button>
             </div>
             <div id="shop-items" class="shop-grid"></div>
         </div>
@@ -72,7 +66,6 @@
                 <button class="tab-btn active" onclick="switchAchTab('achievements')">Ачивки</button>
                 <button class="tab-btn" onclick="switchAchTab('quests')">Квесты</button>
             </div>
-            
             <div id="achievements-list" class="shop-grid" style="display: flex; flex-direction: column; gap: 10px;"></div>
         </div>
     </div>
@@ -118,6 +111,9 @@
             <h2 id="mode-title">25 минут</h2>
             <p id="mode-subtitle">Обычный шанс</p>
         </div>
+
+        <div id="boosters-panel" class="boosters-container">
+            </div>
 
         <div id="timer">25:00</div>
         
