@@ -109,10 +109,10 @@ body.theme-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e
 body.theme-gold { background: linear-gradient(135deg, #3e2b0e, #d4af37); }
 body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 
-/* === ИСПРАВЛЕНИЕ: ОПУСКАЕМ УВЕДОМЛЕНИЯ НИЖЕ === */
+/* === УВЕДОМЛЕНИЯ (TOASTS) === */
 #toast-container {
     position: fixed;
-    top: 80px; /* <--- БЫЛО 20px, СТАЛО 80px */
+    top: 80px; /* Опустили ниже, чтобы не перекрывало кнопки */
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
@@ -123,3 +123,24 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
     gap: 10px;
     pointer-events: none;
 }
+
+/* Вот этих стилей не хватало! */
+.toast {
+    background: rgba(44, 44, 46, 0.95);
+    color: white;
+    padding: 12px 15px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out forwards;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+}
+
+@keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
+.toast.fade-out { animation: fadeOut 0.3s ease-in forwards; }

@@ -210,6 +210,10 @@ function startTimer() {
     getEl('prev-btn').style.visibility = 'hidden';
     getEl('next-btn').style.visibility = 'hidden';
     
+    // === ИСПРАВЛЕНИЕ ЗДЕСЬ ===
+    // Перед началом тряски возвращаем эмодзи яйца!
+    getEl('egg-display').textContent = m.egg;
+    
     applyEggSkin();
     getEl('egg-display').classList.add('shaking');
     renderBoostersPanel();
