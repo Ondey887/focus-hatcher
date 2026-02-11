@@ -68,9 +68,11 @@ let claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')
 let claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
 let isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
 
-// БУСТЕРЫ (НОВОЕ)
+// БУСТЕРЫ ИНИЦИАЛИЗАЦИЯ (ИСПРАВЛЕНО)
 let myBoosters = JSON.parse(localStorage.getItem('myBoosters')) || { luck: 0, speed: 0 };
-let activeBoosters = { luck: false, speed: false }; // Сбрасывается при старте
+// Гарантируем, что переменная всегда есть
+if (!myBoosters) myBoosters = { luck: 0, speed: 0 };
+let activeBoosters = { luck: false, speed: false }; 
 
 // === ЭЛЕМЕНТЫ ===
 const getEl = (id) => document.getElementById(id);
@@ -117,7 +119,7 @@ function updateBalanceUI() {
     if(totalMoneyDisplay) totalMoneyDisplay.textContent = `💰 $${walletBalance.toLocaleString()}`;
     if(uniqueCountDisplay) uniqueCountDisplay.textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
     checkAchievements();
-    renderBoostersPanel(); // Обновить панель
+    renderBoostersPanel();
 }
 
 function checkAchievements() {
@@ -143,14 +145,17 @@ function getPetRarity(pet) {
     return "common";
 }
 
-// === БУСТЕРЫ (ЛОГИКА) ===
+// === БУСТЕРЫ ===
 function renderBoostersPanel() {
     if(!boostersPanel) return;
     boostersPanel.innerHTML = '';
     
-    // Иконка Удачи
-    const luckBtn = createBoosterBtn('luck', '🍀', myBoosters.luck, activeBoosters.luck);
-    const speedBtn = createBoosterBtn('speed', '⏳', myBoosters.speed, activeBoosters.speed);
+    // Безопасная проверка
+    const luckCount = myBoosters.luck || 0;
+    const speedCount = myBoosters.speed || 0;
+
+    const luckBtn = createBoosterBtn('luck', '🍀', luckCount, activeBoosters.luck);
+    const speedBtn = createBoosterBtn('speed', '⏳', speedCount, activeBoosters.speed);
     
     boostersPanel.appendChild(luckBtn);
     boostersPanel.appendChild(speedBtn);
@@ -165,20 +170,18 @@ function createBoosterBtn(type, icon, count, isActive) {
             activeBoosters[type] = !activeBoosters[type];
             if(activeBoosters[type]) showToast(type === 'luck' ? "Удача повышена!" : "Время ускорено!", icon);
             renderBoostersPanel();
-            updateUI(); // Обновить таймер, если включили скорость
+            updateUI(); 
         }
     };
     return div;
 }
 
-// === ИГРА ===
+// === ИГРА (ИСПРАВЛЕНО ЗАВИСАНИЕ) ===
 function updateUI() {
     const mode = MODES[currentModeIndex];
     if(!isRunning) { 
         let time = mode.time;
-        // Если активен бустер скорости -> делим время на 2
         if (activeBoosters.speed) time = Math.floor(time / 2);
-        
         if(eggDisplay) eggDisplay.textContent = mode.egg; 
         if(timerDisplay) timerDisplay.textContent = formatTime(time); 
         applyEggSkin(); 
@@ -189,9 +192,10 @@ function updateUI() {
 
 function startTimer() {
     if (isRunning) return;
+    // Очистка старых интервалов на всякий случай
+    if(timerInterval) clearInterval(timerInterval);
+
     const mode = MODES[currentModeIndex];
-    
-    // Применяем бустер времени
     timeLeft = activeBoosters.speed ? Math.floor(mode.time / 2) : mode.time;
     
     if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
@@ -202,7 +206,6 @@ function startTimer() {
     applyEggSkin();
     if(eggDisplay) eggDisplay.classList.add('shaking');
     
-    // Блокируем бустеры во время игры
     renderBoostersPanel();
 
     timerInterval = setInterval(() => {
@@ -217,8 +220,8 @@ function stopTimer() {
     prevBtn.style.visibility='visible'; nextBtn.style.visibility='visible';
     if(mainBtn) { mainBtn.textContent="Начать фокус"; mainBtn.className="btn"; }
     if(eggDisplay) { eggDisplay.classList.remove('shaking'); applyEggSkin(); }
-    updateUI(); // Вернуть время
-    renderBoostersPanel(); // Разблокировать бустеры
+    updateUI(); 
+    renderBoostersPanel(); 
     showToast("Фокус прерван!", "⚠️");
 }
 
@@ -238,19 +241,15 @@ function finishTimer() {
         userStats.hatched += 1;
         localStorage.setItem('userStats', JSON.stringify(userStats));
 
-        // === ЛОГИКА ШАНСОВ С БУСТЕРОМ ===
         let legendaryChance = mode.id === 'short' ? 1 : 5;
-        let rareChance = mode.id === 'short' ? 15 : 30; // Остаток от 100
+        let rareChance = mode.id === 'short' ? 15 : 30; 
         
         if (activeBoosters.luck) {
-            legendaryChance *= 5; // Увеличиваем шанс в 5 раз!
-            // Корректируем редкий шанс, чтобы сумма не улетела
+            legendaryChance *= 5; 
         }
 
         const chance = Math.random() * 100;
         let pool;
-        
-        // Логика выбора пула
         if (chance < legendaryChance) pool = petDatabase.legendary;
         else if (chance < (legendaryChance + rareChance)) pool = petDatabase.rare;
         else pool = petDatabase.common;
@@ -260,9 +259,11 @@ function finishTimer() {
         collection.push(currentPet);
         localStorage.setItem('myCollection', JSON.stringify(collection));
         renderCollection(); 
+        
+        // ВАЖНО: Принудительное открытие инвентаря
         if(collectionContainer.classList.contains('hidden')) toggleInventory();
         
-        // Тратим бустеры
+        // Списание бустеров
         if(activeBoosters.luck) { myBoosters.luck--; activeBoosters.luck = false; }
         if(activeBoosters.speed) { myBoosters.speed--; activeBoosters.speed = false; }
         localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
@@ -285,19 +286,14 @@ window.switchShopTab = function(tab) {
 function renderShop() {
     if(!shopItemsContainer) return;
     shopItemsContainer.innerHTML = '';
-    
-    // Отрисовка
     const items = SHOP_DATA[currentShopTab];
     items.forEach(item => {
         const div = document.createElement('div');
         let btnHTML = '';
-        
         if (currentShopTab === 'boosters') {
-            // ДЛЯ БУСТЕРОВ (Многоразовые)
             btnHTML = `<button class="buy-btn" onclick="handleShopClick('${item.id}', ${item.price})">$${item.price}</button>`;
             div.innerHTML = `<div class="shop-item-icon">${item.icon}</div><div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#8e8e93;margin-bottom:5px">${item.desc}</div>${btnHTML}`;
         } else {
-            // ДЛЯ ТЕМ И ЯИЦ (Одноразовые)
             const isOwned = ownedItems[currentShopTab].includes(item.id);
             const isActive = (currentShopTab === 'themes' && activeTheme === item.id) || (currentShopTab === 'eggs' && activeEggSkin === item.id);
             let btnClass = isOwned ? "buy-btn owned" : "buy-btn";
@@ -306,33 +302,24 @@ function renderShop() {
             btnHTML = `<button class="${btnClass}" onclick="handleShopClick('${item.id}', ${item.price})">${btnText}</button>`;
             div.innerHTML = `<div class="shop-item-icon">${currentShopTab === 'themes' ? '🎨' : '🥚'}</div><div class="shop-item-name">${item.name}</div>${btnHTML}`;
         }
-        
         div.className = `shop-item`;
         shopItemsContainer.appendChild(div);
     });
 }
 
 window.handleShopClick = function(id, price) {
-    // ЛОГИКА ДЛЯ БУСТЕРОВ
     if (currentShopTab === 'boosters') {
         if (walletBalance >= price) {
             walletBalance -= price; 
             localStorage.setItem('walletBalance', walletBalance);
-            
-            // Добавляем бустер
             if (!myBoosters[id]) myBoosters[id] = 0;
             myBoosters[id]++;
             localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
-            
             updateBalanceUI(); 
             showToast(`Куплено: ${id === 'luck' ? 'Удача' : 'Скорость'}`, "🧪");
-        } else {
-            showToast("Не хватает денег!", "🚫");
-        }
+        } else { showToast("Не хватает денег!", "🚫"); }
         return;
     }
-
-    // ЛОГИКА ДЛЯ ТЕМ И СКИНОВ (Старая)
     const isOwned = ownedItems[currentShopTab].includes(id);
     if (isOwned) {
         if (currentShopTab === 'themes') { activeTheme = id; localStorage.setItem('activeTheme', id); applyTheme(); }
@@ -351,11 +338,7 @@ window.handleShopClick = function(id, price) {
     }
 };
 
-// ... (Остальные функции: switchAchTab, renderAchievements, renderQuests, handleQuestClick, claimQuest, claimAchievement, openPetModal, closePetModal, sellPet, applyTheme, applyEggSkin, updateLevelUI, toggleInventory, renderCollection) ...
-// Вставь их из прошлого кода, они не менялись, КРОМЕ updateBalanceUI (там добавлен renderBoostersPanel)
-
-// ВАЖНО: Вставь сюда все функции из прошлого ответа (инвентарь, квесты), они нужны!
-// Я их дублирую для удобства копирования:
+// ... (Функции вкладок ачивок/квестов и другие, их можно оставить из прошлого кода, но для надежности вставь всё целиком)
 
 window.switchAchTab = function(tab) {
     currentAchTab = tab;
@@ -444,6 +427,7 @@ window.sellPet = function() {
     showToast(`Продано за $${price}`, "💰");
     if (isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(50);
 }
+
 // Events
 if(getEl('open-shop-btn')) getEl('open-shop-btn').onclick = () => { if(shopModal) shopModal.style.display='flex'; switchShopTab('themes'); };
 if(getEl('close-shop')) getEl('close-shop').onclick = () => { if(shopModal) shopModal.style.display='none'; };
