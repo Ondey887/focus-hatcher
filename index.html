@@ -9,6 +9,36 @@
 </head>
 <body>
 
+    <div id="toast-container"></div>
+
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Настройки</h2>
+                <button id="close-settings" class="close-btn">✖</button>
+            </div>
+            <div class="settings-list">
+                <div class="setting-item">
+                    <span>Вибрация</span>
+                    <label class="switch">
+                        <input type="checkbox" id="vibration-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span>Звук</span>
+                    <label class="switch">
+                        <input type="checkbox" id="sound-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+                <button id="reset-progress-btn" class="btn stop" style="font-size: 14px; padding: 10px;">Сброс прогресса 🗑️</button>
+                <div style="margin-top: 10px; font-size: 12px; color: #8e8e93;">Dev by You & Gemini</div>
+            </div>
+        </div>
+    </div>
+
     <div id="shop-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -39,15 +69,20 @@
                 <h2>Достижения</h2>
                 <button id="close-achievements" class="close-btn">✖</button>
             </div>
-            <div id="achievements-list" class="shop-grid" style="display: flex; flex-direction: column; gap: 10px;">
-                </div>
+            <div id="achievements-list" class="shop-grid" style="display: flex; flex-direction: column; gap: 10px;"></div>
         </div>
     </div>
 
     <div class="container">
         <div class="top-bar">
-            <button id="open-shop-btn" class="icon-btn">🛍️</button>
-            <button id="achievements-btn" class="icon-btn">🏆</button>
+            <div class="left-buttons">
+                <button id="open-shop-btn" class="icon-btn">🛍️</button>
+                <button id="achievements-btn" class="icon-btn" style="position: relative;">
+                    🏆
+                    <div id="ach-badge" class="red-dot" style="display: none;"></div>
+                </button>
+            </div>
+            <button id="open-settings-btn" class="icon-btn">⚙️</button>
         </div>
 
         <h1>Focus Hatcher</h1>
