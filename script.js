@@ -14,8 +14,9 @@ const ACHIEVEMENTS_DATA = [
     { id: 'hard_worker', title: 'Трудяга', desc: 'Вырасти 10 питомцев', goal: 10, reward: 2000 }
 ];
 
+// === ВОТ ТУТ ТВОЯ ССЫЛКА ===
 const QUESTS_DATA = [
-    { id: 'sub_channel', title: 'Подписка', desc: 'Подпишись на наш канал', reward: 1000, type: 'link', url: 'https://t.me/durov' },
+    { id: 'sub_channel', title: 'Подписка', desc: 'Подпишись на канал', reward: 1000, type: 'link', url: 'https://t.me/focushatch' },
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
@@ -121,7 +122,6 @@ function checkAchievements() {
         else if (!ach.type && userStats.hatched >= ach.goal) completed = true;
         if (completed) hasUnclaimed = true;
     });
-    // Проверка квестов
     QUESTS_DATA.forEach(q => {
         if (!claimedQuests.includes(q.id) && q.type === 'invite' && (userStats.invites || 0) >= q.goal) hasUnclaimed = true;
     });
@@ -308,16 +308,13 @@ window.handleShopClick = function(id, price) {
     }
 };
 
-// === ВКЛАДКИ НАГРАД (АЧИВКИ/КВЕСТЫ) ===
+// === ВКЛАДКИ НАГРАД ===
 window.switchAchTab = function(tab) {
     currentAchTab = tab;
     document.querySelectorAll('#achievements-modal .tab-btn').forEach(btn => btn.classList.remove('active'));
     if(event.target) event.target.classList.add('active');
-    
-    if (tab === 'achievements') renderAchievements();
-    else renderQuests();
+    if (tab === 'achievements') renderAchievements(); else renderQuests();
 }
-
 function renderAchievements() {
     if(!achievementsList) return;
     achievementsList.innerHTML = '';
@@ -338,7 +335,6 @@ function renderAchievements() {
         achievementsList.appendChild(div);
     });
 }
-
 function renderQuests() {
     if(!achievementsList) return;
     achievementsList.innerHTML = '';
@@ -346,63 +342,34 @@ function renderQuests() {
         const isClaimed = claimedQuests.includes(q.id);
         const div = document.createElement('div');
         div.className = `achievement-card ${isClaimed ? 'unlocked' : ''}`;
-        
         let buttonHTML = '';
-        if (isClaimed) {
-            buttonHTML = `<span style="font-size:16px;">✅</span>`;
-        } else if (q.type === 'link') {
-            buttonHTML = `<button id="btn-${q.id}" onclick="handleQuestClick('${q.id}', '${q.url}', ${q.reward})" style="padding:5px; background:#007aff; border:none; border-radius:5px; color:#fff; font-size:10px;">Выполнить</button>`;
-        } else if (q.type === 'invite') {
-            // Проверка инвайтов
+        if (isClaimed) { buttonHTML = `<span style="font-size:16px;">✅</span>`; } 
+        else if (q.type === 'link') { buttonHTML = `<button id="btn-${q.id}" onclick="handleQuestClick('${q.id}', '${q.url}', ${q.reward})" style="padding:5px; background:#007aff; border:none; border-radius:5px; color:#fff; font-size:10px;">Выполнить</button>`; } 
+        else if (q.type === 'invite') {
             let invites = userStats.invites || 0;
-            if (invites >= q.goal) {
-                buttonHTML = `<button onclick="claimQuest('${q.id}', ${q.reward})" style="padding:5px; background:#34c759; border:none; border-radius:5px; color:#fff; font-size:10px;">Забрать $${q.reward}</button>`;
-            } else {
-                buttonHTML = `<span style="font-size:12px; color:#8e8e93;">${invites}/${q.goal}</span>`;
-            }
+            if (invites >= q.goal) buttonHTML = `<button onclick="claimQuest('${q.id}', ${q.reward})" style="padding:5px; background:#34c759; border:none; border-radius:5px; color:#fff; font-size:10px;">Забрать $${q.reward}</button>`; 
+            else buttonHTML = `<span style="font-size:12px; color:#8e8e93;">${invites}/${q.goal}</span>`;
         }
-
         div.innerHTML = `<div class="ach-icon">📜</div><div class="ach-info"><p class="ach-title">${q.title} (+$${q.reward})</p><p class="ach-desc">${q.desc}</p></div><div class="ach-action">${buttonHTML}</div>`;
         achievementsList.appendChild(div);
     });
 }
-
 window.handleQuestClick = function(id, url, reward) {
-    // Открываем ссылку
-    if (window.Telegram.WebApp) window.Telegram.WebApp.openLink(url);
-    else window.open(url, '_blank');
-    
-    // Меняем кнопку на "Проверяю..."
+    if (window.Telegram.WebApp) window.Telegram.WebApp.openLink(url); else window.open(url, '_blank');
     const btn = document.getElementById(`btn-${id}`);
-    if (btn) {
-        btn.textContent = "Проверяю...";
-        btn.disabled = true;
-        btn.style.background = "#8e8e93";
-        
-        // Через 4 секунды даем награду
-        setTimeout(() => {
-            claimQuest(id, reward);
-        }, 4000);
-    }
+    if (btn) { btn.textContent = "Проверяю..."; btn.disabled = true; btn.style.background = "#8e8e93"; setTimeout(() => { claimQuest(id, reward); }, 4000); }
 }
-
 window.claimQuest = function(id, reward) {
     if (claimedQuests.includes(id)) return;
-    claimedQuests.push(id);
-    localStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
-    walletBalance += reward;
-    localStorage.setItem('walletBalance', walletBalance);
-    showToast(`Квест выполнен! +$${reward}`, "📜");
-    updateBalanceUI();
-    renderQuests(); // Перерисовать
+    claimedQuests.push(id); localStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+    walletBalance += reward; localStorage.setItem('walletBalance', walletBalance);
+    showToast(`Квест выполнен! +$${reward}`, "📜"); updateBalanceUI(); renderQuests();
 }
-
 window.claimAchievement = function(id, reward) {
     if (claimedAchievements.includes(id)) return;
     claimedAchievements.push(id); localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
     walletBalance += reward; localStorage.setItem('walletBalance', walletBalance);
-    showToast(`Награда: +$${reward}`, "🏆");
-    updateBalanceUI(); renderAchievements();
+    showToast(`Награда: +$${reward}`, "🏆"); updateBalanceUI(); renderAchievements();
 }
 
 // === ОБЩИЕ ФУНКЦИИ ===
@@ -452,13 +419,7 @@ if(nextBtn) nextBtn.onclick = () => { if(!isRunning) { currentModeIndex=currentM
 if(mainBtn) mainBtn.onclick = () => isRunning ? stopTimer() : startTimer();
 if(shareBtn) shareBtn.onclick = () => {
     let uniqueCount = new Set(collection).size;
-    
-    // УВЕЛИЧИВАЕМ СЧЕТЧИК ИНВАЙТОВ
-    if(!userStats.invites) userStats.invites = 0;
-    userStats.invites++;
-    localStorage.setItem('userStats', JSON.stringify(userStats));
-    checkAchievements(); // Проверить, выполнился ли квест
-
+    if(!userStats.invites) userStats.invites = 0; userStats.invites++; localStorage.setItem('userStats', JSON.stringify(userStats)); checkAchievements();
     const text = `У меня ${uniqueCount} петов и $${walletBalance} в Focus Hatcher! Заходи.`;
     const url = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(text)}`;
     if (window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
