@@ -108,3 +108,18 @@ body.theme-forest { background: linear-gradient(135deg, #134e5e, #71b280); }
 body.theme-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); }
 body.theme-gold { background: linear-gradient(135deg, #3e2b0e, #d4af37); }
 body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
+
+/* === ИСПРАВЛЕНИЕ: ОПУСКАЕМ УВЕДОМЛЕНИЯ НИЖЕ === */
+#toast-container {
+    position: fixed;
+    top: 80px; /* <--- БЫЛО 20px, СТАЛО 80px */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: 90%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
