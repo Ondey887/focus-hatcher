@@ -55,7 +55,7 @@ const petDatabase = {
 };
 const TOTAL_PETS_COUNT = 24;
 
-// === ЗАГРУЗКА (С ПРОВЕРКОЙ НА NULL) ===
+// === ЗАГРУЗКА ===
 let collection = JSON.parse(localStorage.getItem('myCollection')) || [];
 let userXP = parseInt(localStorage.getItem('userXP')) || 0;
 let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
@@ -64,19 +64,11 @@ let ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['d
 let activeTheme = localStorage.getItem('activeTheme') || 'default';
 let activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
 
-// Статистика (с защитой)
 let userStats = { hatched: 0, earned: 0, invites: 0 };
-try {
-    let saved = JSON.parse(localStorage.getItem('userStats'));
-    if (saved) userStats = saved;
-} catch(e) {}
+try { let s = JSON.parse(localStorage.getItem('userStats')); if(s) userStats = s; } catch(e){}
 
-// Бустеры (с защитой)
 let myBoosters = { luck: 0, speed: 0 };
-try {
-    let savedBoosters = JSON.parse(localStorage.getItem('myBoosters'));
-    if (savedBoosters) myBoosters = savedBoosters;
-} catch(e) {}
+try { let b = JSON.parse(localStorage.getItem('myBoosters')); if(b) myBoosters = b; } catch(e){}
 
 let claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
 let claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
@@ -133,14 +125,29 @@ function updateBalanceUI() {
     renderBoostersPanel();
 }
 
+// === ИСПРАВЛЕННАЯ ПРОВЕРКА КРАСНОЙ ТОЧКИ ===
 function checkAchievements() {
     let uniqueCount = new Set(collection).size;
     let hasUnclaimed = false;
+    
     ACHIEVEMENTS_DATA.forEach(ach => {
-        if (claimedAchievements.includes(ach.id)) return; 
-        if ((!ach.type && userStats.hatched >= ach.goal) || (ach.type === 'money' && userStats.earned >= ach.goal) || (ach.type === 'unique' && uniqueCount >= ach.goal)) hasUnclaimed = true;
+        if (!claimedAchievements.includes(ach.id)) { 
+            let completed = false;
+            if (ach.type === 'money' && userStats.earned >= ach.goal) completed = true;
+            else if (ach.type === 'unique' && uniqueCount >= ach.goal) completed = true;
+            else if (!ach.type && userStats.hatched >= ach.goal) completed = true;
+            
+            if (completed) hasUnclaimed = true;
+        }
     });
-    QUESTS_DATA.forEach(q => { if (!claimedQuests.includes(q.id) && q.type === 'invite' && (userStats.invites || 0) >= q.goal) hasUnclaimed = true; });
+    
+    QUESTS_DATA.forEach(q => {
+        if (!claimedQuests.includes(q.id)) {
+            if (q.type === 'invite' && (userStats.invites || 0) >= q.goal) hasUnclaimed = true;
+            // Для ссылок (подписка) мы не знаем, выполнено ли, пока не нажмут
+        }
+    });
+
     if (achBadge) achBadge.style.display = hasUnclaimed ? 'block' : 'none';
 }
 
@@ -156,18 +163,14 @@ function getPetRarity(pet) {
     return "common";
 }
 
-// === БУСТЕРЫ UI ===
+// === БУСТЕРЫ ===
 function renderBoostersPanel() {
     if(!boostersPanel) return;
     boostersPanel.innerHTML = '';
-    
-    // Защита от undefined
-    if(!myBoosters.luck) myBoosters.luck = 0;
-    if(!myBoosters.speed) myBoosters.speed = 0;
-
-    const luckBtn = createBoosterBtn('luck', '🍀', myBoosters.luck, activeBoosters.luck);
-    const speedBtn = createBoosterBtn('speed', '⏳', myBoosters.speed, activeBoosters.speed);
-    
+    const luckCount = myBoosters.luck || 0;
+    const speedCount = myBoosters.speed || 0;
+    const luckBtn = createBoosterBtn('luck', '🍀', luckCount, activeBoosters.luck);
+    const speedBtn = createBoosterBtn('speed', '⏳', speedCount, activeBoosters.speed);
     boostersPanel.appendChild(luckBtn);
     boostersPanel.appendChild(speedBtn);
 }
@@ -216,8 +219,7 @@ function startTimer() {
     applyEggSkin();
     if(eggDisplay) eggDisplay.classList.add('shaking');
     
-    // Блокируем бустеры
-    renderBoostersPanel();
+    renderBoostersPanel(); // Блокируем бустеры
 
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -252,13 +254,23 @@ function finishTimer() {
         userStats.hatched += 1;
         localStorage.setItem('userStats', JSON.stringify(userStats));
 
+        // === ИСПРАВЛЕНО: ТРАТИМ БУСТЕРЫ ===
         let legendaryChance = mode.id === 'short' ? 1 : 5;
         let rareChance = mode.id === 'short' ? 15 : 30; 
         
         if (activeBoosters.luck) {
             legendaryChance *= 5; 
+            myBoosters.luck--; // Уменьшаем количество
+            activeBoosters.luck = false; // Выключаем
         }
+        if (activeBoosters.speed) {
+            myBoosters.speed--; // Уменьшаем количество
+            activeBoosters.speed = false; // Выключаем
+        }
+        localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
+        renderBoostersPanel(); // ОБНОВЛЯЕМ ПАНЕЛЬ СРАЗУ
 
+        // Drop
         const chance = Math.random() * 100;
         let pool;
         if (chance < legendaryChance) pool = petDatabase.legendary;
@@ -272,11 +284,6 @@ function finishTimer() {
         renderCollection(); 
         
         if(collectionContainer.classList.contains('hidden')) toggleInventory();
-        
-        // Списание
-        if(activeBoosters.luck) { myBoosters.luck--; activeBoosters.luck = false; }
-        if(activeBoosters.speed) { myBoosters.speed--; activeBoosters.speed = false; }
-        localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         
         const price = PRICES[getPetRarity(currentPet)];
         showToast(`Выпал питомец: ${currentPet} (+$${price})`, "🐣");
