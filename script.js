@@ -1,18 +1,28 @@
-// === ЛОВУШКА ОШИБОК ===
+// =============================================================
+// 1. ЛОВУШКА ОШИБОК И ОТЛАДКА
+// =============================================================
 const debugConsole = document.getElementById('debug-console');
+
 window.onerror = function(msg, source, lineno) {
     debugConsole.style.display = 'block';
     debugConsole.innerHTML += `<div class="error-msg">❌ Ошибка: ${msg} (стр. ${lineno})</div>`;
-    return false;
+    return false; // Не блокировать стандартный вывод
 };
 
-// === ЗВУКОВОЙ ДВИЖОК ===
+// =============================================================
+// 2. АУДИО ДВИЖОК (СИНТЕЗАТОР ЗВУКОВ)
+// =============================================================
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx = new AudioContext();
 
 function playSound(type) {
+    // Если звук выключен в настройках - выходим
     if (!isSoundOn) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume(); 
+    
+    // Если браузер "усыпил" аудио (политика автозапуска) - будим
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
 
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
@@ -23,56 +33,127 @@ function playSound(type) {
     const now = audioCtx.currentTime;
 
     if (type === 'click') {
+        // Короткий щелчок (интерфейс)
         osc.type = 'sine';
         osc.frequency.setValueAtTime(800, now);
         osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+        
         gainNode.gain.setValueAtTime(0.1, now);
         gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        
         osc.start(now);
         osc.stop(now + 0.1);
     } 
     else if (type === 'money') {
+        // Звук монетки (двойной писк)
         osc.type = 'sine';
         osc.frequency.setValueAtTime(1200, now);
         osc.frequency.setValueAtTime(1600, now + 0.1);
+        
         gainNode.gain.setValueAtTime(0.1, now);
         gainNode.gain.linearRampToValueAtTime(0.01, now + 0.3);
+        
         osc.start(now);
         osc.stop(now + 0.3);
     }
     else if (type === 'win') {
-        playNote(523.25, now, 0.1); // C5
-        playNote(659.25, now + 0.1, 0.1); // E5
-        playNote(783.99, now + 0.2, 0.4); // G5
+        // Победный аккорд (Мажорное трезвучие)
+        playNote(523.25, now, 0.1);       // До (C5)
+        playNote(659.25, now + 0.1, 0.1); // Ми (E5)
+        playNote(783.99, now + 0.2, 0.4); // Соль (G5)
     }
     else if (type === 'legendary') {
+        // Легендарный дроп (низкое вибрато)
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(200, now);
         osc.frequency.linearRampToValueAtTime(600, now + 1);
+        
         gainNode.gain.setValueAtTime(0.3, now);
         gainNode.gain.linearRampToValueAtTime(0.01, now + 1.5);
+        
         osc.start(now);
         osc.stop(now + 1.5);
     }
 }
 
+// Вспомогательная функция для нот
 function playNote(freq, time, duration) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
+    
     osc.connect(gain);
     gain.connect(audioCtx.destination);
+    
     osc.frequency.value = freq;
+    
     gain.gain.setValueAtTime(0.1, time);
     gain.gain.linearRampToValueAtTime(0.01, time + duration);
+    
     osc.start(time);
     osc.stop(time + duration);
 }
 
-// === КОНСТАНТЫ ===
+// =============================================================
+// 3. ВИЗУАЛЬНЫЕ ЭФФЕКТЫ (КОНФЕТТИ)
+// =============================================================
+function fireConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    let particles = [];
+    const colors = ['#ff3b30', '#ffcc00', '#34c759', '#007aff', '#5856d6'];
+    
+    // Создаем 100 частиц
+    for (let i = 0; i < 100; i++) {
+        particles.push({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            w: Math.random() * 10 + 5,
+            h: Math.random() * 10 + 5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            vx: (Math.random() - 0.5) * 20, // Разлет по горизонтали
+            vy: (Math.random() - 0.5) * 20 - 10, // Разлет вверх
+            grav: 0.5 // Гравитация
+        });
+    }
+    
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        particles.forEach((p, index) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.grav;
+            
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            
+            // Удаляем частицы, улетевшие за экран
+            if (p.y > canvas.height) particles.splice(index, 1);
+        });
+        
+        if (particles.length > 0) {
+            requestAnimationFrame(draw);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+    
+    draw();
+}
+
+// =============================================================
+// 4. КОНСТАНТЫ И НАСТРОЙКИ ИГРЫ
+// =============================================================
 const MODES = [
     { id: 'short', time: 10, xpReward: 250, egg: '🥚', title: '25 минут', sub: 'Шанс Легендарки: 1%', style: '' },
     { id: 'long', time: 20, xpReward: 1000, egg: '💎', title: '60 минут', sub: 'Шанс Легендарки: 5% 🔥', style: 'hardcore' }
 ];
+
 const PRICES = { common: 15, rare: 150, legendary: 5000 };
 const RANKS = ["Новичок", "Искатель", "Укротитель", "Мастер", "Ниндзя", "Легенда", "Бог Фокуса"];
 
@@ -81,6 +162,7 @@ const petDatabase = {
     rare: ["🦊", "🐼", "🐯", "🦁", "🐮", "🐷", "🐵", "🦉"],
     legendary: ["🦄", "🐲", "👽", "🤖", "🦖", "🔥"]
 };
+// Полный плоский список для энциклопедии
 const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
 
@@ -90,10 +172,12 @@ const ACHIEVEMENTS_DATA = [
     { id: 'collector', title: 'Коллекционер', desc: 'Собери 5 уникальных', goal: 5, type: 'unique', reward: 1000 },
     { id: 'hard_worker', title: 'Трудяга', desc: 'Вырасти 10 питомцев', goal: 10, reward: 2000 }
 ];
+
 const QUESTS_DATA = [
     { id: 'sub_channel', title: 'Подписка', desc: 'Подпишись на канал', reward: 1000, type: 'link', url: 'https://t.me/focushatch' },
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
+
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, cssClass: '' },
@@ -114,6 +198,7 @@ const SHOP_DATA = {
         { id: 'speed', name: 'Ускоритель', price: 500, icon: '⏳', desc: 'Время / 2' }
     ]
 };
+
 const DAILY_REWARDS = [
     { day: 1, type: 'money', val: 100, icon: '💰' },
     { day: 2, type: 'money', val: 250, icon: '💰' },
@@ -126,7 +211,9 @@ const DAILY_REWARDS = [
 
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
-// === ПЕРЕМЕННЫЕ ===
+// =============================================================
+// 5. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ СОСТОЯНИЯ
+// =============================================================
 let collection = [];
 let userXP = 0;
 let userLevel = 1;
@@ -150,12 +237,32 @@ let currentShopTab = 'themes';
 let currentAchTab = 'achievements';
 let selectedPet = null;
 
-// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+// =============================================================
+// 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// =============================================================
 function getEl(id) { return document.getElementById(id); }
-function closeModal(id) { getEl(id).style.display = 'none'; playSound('click'); }
-function openShop() { getEl('shop-modal').style.display = 'flex'; switchShopTab('themes'); playSound('click'); }
-function openSettings() { getEl('settings-modal').style.display = 'flex'; playSound('click'); }
-function openAch() { getEl('achievements-modal').style.display = 'flex'; switchAchTab('achievements'); playSound('click'); }
+
+function closeModal(id) { 
+    getEl(id).style.display = 'none'; 
+    playSound('click'); 
+}
+
+function openShop() { 
+    getEl('shop-modal').style.display = 'flex'; 
+    switchShopTab('themes'); 
+    playSound('click'); 
+}
+
+function openSettings() { 
+    getEl('settings-modal').style.display = 'flex'; 
+    playSound('click'); 
+}
+
+function openAch() { 
+    getEl('achievements-modal').style.display = 'flex'; 
+    switchAchTab('achievements'); 
+    playSound('click'); 
+}
 
 function showToast(msg, icon='🔔') {
     const c = getEl('toast-container');
@@ -185,9 +292,12 @@ function hardReset() {
     }
 }
 
-// === ЗАПУСК ===
+// =============================================================
+// 7. ИНИЦИАЛИЗАЦИЯ (ЗАПУСК)
+// =============================================================
 function initGame() {
     try {
+        // Загрузка данных из LocalStorage
         collection = JSON.parse(localStorage.getItem('myCollection')) || [];
         userXP = parseInt(localStorage.getItem('userXP')) || 0;
         userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
@@ -207,15 +317,20 @@ function initGame() {
         
         isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
-    } catch(e) { console.error(e); }
+        
+    } catch(e) { console.error("Ошибка загрузки:", e); }
 
+    // Проверка награды за вход
     checkDailyReward();
+
+    // Отрисовка интерфейса
     updateLevelUI();
     renderCollection();
     applyTheme();
     updateUI();
     updateBalanceUI();
     
+    // Настройка свитчей в настройках
     if(getEl('vibration-toggle')) {
         getEl('vibration-toggle').checked = isVibrationOn;
         getEl('vibration-toggle').onchange = (e) => { 
@@ -234,17 +349,20 @@ function initGame() {
     }
 }
 
-// === DAILY REWARDS ===
+// =============================================================
+// 8. ЛОГИКА ЕЖЕДНЕВНЫХ НАГРАД
+// =============================================================
 function checkDailyReward() {
     const today = new Date().toDateString();
     const lastLogin = localStorage.getItem('lastLoginDate');
     let streak = parseInt(localStorage.getItem('dailyStreak')) || 0;
 
-    if (lastLogin === today) return;
+    if (lastLogin === today) return; // Уже получал сегодня
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     
+    // Если пропустил день - сброс серии
     if (lastLogin !== yesterday.toDateString()) {
         streak = 0;
     }
@@ -286,6 +404,7 @@ window.claimDaily = function() {
     
     const r = DAILY_REWARDS[s];
     
+    // Начисление награды
     if (r.type === 'money') walletBalance += r.val;
     else if (r.type === 'booster') {
         if (!myBoosters[r.id]) myBoosters[r.id] = 0;
@@ -309,7 +428,9 @@ window.claimDaily = function() {
     playSound('money');
 }
 
-// === LOGIC ===
+// =============================================================
+// 9. ОСНОВНАЯ ИГРОВАЯ ЛОГИКА
+// =============================================================
 function updateBalanceUI() {
     getEl('total-money').textContent = `💰 $${walletBalance}`;
     getEl('unique-count').textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
@@ -397,14 +518,28 @@ function startTimer() {
     
     // === СБРОС ТЕКСТА НА ЯЙЦО ===
     getEl('egg-display').textContent = m.egg;
+    getEl('crack-overlay').className = 'crack-overlay'; // Сброс трещин
     
     applyEggSkin();
     getEl('egg-display').classList.add('shaking');
     renderBoostersPanel();
+    
+    const totalTime = timeLeft;
 
     timerInterval = setInterval(() => {
         timeLeft--;
         getEl('timer').textContent = formatTime(timeLeft);
+        
+        // ЛОГИКА ТРЕЩИН
+        const progress = 1 - (timeLeft / totalTime);
+        const overlay = getEl('crack-overlay');
+        
+        if (progress > 0.3 && progress < 0.6) {
+            overlay.className = 'crack-overlay crack-stage-1';
+        } else if (progress >= 0.6) {
+            overlay.className = 'crack-overlay crack-stage-2';
+        }
+
         if (timeLeft <= 0) finishTimer();
     }, 1000);
 }
@@ -417,6 +552,7 @@ function stopTimer() {
     getEl('prev-btn').style.visibility = 'visible';
     getEl('next-btn').style.visibility = 'visible';
     getEl('egg-display').classList.remove('shaking');
+    getEl('crack-overlay').className = 'crack-overlay';
     applyEggSkin();
     updateUI();
     renderBoostersPanel();
@@ -432,6 +568,7 @@ function finishTimer() {
     getEl('prev-btn').style.visibility = 'visible';
     getEl('next-btn').style.visibility = 'visible';
     getEl('egg-display').className = 'egg';
+    getEl('crack-overlay').className = 'crack-overlay';
 
     const m = MODES[currentModeIndex];
     
@@ -463,6 +600,10 @@ function finishTimer() {
     localStorage.setItem('myCollection', JSON.stringify(collection));
     
     getEl('egg-display').textContent = dropped;
+    
+    // ЗАПУСК КОНФЕТТИ
+    fireConfetti();
+    
     showToast(`Получено: ${dropped}`, "🐣");
     
     renderCollection();
@@ -474,6 +615,9 @@ function finishTimer() {
     if (isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(200);
 }
 
+// =============================================================
+// 10. ИНВЕНТАРЬ И ЭНЦИКЛОПЕДИЯ
+// =============================================================
 function toggleInventory() {
     playSound('click');
     const c = getEl('collection');
@@ -540,6 +684,9 @@ function sellPet() {
     playSound('money');
 }
 
+// =============================================================
+// 11. МАГАЗИН И АЧИВКИ
+// =============================================================
 function switchShopTab(t) {
     currentShopTab = t;
     document.querySelectorAll('#shop-modal .tab-btn').forEach(b => b.classList.remove('active'));
@@ -724,7 +871,7 @@ function applyEggSkin() {
 }
 
 function updateLevelUI() {
-    const max = userLevel * 200;
+    const max = userLevel * 200; 
     let p = (userXP / max) * 100;
     if (p > 100) p = 100;
     getEl('xp-bar').style.width = `${p}%`;
@@ -733,5 +880,5 @@ function updateLevelUI() {
     getEl('rank-name').textContent = RANKS[Math.min(r, RANKS.length - 1)];
 }
 
-// ЗАПУСК ПОСЛЕ ЗАГРУЗКИ (ВАЖНО!)
+// ЗАПУСК ПОСЛЕ ЗАГРУЗКИ
 window.onload = initGame;
