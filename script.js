@@ -205,9 +205,8 @@ function openLevels() {
     modal.style.display = 'flex';
 }
 
-// === ОБУЧЕНИЕ (НОВОЕ) ===
+// === ОБУЧЕНИЕ ===
 function checkTutorial() {
-    // Проверка ключа в LocalStorage
     if (!localStorage.getItem('tutorialSeen')) {
         getEl('tutorial-modal').style.display = 'flex';
     }
@@ -217,7 +216,6 @@ window.closeTutorial = function() {
     playSound('click');
     localStorage.setItem('tutorialSeen', 'true');
     getEl('tutorial-modal').style.display = 'none';
-    // После обучения можно показать дейли ревард
     checkDailyReward();
 }
 
@@ -248,10 +246,7 @@ function initGame() {
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
     } catch(e) { console.error("Local Load Error", e); }
 
-    // Сначала обучение, потом дейлики
     checkTutorial();
-    // Если обучение уже пройдено, функция закроется, и дейлик вызовется в checkDailyReward
-    // Если нет, дейлик вызовется после закрытия обучения
     if (localStorage.getItem('tutorialSeen')) {
         checkDailyReward();
     }
@@ -299,10 +294,10 @@ function loadFromCloud() {
             if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
             
-            // Синхронизируем обучение с облаком
+            // ИСПРАВЛЕНО: НЕ ЗАКРЫВАЕМ ОКНО АВТОМАТИЧЕСКИ
             if (values.tutorialSeen) {
                 localStorage.setItem('tutorialSeen', 'true');
-                getEl('tutorial-modal').style.display = 'none'; // Скрыть, если вдруг показалось
+                // Мы просто обновляем локальный статус, но не дергаем UI, чтобы не было "мигания"
             }
 
             updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
@@ -336,7 +331,6 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
         Telegram.WebApp.CloudStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
-        // Сохраняем флаг обучения в облако тоже
         if(localStorage.getItem('tutorialSeen')) Telegram.WebApp.CloudStorage.setItem('tutorialSeen', 'true');
     }
 }
