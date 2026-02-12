@@ -116,7 +116,7 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
 .toast.fade-out { animation: fadeOut 0.3s ease-in forwards; }
 
-/* === ЕЖЕДНЕВНЫЕ НАГРАДЫ (НОВОЕ) === */
+/* === ЕЖЕДНЕВНЫЕ НАГРАДЫ === */
 .daily-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .daily-item:last-child { grid-column: span 4; background: linear-gradient(45deg, #ffd700, #ffa500); color: black; font-weight: bold; }
 .daily-item { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; border: 2px solid transparent; }
