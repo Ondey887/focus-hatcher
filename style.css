@@ -55,7 +55,7 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .crack-stage-1 { background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.7) 49%, rgba(40,40,40,0.7) 51%, transparent 52%); filter: drop-shadow(0 0 1px white); opacity: 0.8; }
 .crack-stage-2 { background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%), linear-gradient(45deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%); filter: drop-shadow(0 0 1px white); opacity: 0.9; }
 
-/* СПИСОК УРОВНЕЙ (НОВОЕ) */
+/* СПИСОК УРОВНЕЙ */
 .levels-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; text-align: left; }
 .level-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; }
 .level-item.active { border-color: #007aff; background: rgba(0, 122, 255, 0.1); }
@@ -149,3 +149,17 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 .daily-item.active { opacity: 1; border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.3); transform: scale(1.05); background: rgba(52, 199, 89, 0.1); }
 .daily-item.claimed { opacity: 1; background: #34c759; color: white; }
 .daily-item.claimed .daily-val { color: white; }
+
+/* === ОБУЧЕНИЕ (НОВОЕ) === */
+.tutorial-step {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 15px;
+}
+.tut-icon { font-size: 30px; min-width: 40px; text-align: center; }
+.tut-title { font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #ffd700; }
+.tut-desc { font-size: 13px; color: #d1d1d6; line-height: 1.4; }

@@ -98,7 +98,6 @@ const MODES = [
 const PRICES = { common: 15, rare: 150, legendary: 5000 };
 const RANKS = ["Новичок", "Искатель", "Укротитель", "Мастер", "Ниндзя", "Легенда", "Бог Фокуса"];
 
-// НАГРАДЫ ЗА УРОВНИ (НОВОЕ!)
 const LEVEL_REWARDS = {
     1: { title: "Новичок", reward: null },
     5: { title: "Искатель", reward: "1000 монет" },
@@ -112,9 +111,8 @@ const petDatabase = {
     rare: ["🦊", "🐼", "🐯", "🦁", "🐮", "🐷", "🐵", "🦉"],
     legendary: ["🦄", "🐲", "👽", "🤖", "🦖", "🔥"]
 };
-const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, "🐲 God"]; // Добавили бога
+const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, "🐲 God"];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
-
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
     { id: 'rich_kid', title: 'Богач', desc: 'Заработай $1000', goal: 1000, type: 'money', reward: 500 },
@@ -188,39 +186,43 @@ function getPetRarity(p) {
 }
 function hardReset() { if(confirm("Сбросить все?")) { localStorage.clear(); location.reload(); } }
 
-// === НОВОЕ: ОТКРЫТИЕ ОКНА УРОВНЕЙ ===
 function openLevels() {
     playSound('click');
     const modal = getEl('levels-modal');
     const list = getEl('levels-list');
     list.innerHTML = '';
     
-    // Генерируем список уровней
     for (let lvl = 1; lvl <= 50; lvl++) {
-        if (!LEVEL_REWARDS[lvl]) continue; // Показываем только ключевые уровни
-        
+        if (!LEVEL_REWARDS[lvl]) continue;
         const info = LEVEL_REWARDS[lvl];
         const isReached = userLevel >= lvl;
         const div = document.createElement('div');
         div.className = `level-item ${isReached ? 'active' : 'locked'}`;
-        
         const status = isReached ? '✅' : '🔒';
-        
-        div.innerHTML = `
-            <div class="rank-icon">${status}</div>
-            <div class="rank-details">
-                <div class="rank-title">Ур. ${lvl}: ${info.title}</div>
-                <div class="rank-desc">Награда: ${info.reward || "Нет"}</div>
-            </div>
-        `;
+        div.innerHTML = `<div class="rank-icon">${status}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${info.reward || "Нет"}</div></div>`;
         list.appendChild(div);
     }
-    
     modal.style.display = 'flex';
 }
 
+// === ОБУЧЕНИЕ (НОВОЕ) ===
+function checkTutorial() {
+    // Проверка ключа в LocalStorage
+    if (!localStorage.getItem('tutorialSeen')) {
+        getEl('tutorial-modal').style.display = 'flex';
+    }
+}
+
+window.closeTutorial = function() {
+    playSound('click');
+    localStorage.setItem('tutorialSeen', 'true');
+    getEl('tutorial-modal').style.display = 'none';
+    // После обучения можно показать дейли ревард
+    checkDailyReward();
+}
+
 // =============================================================
-// 7. ИНИЦИАЛИЗАЦИЯ (С ЗАЩИТОЙ ОТ ЗАКРЫТИЯ)
+// 7. ИНИЦИАЛИЗАЦИЯ
 // =============================================================
 function initGame() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -246,7 +248,14 @@ function initGame() {
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
     } catch(e) { console.error("Local Load Error", e); }
 
-    checkDailyReward();
+    // Сначала обучение, потом дейлики
+    checkTutorial();
+    // Если обучение уже пройдено, функция закроется, и дейлик вызовется в checkDailyReward
+    // Если нет, дейлик вызовется после закрытия обучения
+    if (localStorage.getItem('tutorialSeen')) {
+        checkDailyReward();
+    }
+
     updateLevelUI();
     renderCollection();
     applyTheme();
@@ -275,7 +284,7 @@ function initGame() {
 
 function loadFromCloud() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests'];
+        const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'tutorialSeen'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
@@ -289,6 +298,13 @@ function loadFromCloud() {
             if (values.myBoosters) myBoosters = JSON.parse(values.myBoosters);
             if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
+            
+            // Синхронизируем обучение с облаком
+            if (values.tutorialSeen) {
+                localStorage.setItem('tutorialSeen', 'true');
+                getEl('tutorial-modal').style.display = 'none'; // Скрыть, если вдруг показалось
+            }
+
             updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
         });
     }
@@ -320,6 +336,8 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
         Telegram.WebApp.CloudStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+        // Сохраняем флаг обучения в облако тоже
+        if(localStorage.getItem('tutorialSeen')) Telegram.WebApp.CloudStorage.setItem('tutorialSeen', 'true');
     }
 }
 
@@ -457,14 +475,12 @@ function finishTimer() {
     const m = MODES[currentModeIndex];
     userXP+=m.xpReward; 
     
-    // === ЛОГИКА ПОВЫШЕНИЯ УРОВНЯ И ВЫДАЧИ УНИКАЛЬНОГО ПИТОМЦА ===
     if(userXP >= userLevel * 200) { 
         userXP -= userLevel * 200; 
         userLevel++; 
         showToast(`Lvl UP: ${userLevel}`, "🎉"); 
         playSound('win'); 
         
-        // Проверка на уникальную награду (10 уровень)
         if (userLevel === 10) {
             collection.push("🐲 God");
             showToast("Получен: 🐲 God", "🎁");
@@ -620,6 +636,7 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
         Telegram.WebApp.CloudStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+        if(localStorage.getItem('tutorialSeen')) Telegram.WebApp.CloudStorage.setItem('tutorialSeen', 'true');
     }
 }
 function applyTheme() { const t=SHOP_DATA.themes.find(x=>x.id===activeTheme); document.body.className=t?t.cssClass:''; }
