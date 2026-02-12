@@ -37,6 +37,18 @@ const SHOP_DATA = {
     eggs: [ { id: 'default', name: 'Стандарт', price: 0, skinClass: '' }, { id: 'glow', name: 'Сияние', price: 1000, skinClass: 'skin-glow' }, { id: 'ice', name: 'Лед', price: 3000, skinClass: 'skin-ice' }, { id: 'glitch', name: 'Глюк', price: 7777, skinClass: 'skin-glitch' }, { id: 'gold', name: 'Золото', price: 15000, skinClass: 'skin-gold' } ],
     boosters: [ { id: 'luck', name: 'Зелье Удачи', price: 200, icon: '🍀', desc: 'Шанс x5' }, { id: 'speed', name: 'Ускоритель', price: 500, icon: '⏳', desc: 'Время / 2' } ]
 };
+
+// === НОВОЕ: ЕЖЕДНЕВНЫЕ НАГРАДЫ ===
+const DAILY_REWARDS = [
+    { day: 1, type: 'money', val: 100, icon: '💰' },
+    { day: 2, type: 'money', val: 250, icon: '💰' },
+    { day: 3, type: 'money', val: 500, icon: '💰' },
+    { day: 4, type: 'money', val: 1000, icon: '💰' },
+    { day: 5, type: 'money', val: 2000, icon: '💰' },
+    { day: 6, type: 'booster', id: 'speed', val: 1, icon: '⏳' },
+    { day: 7, type: 'mixed', money: 5000, booster: 'luck', icon: '🎁' }
+];
+
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ СОСТОЯНИЯ ===
@@ -87,7 +99,7 @@ function getPetRarity(p) {
     return 'common';
 }
 function hardReset() {
-    if(confirm("Сбросить все сохранения? Это исправит зависания.")) {
+    if(confirm("Сбросить все сохранения?")) {
         localStorage.clear();
         location.reload();
     }
@@ -113,9 +125,10 @@ function initGame() {
         claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
         claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
         isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
-    } catch(e) {
-        console.error("Data load error", e);
-    }
+    } catch(e) { console.error("Data load error", e); }
+
+    // Проверка ежедневной награды
+    checkDailyReward();
 
     updateLevelUI();
     renderCollection();
@@ -129,6 +142,80 @@ function initGame() {
     }
 }
 
+// === ЛОГИКА ЕЖЕДНЕВНЫХ НАГРАД ===
+function checkDailyReward() {
+    const today = new Date().toDateString();
+    const lastLogin = localStorage.getItem('lastLoginDate');
+    let streak = parseInt(localStorage.getItem('dailyStreak')) || 0;
+
+    if (lastLogin === today) return; // Уже получал
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Если пропустил день — сброс, но отображаем 1-й день
+    if (lastLogin !== yesterday.toDateString()) {
+        streak = 0;
+    }
+
+    renderDailyModal(streak);
+    getEl('daily-modal').style.display = 'flex';
+}
+
+function renderDailyModal(currentStreak) {
+    const grid = getEl('daily-grid');
+    grid.innerHTML = '';
+    
+    DAILY_REWARDS.forEach((rew, index) => {
+        const div = document.createElement('div');
+        let status = '';
+        if (index < currentStreak) status = 'claimed';
+        if (index === currentStreak) status = 'active';
+        
+        div.className = `daily-item ${status}`;
+        let valText = (rew.type === 'money' || rew.type === 'mixed') ? `$${rew.money || rew.val}` : '';
+        if (rew.type === 'booster') valText = '+1 Буст';
+        
+        div.innerHTML = `<div class="daily-day">День ${rew.day}</div><div class="daily-icon">${status === 'claimed' ? '✅' : rew.icon}</div><div class="daily-val">${valText}</div>`;
+        grid.appendChild(div);
+    });
+}
+
+window.claimDaily = function() {
+    let streak = parseInt(localStorage.getItem('dailyStreak')) || 0;
+    const today = new Date().toDateString();
+    
+    // Подстраховка сброса
+    const lastLogin = localStorage.getItem('lastLoginDate');
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (lastLogin && lastLogin !== yesterday.toDateString()) streak = 0;
+
+    const reward = DAILY_REWARDS[streak];
+    
+    if (reward.type === 'money') walletBalance += reward.val;
+    else if (reward.type === 'booster') {
+        if (!myBoosters[reward.id]) myBoosters[reward.id] = 0;
+        myBoosters[reward.id]++;
+    } else if (reward.type === 'mixed') {
+        walletBalance += reward.money;
+        if (!myBoosters[reward.booster]) myBoosters[reward.booster] = 0;
+        myBoosters[reward.booster]++;
+    }
+
+    streak++;
+    if (streak >= 7) streak = 0;
+    
+    localStorage.setItem('dailyStreak', streak);
+    localStorage.setItem('lastLoginDate', today);
+    
+    saveData();
+    updateBalanceUI();
+    showToast("Награда получена!", "📅");
+    getEl('daily-modal').style.display = 'none';
+}
+
+// === ОСНОВНАЯ ЛОГИКА ===
 function updateBalanceUI() {
     getEl('total-money').textContent = `💰 $${walletBalance}`;
     getEl('unique-count').textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
@@ -210,8 +297,7 @@ function startTimer() {
     getEl('prev-btn').style.visibility = 'hidden';
     getEl('next-btn').style.visibility = 'hidden';
     
-    // === ИСПРАВЛЕНИЕ ЗДЕСЬ ===
-    // Перед началом тряски возвращаем эмодзи яйца!
+    // === СБРОС ТЕКСТА НА ЯЙЦО ===
     getEl('egg-display').textContent = m.egg;
     
     applyEggSkin();
@@ -508,5 +594,5 @@ function updateLevelUI() {
     getEl('rank-name').textContent = RANKS[Math.min(r, RANKS.length-1)];
 }
 
-// ЗАПУСК ПОСЛЕ ЗАГРУЗКИ (ВАЖНО!)
+// ЗАПУСК
 window.onload = initGame;

@@ -109,38 +109,20 @@ body.theme-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e
 body.theme-gold { background: linear-gradient(135deg, #3e2b0e, #d4af37); }
 body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 
-/* === УВЕДОМЛЕНИЯ (TOASTS) === */
-#toast-container {
-    position: fixed;
-    top: 80px; /* Опустили ниже, чтобы не перекрывало кнопки */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    width: 90%;
-    max-width: 320px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-}
-
-/* Вот этих стилей не хватало! */
-.toast {
-    background: rgba(44, 44, 46, 0.95);
-    color: white;
-    padding: 12px 15px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    animation: slideIn 0.3s ease-out forwards;
-    border: 1px solid rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-}
-
+/* === УВЕДОМЛЕНИЯ === */
+#toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+.toast { background: rgba(44, 44, 46, 0.95); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; animation: slideIn 0.3s ease-out forwards; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
 @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
 .toast.fade-out { animation: fadeOut 0.3s ease-in forwards; }
+
+/* === ЕЖЕДНЕВНЫЕ НАГРАДЫ (НОВОЕ) === */
+.daily-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.daily-item:last-child { grid-column: span 4; background: linear-gradient(45deg, #ffd700, #ffa500); color: black; font-weight: bold; }
+.daily-item { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; border: 2px solid transparent; }
+.daily-day { font-size: 10px; margin-bottom: 5px; }
+.daily-icon { font-size: 24px; margin-bottom: 5px; }
+.daily-val { font-size: 12px; font-weight: bold; color: #85bb65; }
+.daily-item.active { opacity: 1; border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.3); transform: scale(1.05); background: rgba(52, 199, 89, 0.1); }
+.daily-item.claimed { opacity: 1; background: #34c759; color: white; }
+.daily-item.claimed .daily-val { color: white; }
