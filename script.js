@@ -177,10 +177,17 @@ function getPetRarity(p) {
 function hardReset() { if(confirm("Сбросить все?")) { localStorage.clear(); location.reload(); } }
 
 // =============================================================
-// 7. ИНИЦИАЛИЗАЦИЯ (С ОБЛАКОМ)
+// 7. ИНИЦИАЛИЗАЦИЯ (С ЗАЩИТОЙ ОТ ЗАКРЫТИЯ)
 // =============================================================
 function initGame() {
-    // 1. Сначала грузим из LocalStorage (быстро)
+    // === НОВОЕ: НАСТРОЙКИ ТЕЛЕГРАМА ===
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.expand(); // Развернуть
+        window.Telegram.WebApp.enableClosingConfirmation(); // Подтверждение закрытия
+        window.Telegram.WebApp.setHeaderColor('#1c1c1e'); // Цвет шапки
+        window.Telegram.WebApp.setBackgroundColor('#1c1c1e'); // Цвет фона
+    }
+
     try {
         collection = JSON.parse(localStorage.getItem('myCollection')) || [];
         userXP = parseInt(localStorage.getItem('userXP')) || 0;
@@ -197,7 +204,6 @@ function initGame() {
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
     } catch(e) { console.error("Local Load Error", e); }
 
-    // 2. Отрисовываем UI
     checkDailyReward();
     updateLevelUI();
     renderCollection();
@@ -205,7 +211,6 @@ function initGame() {
     updateUI();
     updateBalanceUI();
     
-    // 3. Настраиваем переключатели
     if(getEl('vibration-toggle')) {
         getEl('vibration-toggle').checked = isVibrationOn;
         getEl('vibration-toggle').onchange = (e) => { 
@@ -223,23 +228,14 @@ function initGame() {
         };
     }
 
-    // 4. Пытаемся подтянуть данные из ОБЛАКА (Асинхронно)
     loadFromCloud();
 }
 
 function loadFromCloud() {
-    // Проверяем, доступны ли мы в Телеграме
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests'];
-        
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
-            if (err) {
-                console.error("Cloud Error:", err);
-                return;
-            }
-            if (!values) return;
-
-            // Если в облаке есть данные, обновляем переменные
+            if (err || !values) return;
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
             if (values.userXP) userXP = parseInt(values.userXP);
             if (values.userLevel) userLevel = parseInt(values.userLevel);
@@ -251,21 +247,13 @@ function loadFromCloud() {
             if (values.myBoosters) myBoosters = JSON.parse(values.myBoosters);
             if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
-
-            // Обновляем UI после загрузки из облака
-            updateBalanceUI();
-            updateLevelUI();
-            renderCollection();
-            applyTheme();
-            applyEggSkin();
-            console.log("Cloud Data Loaded!");
+            updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
         });
     }
 }
 
-// === СОХРАНЕНИЕ (И В ТЕЛЕФОН, И В ОБЛАКО) ===
+// === СОХРАНЕНИЕ ===
 function saveData() {
-    // 1. Сохраняем локально (Мгновенно)
     localStorage.setItem('walletBalance', walletBalance);
     localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
     localStorage.setItem('activeTheme', activeTheme);
@@ -278,7 +266,6 @@ function saveData() {
     localStorage.setItem('userXP', userXP);
     localStorage.setItem('userLevel', userLevel);
 
-    // 2. Сохраняем в Облако (Если доступно)
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
         Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
@@ -434,7 +421,6 @@ function finishTimer() {
     if(activeBoosters.luck) { leg*=5; myBoosters.luck--; activeBoosters.luck=false; }
     if(activeBoosters.speed) { myBoosters.speed--; activeBoosters.speed=false; }
     
-    // Сохраняем через общую функцию
     saveData(); 
     renderBoostersPanel();
     
@@ -446,7 +432,6 @@ function finishTimer() {
     const dropped = pool[Math.floor(Math.random()*pool.length)];
     collection.push(dropped);
     
-    // Сохраняем снова после дропа
     saveData();
     
     getEl('egg-display').textContent = dropped;
@@ -550,6 +535,33 @@ function clickLink(id, u, r) { if(window.Telegram.WebApp)window.Telegram.WebApp.
 function claimAch(id, r) { if(claimedAchievements.includes(id))return; claimedAchievements.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderAch(); showToast(`Награда +$${r}`); playSound('money'); }
 function claimQuest(id, r) { if(claimedQuests.includes(id))return; claimedQuests.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderQuests(); showToast(`Награда +$${r}`); playSound('money'); }
 function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.invites++; saveData(); checkAchievements(); const t=`У меня ${new Set(collection).size} петов в Focus Hatcher!`; const u=`https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(t)}`; if(window.Telegram.WebApp)window.Telegram.WebApp.openTelegramLink(u); else window.open(u,'_blank'); }
+function saveData() {
+    localStorage.setItem('walletBalance', walletBalance);
+    localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
+    localStorage.setItem('activeTheme', activeTheme);
+    localStorage.setItem('activeEggSkin', activeEggSkin);
+    localStorage.setItem('userStats', JSON.stringify(userStats));
+    localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
+    localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
+    localStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+    localStorage.setItem('myCollection', JSON.stringify(collection));
+    localStorage.setItem('userXP', userXP);
+    localStorage.setItem('userLevel', userLevel);
+
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
+        Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
+        Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
+        Telegram.WebApp.CloudStorage.setItem('userLevel', userLevel.toString());
+        Telegram.WebApp.CloudStorage.setItem('myCollection', JSON.stringify(collection));
+        Telegram.WebApp.CloudStorage.setItem('ownedItems', JSON.stringify(ownedItems));
+        Telegram.WebApp.CloudStorage.setItem('activeTheme', activeTheme);
+        Telegram.WebApp.CloudStorage.setItem('activeEggSkin', activeEggSkin);
+        Telegram.WebApp.CloudStorage.setItem('userStats', JSON.stringify(userStats));
+        Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
+        Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
+        Telegram.WebApp.CloudStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+    }
+}
 function applyTheme() { const t=SHOP_DATA.themes.find(x=>x.id===activeTheme); document.body.className=t?t.cssClass:''; }
 function applyEggSkin() { const s=SHOP_DATA.eggs.find(x=>x.id===activeEggSkin); const egg=getEl('egg-display'); egg.className='egg'; if(MODES[currentModeIndex].style==='hardcore')egg.classList.add('diamond-egg'); else if(s&&s.skinClass&&activeEggSkin!=='default')egg.classList.add(s.skinClass); if(isRunning)egg.classList.add('shaking'); }
 function updateLevelUI() { const max=userLevel*200; let p=(userXP/max)*100; if(p>100)p=100; getEl('xp-bar').style.width=`${p}%`; getEl('level-number').textContent=`Lvl ${userLevel}`; let r=Math.floor(userLevel/5); getEl('rank-name').textContent=RANKS[Math.min(r,RANKS.length-1)]; }
