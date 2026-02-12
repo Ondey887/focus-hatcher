@@ -2,9 +2,7 @@
 body { background-color: #1c1c1e; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; overflow-y: auto; user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 0.5s ease; }
 
 /* === КОНФЕТТИ === */
-#confetti-canvas {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;
-}
+#confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
 
 /* ОТЛАДКА */
 #debug-console { width: 95%; background: rgba(0, 0, 0, 0.8); border: 1px solid #ff3b30; color: #0f0; font-size: 10px; font-family: monospace; padding: 10px; margin-top: 5px; border-radius: 8px; z-index: 9999; word-wrap: break-word; display: none; }
@@ -19,7 +17,9 @@ body { background-color: #1c1c1e; color: white; font-family: -apple-system, Blin
 .red-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; }
 
 h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
-.level-container { background: rgba(255, 255, 255, 0.1); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; }
+.level-container { background: rgba(255, 255, 255, 0.1); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+.level-container:active { background: rgba(255, 255, 255, 0.2); transform: scale(0.98); }
+
 .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .money-display { font-size: 16px; font-weight: bold; color: #85bb65; }
 .progress-bar-bg { background: rgba(0, 0, 0, 0.5); height: 8px; border-radius: 4px; overflow: hidden; }
@@ -34,44 +34,38 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .btn.stop { background-color: #ff3b30; }
 .share-btn { background-color: #34c759; }
 
-/* === ЯЙЦО И АНИМАЦИИ === */
+/* ЯЙЦО И АНИМАЦИИ */
 .egg { font-size: 100px; display: inline-block; transition: transform 0.1s; position: relative; z-index: 1; }
 .egg.breathe { animation: breathe 3s infinite ease-in-out; }
 @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 .shaking { animation: shake 0.5s infinite !important; }
 @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(3deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-3deg); } 100% { transform: rotate(0deg); } }
-
-/* Алмазное яйцо */
 .egg.diamond-egg { filter: drop-shadow(0 0 15px cyan); transform: rotate(180deg); }
 .egg.diamond-egg.breathe { animation: breathe-diamond 3s infinite ease-in-out !important; }
 .egg.diamond-egg.shaking { animation: shake-inverted 0.5s infinite !important; }
 @keyframes breathe-diamond { 0% { transform: rotate(180deg) scale(1); } 50% { transform: rotate(180deg) scale(1.05); } 100% { transform: rotate(180deg) scale(1); } }
 @keyframes shake-inverted { 0% { transform: rotate(180deg); } 25% { transform: rotate(183deg); } 50% { transform: rotate(180deg); } 75% { transform: rotate(177deg); } 100% { transform: rotate(180deg); } }
-
-/* Скины */
 .egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
 .egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
 .egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
 .egg.skin-ice { filter: drop-shadow(0 0 10px #00ffff) hue-rotate(180deg); }
 
-/* === ТРЕЩИНЫ === */
-.crack-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 2;
-    transition: all 0.3s;
-}
-.crack-stage-1 {
-    background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.7) 49%, rgba(40,40,40,0.7) 51%, transparent 52%);
-    filter: drop-shadow(0 0 1px white); opacity: 0.8;
-}
-.crack-stage-2 {
-    background: 
-        linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%),
-        linear-gradient(45deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%);
-    filter: drop-shadow(0 0 1px white); opacity: 0.9;
-}
+/* ТРЕЩИНЫ */
+.crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; transition: all 0.3s; }
+.crack-stage-1 { background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.7) 49%, rgba(40,40,40,0.7) 51%, transparent 52%); filter: drop-shadow(0 0 1px white); opacity: 0.8; }
+.crack-stage-2 { background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%), linear-gradient(45deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%); filter: drop-shadow(0 0 1px white); opacity: 0.9; }
 
-/* === УВЕДОМЛЕНИЯ === */
+/* СПИСОК УРОВНЕЙ (НОВОЕ) */
+.levels-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; text-align: left; }
+.level-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; }
+.level-item.active { border-color: #007aff; background: rgba(0, 122, 255, 0.1); }
+.level-item.locked { opacity: 0.5; }
+.rank-icon { font-size: 20px; margin-right: 10px; }
+.rank-details { flex: 1; }
+.rank-title { font-weight: bold; font-size: 14px; }
+.rank-desc { font-size: 11px; color: #8e8e93; }
+
+/* УВЕДОМЛЕНИЯ */
 #toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
 .toast { background: rgba(44, 44, 46, 0.95); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; animation: slideIn 0.3s ease-out forwards; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
 @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }

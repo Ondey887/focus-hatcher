@@ -97,13 +97,24 @@ const MODES = [
 ];
 const PRICES = { common: 15, rare: 150, legendary: 5000 };
 const RANKS = ["Новичок", "Искатель", "Укротитель", "Мастер", "Ниндзя", "Легенда", "Бог Фокуса"];
+
+// НАГРАДЫ ЗА УРОВНИ (НОВОЕ!)
+const LEVEL_REWARDS = {
+    1: { title: "Новичок", reward: null },
+    5: { title: "Искатель", reward: "1000 монет" },
+    10: { title: "Укротитель", reward: "Уникальный Питомец: 🐲 God" },
+    20: { title: "Мастер", reward: "5000 монет" },
+    50: { title: "Бог Фокуса", reward: "???" }
+};
+
 const petDatabase = {
     common: ["🐣", "🐱", "🐶", "🐹", "🐰", "🐸", "🐻", "🐨", "🐤", "🐛"],
     rare: ["🦊", "🐼", "🐯", "🦁", "🐮", "🐷", "🐵", "🦉"],
     legendary: ["🦄", "🐲", "👽", "🤖", "🦖", "🔥"]
 };
-const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary];
+const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, "🐲 God"]; // Добавили бога
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
+
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
     { id: 'rich_kid', title: 'Богач', desc: 'Заработай $1000', goal: 1000, type: 'money', reward: 500 },
@@ -170,22 +181,53 @@ function showToast(msg, icon='🔔') {
 }
 function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
 function getPetRarity(p) {
+    if(p === "🐲 God") return 'legendary';
     if(petDatabase.legendary.includes(p)) return 'legendary';
     if(petDatabase.rare.includes(p)) return 'rare';
     return 'common';
 }
 function hardReset() { if(confirm("Сбросить все?")) { localStorage.clear(); location.reload(); } }
 
+// === НОВОЕ: ОТКРЫТИЕ ОКНА УРОВНЕЙ ===
+function openLevels() {
+    playSound('click');
+    const modal = getEl('levels-modal');
+    const list = getEl('levels-list');
+    list.innerHTML = '';
+    
+    // Генерируем список уровней
+    for (let lvl = 1; lvl <= 50; lvl++) {
+        if (!LEVEL_REWARDS[lvl]) continue; // Показываем только ключевые уровни
+        
+        const info = LEVEL_REWARDS[lvl];
+        const isReached = userLevel >= lvl;
+        const div = document.createElement('div');
+        div.className = `level-item ${isReached ? 'active' : 'locked'}`;
+        
+        const status = isReached ? '✅' : '🔒';
+        
+        div.innerHTML = `
+            <div class="rank-icon">${status}</div>
+            <div class="rank-details">
+                <div class="rank-title">Ур. ${lvl}: ${info.title}</div>
+                <div class="rank-desc">Награда: ${info.reward || "Нет"}</div>
+            </div>
+        `;
+        list.appendChild(div);
+    }
+    
+    modal.style.display = 'flex';
+}
+
 // =============================================================
 // 7. ИНИЦИАЛИЗАЦИЯ (С ЗАЩИТОЙ ОТ ЗАКРЫТИЯ)
 // =============================================================
 function initGame() {
-    // === НОВОЕ: НАСТРОЙКИ ТЕЛЕГРАМА ===
     if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.expand(); // Развернуть
-        window.Telegram.WebApp.enableClosingConfirmation(); // Подтверждение закрытия
-        window.Telegram.WebApp.setHeaderColor('#1c1c1e'); // Цвет шапки
-        window.Telegram.WebApp.setBackgroundColor('#1c1c1e'); // Цвет фона
+        window.Telegram.WebApp.expand();
+        window.Telegram.WebApp.enableClosingConfirmation();
+        window.Telegram.WebApp.setHeaderColor('#1c1c1e');
+        window.Telegram.WebApp.setBackgroundColor('#1c1c1e');
     }
 
     try {
@@ -413,8 +455,26 @@ function finishTimer() {
     getEl('crack-overlay').className = 'crack-overlay';
 
     const m = MODES[currentModeIndex];
-    userXP+=m.xpReward; if(userXP>=userLevel*200) { userXP-=userLevel*200; userLevel++; showToast(`Lvl UP: ${userLevel}`, "🎉"); playSound('win'); }
+    userXP+=m.xpReward; 
     
+    // === ЛОГИКА ПОВЫШЕНИЯ УРОВНЯ И ВЫДАЧИ УНИКАЛЬНОГО ПИТОМЦА ===
+    if(userXP >= userLevel * 200) { 
+        userXP -= userLevel * 200; 
+        userLevel++; 
+        showToast(`Lvl UP: ${userLevel}`, "🎉"); 
+        playSound('win'); 
+        
+        // Проверка на уникальную награду (10 уровень)
+        if (userLevel === 10) {
+            collection.push("🐲 God");
+            showToast("Получен: 🐲 God", "🎁");
+        }
+    }
+    
+    localStorage.setItem('userXP', userXP);
+    localStorage.setItem('userLevel', userLevel);
+    updateLevelUI();
+
     userStats.hatched++;
     
     let leg=m.id==='short'?1:5; let rare=m.id==='short'?15:30;
