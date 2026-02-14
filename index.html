@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=28">
+    <link rel="stylesheet" href="style.css?v=29">
 </head>
 <body>
 
@@ -135,7 +135,7 @@
             </button>
         </div>
 
-        <div class="content-wrapper">
+        <div class="main-game-area">
             <h1>Focus Hatcher</h1>
 
             <div class="level-container" onclick="openLevels()">
@@ -151,10 +151,12 @@
             
             <div class="slider-container">
                 <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
+                
                 <div id="egg-wrapper">
                     <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
                     <div id="crack-overlay" class="crack-overlay"></div>
                 </div>
+                
                 <button id="next-btn" class="arrow-btn" onclick="nextMode()">❯</button>
             </div>
         </div>
@@ -176,6 +178,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=28"></script>
+    <script src="script.js?v=29"></script>
 </body>
 </html>

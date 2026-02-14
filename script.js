@@ -172,7 +172,8 @@ function openSettings() { getEl('settings-modal').style.display = 'flex'; playSo
 function openAch() { getEl('achievements-modal').style.display = 'flex'; switchAchTab('achievements'); playSound('click'); }
 function showToast(msg, icon='🔔') {
     const c = getEl('toast-container'); const d = document.createElement('div');
-    d.className = 'toast'; d.innerHTML = `<span style="font-size:18px">${icon}</span> <span>${msg}</span>`;
+    let content = icon === 'img' ? `<img src="assets/ui/coin.png"> <span>${msg}</span>` : `<span>${icon}</span> <span>${msg}</span>`;
+    d.className = 'toast'; d.innerHTML = content;
     c.appendChild(d); setTimeout(() => { d.classList.add('fade-out'); setTimeout(()=>d.remove(), 300); }, 3000);
 }
 function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
