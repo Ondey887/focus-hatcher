@@ -104,6 +104,18 @@ const petDatabase = {
 const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, "god"];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
 
+// === ВОССТАНОВЛЕННЫЕ ДАННЫЕ ===
+const ACHIEVEMENTS_DATA = [
+    { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
+    { id: 'rich_kid', title: 'Богач', desc: 'Заработай $1000', goal: 1000, type: 'money', reward: 500 },
+    { id: 'collector', title: 'Коллекционер', desc: 'Собери 5 уникальных', goal: 5, type: 'unique', reward: 1000 },
+    { id: 'hard_worker', title: 'Трудяга', desc: 'Вырасти 10 питомцев', goal: 10, reward: 2000 }
+];
+const QUESTS_DATA = [
+    { id: 'sub_channel', title: 'Подписка', desc: 'Подпишись на канал', reward: 1000, type: 'link', url: 'https://t.me/focushatch' },
+    { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
+];
+
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
@@ -217,7 +229,6 @@ function openAvatarSelector() {
             selectedAvatar = pet;
             saveData();
             getEl('profile-avatar').src = getPetImg(pet);
-            // Обновляем кнопку в хедере
             getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 24px; height: 24px; border-radius: 50%;">`;
             closeModal('avatar-modal');
             showToast("Аватар изменен!");
@@ -273,12 +284,7 @@ function initGame() {
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
 
     updateLevelUI(); renderCollection(); applyTheme(); updateUI(); updateBalanceUI();
-    
-    // Обновляем аватарку в хедере при старте
-    if (selectedAvatar !== 'default') {
-        getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 24px; height: 24px; border-radius: 50%;">`;
-    }
-
+    if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 24px; height: 24px; border-radius: 50%;">`; }
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     loadFromCloud();
@@ -320,12 +326,7 @@ function loadFromCloud() {
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
-            
-            // Обновляем аватарку после загрузки
-            if (selectedAvatar !== 'default') {
-                getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 24px; height: 24px; border-radius: 50%;">`;
-            }
-
+            if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 24px; height: 24px; border-radius: 50%;">`; }
             updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
         });
     }
@@ -446,9 +447,13 @@ function updateUI() {
     let t = m.time;
     if(activeBoosters.speed) t = Math.floor(t/2);
     if(!isRunning) { 
-        getEl('egg-display').src = m.egg === 'diamond' ? 'assets/eggs/egg-diamond.png' : 'assets/eggs/egg-default.png'; 
+        // ИСПРАВЛЕНА ЛОГИКА: Сначала проверяем режим, потом скин
+        if (m.egg === 'diamond') {
+             getEl('egg-display').src = 'assets/eggs/egg-diamond.png';
+        } else {
+             applyEggSkin();
+        }
         getEl('timer').textContent = formatTime(t); 
-        applyEggSkin(); 
     }
     getEl('mode-title').textContent = m.title;
     getEl('mode-subtitle').textContent = m.sub;
@@ -473,10 +478,8 @@ function startTimer(isResuming = false) {
     getEl('share-btn').style.display = 'none'; getEl('prev-btn').style.visibility = 'hidden'; getEl('next-btn').style.visibility = 'hidden';
     
     if (!isResuming) {
-        // Устанавливаем правильную картинку яйца при старте
         if (m.egg === 'diamond') getEl('egg-display').src = 'assets/eggs/egg-diamond.png';
         else applyEggSkin();
-        
         getEl('crack-overlay').className = 'crack-overlay'; 
     }
     
@@ -506,7 +509,8 @@ function stopTimer() {
     getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
     getEl('egg-display').classList.remove('shaking'); 
     getEl('crack-overlay').className = 'crack-overlay';
-    applyEggSkin(); updateUI(); renderBoostersPanel();
+    updateUI(); // Вызовет updateUI, который вернет правильное яйцо
+    renderBoostersPanel();
     showToast("Фокус прерван", "⚠️");
 }
 
@@ -600,11 +604,9 @@ function renderShop() {
             btnHTML=`<button class="${cls}" onclick="buyItem('${item.id}',${item.price})">${txt}</button>`;
             d.innerHTML=`<img src="${item.img}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div>${btnHTML}`;
         } else {
-            // THEMES (FON)
             const owned=ownedItems.themes.includes(item.id); const active=activeTheme===item.id;
             let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать"):`$${item.price}`;
             btnHTML=`<button class="${cls}" onclick="buyItem('${item.id}',${item.price})">${txt}</button>`;
-            // Для фонов используем условную иконку или просто цвет
             let icon = item.bgFile ? `<img src="${item.bgFile}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;margin-bottom:5px">` : `<div style="width:60px;height:60px;background:#333;border-radius:10px;margin-bottom:5px"></div>`;
             d.innerHTML=`${icon}<div class="shop-item-name">${item.name}</div>${btnHTML}`;
         }
@@ -616,7 +618,7 @@ function buyItem(id, price) {
         if(walletBalance>=price) { walletBalance-=price; if(!myBoosters[id])myBoosters[id]=0; myBoosters[id]++; saveData(); updateBalanceUI(); showToast("Куплено!", "🧪"); playSound('money'); } else showToast("Мало денег", "🚫");
         return;
     }
-    const category = currentShopTab; // themes or eggs
+    const category = currentShopTab; 
     const owned=ownedItems[category].includes(id);
     if(owned) {
         if(category==='themes') { activeTheme=id; applyTheme(); } else { activeEggSkin=id; applyEggSkin(); }
