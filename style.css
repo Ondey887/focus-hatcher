@@ -14,15 +14,14 @@ body {
     min-height: 100vh; 
     box-sizing: border-box;
     display: flex; flex-direction: column; justify-content: space-between; 
-    padding: 15px 15px 20px 15px; /* МИНИМАЛЬНЫЙ ОТСТУП СВЕРХУ */
+    padding: 60px 15px 20px 15px; /* Вернул комфортный отступ */
     position: relative; text-align: center;
 }
 
 /* === ШАПКА === */
 .top-bar { 
-    position: relative; width: 100%; z-index: 10; 
-    display: flex; justify-content: space-between; 
-    margin-bottom: 20px; 
+    position: absolute; top: 15px; left: 15px; right: 15px; 
+    z-index: 20; display: flex; justify-content: space-between; 
 }
 .left-buttons { display: flex; gap: 12px; }
 
@@ -32,7 +31,8 @@ body {
     display: flex; justify-content: center; align-items: center; 
     backdrop-filter: blur(5px); overflow: hidden; position: relative;
 }
-.header-icon-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.header-icon-img { width: 100%; height: 100%; object-fit: cover; }
+.header-avatar { border-radius: 50%; }
 .red-dot { position: absolute; top: 5px; right: 5px; width: 12px; height: 12px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; z-index: 2; }
 
 /* === ЦЕНТР === */
@@ -42,27 +42,28 @@ body {
 }
 
 .main-title { 
-    font-size: 26px; margin: 0 0 15px 0; 
+    font-size: 26px; margin: 0 0 10px 0; 
     color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.5); opacity: 0.9; 
-    flex-shrink: 0; 
 }
 
+/* БЛОК УРОВНЯ */
 .level-container { 
     background: rgba(255, 255, 255, 0.1); padding: 10px 15px; 
-    border-radius: 12px; margin-bottom: 10px; text-align: left; cursor: pointer; 
+    border-radius: 12px; margin-bottom: 5px; text-align: left; cursor: pointer; 
     backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); 
     width: 100%; box-sizing: border-box;
 }
 .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-.money-display { font-size: 22px; font-weight: bold; color: #ffd700; display: flex; align-items: center; gap: 8px; }
-.coin-img { width: 40px !important; height: 40px !important; object-fit: contain; }
+/* МОНЕТКА: 34px, отступ 6px */
+.money-display { font-size: 22px; font-weight: bold; color: #ffd700; display: flex; align-items: center; gap: 6px; }
+.coin-img { width: 34px !important; height: 34px !important; object-fit: contain; }
 .progress-bar-bg { background: rgba(0, 0, 0, 0.5); height: 8px; border-radius: 4px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #34c759, #32d74b); width: 0%; transition: width 0.5s ease-out; }
 
 /* СЛАЙДЕР */
 .slider-container { 
     display: flex; justify-content: space-between; align-items: center; 
-    flex-grow: 1; margin: 0; width: 100%; position: relative;
+    flex-grow: 1; margin: 5px 0; width: 100%; position: relative;
 }
 .arrow-btn { 
     background: none; border: none; color: rgba(255, 255, 255, 0.4); 
@@ -71,46 +72,87 @@ body {
 }
 #prev-btn { left: 0; }
 #next-btn { right: 0; }
-
 #egg-wrapper { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
+/* ЯЙЦО (ПОДТЯНУЛ РАЗМЕР ЧТОБЫ КНОПКА ВЛЕЗАЛА) */
 .egg-img { 
-    width: 380px; height: 380px; 
-    max-width: 85vw; max-height: 45vh; 
+    width: 360px; height: 360px; 
+    max-width: 85vw; max-height: 40vh; /* Уменьшил высоту макс., чтобы не давило */
     object-fit: contain; transition: transform 0.1s; position: relative; z-index: 1; 
     filter: drop-shadow(0 15px 30px rgba(0,0,0,0.4));
 }
 .egg-img.shaking { animation: shake 0.5s infinite !important; }
 
 /* === НИЗ === */
-.bottom-controls { flex-shrink: 0; width: 100%; padding-bottom: 20px; position: relative; z-index: 5; }
+.bottom-controls { flex-shrink: 0; width: 100%; padding-bottom: 10px; position: relative; z-index: 5; }
 
-#mode-info h2 { font-size: 22px; margin: 0; color: white; }
-#mode-subtitle { font-size: 14px; color: #8e8e93; margin: 5px 0 15px 0; }
+#mode-info h2 { font-size: 20px; margin: 0; color: white; }
+#mode-subtitle { font-size: 13px; color: #8e8e93; margin: 2px 0 10px 0; }
 
-.boosters-container { display: flex; justify-content: center; gap: 20px; margin-bottom: 10px; height: 60px; }
-.booster-slot { width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; border: 2px solid transparent; transition: all 0.2s; }
-.booster-slot img { width: 40px; height: 40px; object-fit: contain; }
+.boosters-container { display: flex; justify-content: center; gap: 20px; margin-bottom: 10px; height: 50px; }
+.booster-slot { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; border: 2px solid transparent; transition: all 0.2s; }
+.booster-slot img { width: 35px; height: 35px; object-fit: contain; }
 .booster-slot.active { background: rgba(52, 199, 89, 0.2); border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.5); transform: scale(1.1); }
 .booster-slot.empty { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
-.booster-count { position: absolute; bottom: -5px; right: -5px; background: #007aff; color: white; font-size: 12px; font-weight: bold; padding: 2px 6px; border-radius: 10px; }
+.booster-count { position: absolute; bottom: -5px; right: -5px; background: #007aff; color: white; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 10px; }
 
-#timer { font-size: 50px; font-weight: bold; margin: 5px 0 15px 0; font-variant-numeric: tabular-nums; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+#timer { font-size: 48px; font-weight: bold; margin: 5px 0 10px 0; font-variant-numeric: tabular-nums; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
-.btn { background-color: #007aff; color: white; border: none; padding: 18px 30px; font-size: 22px; border-radius: 16px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: transform 0.1s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.btn { background-color: #007aff; color: white; border: none; padding: 16px 30px; font-size: 20px; border-radius: 16px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 5px; transition: transform 0.1s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 .btn:active { transform: scale(0.96); }
 .btn.stop { background-color: #ff3b30; }
 .share-btn { background-color: #34c759; }
 
-.inventory-btn-main { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 5px; }
+.inventory-btn-main { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 5px; }
 .collection-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px; }
 
-/* ОБЩИЕ */
+/* === ОБУЧЕНИЕ (ИСПРАВЛЕНО) === */
+.tutorial-step { 
+    display: flex; align-items: center; gap: 15px; margin-bottom: 15px; 
+    background: rgba(255,255,255,0.08); padding: 15px; border-radius: 15px; 
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.tut-icon-wrapper { min-width: 50px; display: flex; justify-content: center; }
+.tut-icon-img { width: 50px; height: 50px; object-fit: contain; }
+.tut-title { font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #ffd700; }
+.tut-desc { font-size: 13px; color: #d1d1d6; line-height: 1.4; }
+
+/* === СПИСОК УРОВНЕЙ (ИСПРАВЛЕНО) === */
+.levels-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; text-align: left; }
+.level-item { 
+    background: rgba(255,255,255,0.08); padding: 12px; border-radius: 12px; 
+    display: flex; align-items: center; justify-content: space-between; 
+    border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;
+}
+.level-item.active { border-color: #007aff; background: rgba(0, 122, 255, 0.1); }
+.level-item.locked { opacity: 0.5; }
+.rank-icon { font-size: 20px; margin-right: 10px; display: flex; align-items: center; }
+.rank-icon img { width: 24px; height: 24px; }
+.rank-details { flex: 1; }
+.rank-title { font-weight: bold; font-size: 14px; }
+.rank-desc { font-size: 11px; color: #8e8e93; }
+
+/* === ПРОФИЛЬ (БОЛЬШОЙ КАРАНДАШ) === */
+.profile-avatar-container { position: relative; width: 100px; height: 100px; margin-bottom: 10px; cursor: pointer; border-radius: 50%; border: 4px solid #007aff; overflow: visible; }
+.profile-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; background: #2c2c2e; }
+.edit-badge { 
+    position: absolute; bottom: -5px; right: -5px; 
+    background: #007aff; width: 38px; height: 38px; 
+    border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+    border: 3px solid #2c2c2e; z-index: 10; 
+}
+.edit-badge img { width: 22px; height: 22px; }
+
+/* === КОЛЛЕКЦИЯ (ЧЕРНЫЙ СИЛУЭТ) === */
+.pet-slot.locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); }
+/* BRIGHTNESS 0 = ЧЕРНЫЙ */
+.pet-slot.locked img { filter: brightness(0) opacity(0.4); }
+
+/* ОСТАЛЬНОЕ */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
 .modal-content { background: #2c2c2e; width: 90%; max-width: 340px; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); max-height: 85vh; overflow-y: auto; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .close-btn { background: none; border: none; color: #8e8e93; font-size: 24px; cursor: pointer; padding: 5px; }
-
 .shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
 .tab-btn { flex: 1; background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; }
 .tab-btn.active { background: #007aff; }
@@ -121,14 +163,12 @@ body {
 .buy-btn { background: #34c759; border: none; color: #fff; padding: 10px; border-radius: 10px; font-size: 14px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
 .buy-btn.locked { background: #3a3a3c; color: #8e8e93; }
 .buy-btn.owned { background: #007aff; }
-
 .achievement-card { background: rgba(255,255,255,0.08); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; text-align: left; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px; }
 .achievement-card.unlocked { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
 .ach-icon img { width: 36px; height: 36px; object-fit: contain; }
 .ach-info { flex: 1; }
 .ach-title { font-size: 16px; font-weight: bold; margin: 0; }
 .ach-desc { font-size: 12px; color: #aaa; margin: 4px 0 0 0; }
-
 .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; }
 .switch { position: relative; display: inline-block; width: 54px; height: 30px; }
 .switch input { opacity: 0; width: 0; height: 0; }
@@ -136,25 +176,15 @@ body {
 .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 input:checked + .slider { background-color: #34c759; }
 input:checked + .slider:before { transform: translateX(24px); }
-
 .profile-header-block { margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
-.profile-avatar-container { position: relative; width: 100px; height: 100px; margin-bottom: 10px; cursor: pointer; border-radius: 50%; border: 4px solid #007aff; overflow: visible; }
-.profile-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; background: #2c2c2e; }
-.edit-badge { position: absolute; bottom: 0; right: 0; background: #007aff; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid #2c2c2e; z-index: 10; }
-.edit-badge img { width: 20px; height: 20px; }
 .profile-text-info { text-align: center; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; }
-
-/* ПИТОМЕЦ ПРИ ВЫПАДЕНИИ (КОМПАКТНЫЙ) */
-.pet-img-big { width: auto; height: auto; max-width: 200px; max-height: 200px; object-fit: contain; margin: 0 auto 15px auto; display: block; animation: breathe 3s infinite; }
-
+.pet-img-big { width: auto; height: auto; max-width: 180px; max-height: 180px; object-fit: contain; margin: 0 auto 15px auto; display: block; animation: breathe 3s infinite; }
 .pet-slot { background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; cursor: pointer; position: relative; height: 55px; display: flex; justify-content: center; align-items: center; }
 .pet-slot.common { border: 2px solid #8e8e93; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
-.pet-slot.locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); }
-.pet-slot.locked img { filter: grayscale(100%) opacity(0.5); }
 .pet-img-slot { width: 100%; height: 100%; object-fit: contain; }
 .slot-count { position: absolute; bottom: 2px; right: 2px; background: #007aff; color: white; font-size: 10px; padding: 2px 5px; border-radius: 6px; font-weight: bold; z-index: 2; }
 .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
@@ -164,7 +194,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 #avatar-modal { z-index: 3000; }
 .promo-input { width: 90%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 16px; text-transform: uppercase; text-align: center; margin-top: 10px; outline: none; }
 .promo-input:focus { border-color: #007aff; }
-
 .daily-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .daily-item:last-child { grid-column: span 4; background: linear-gradient(45deg, #ffd700, #ffa500); color: black; font-weight: bold; }
 .daily-item { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; border: 2px solid transparent; }
@@ -174,9 +203,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 .daily-item.active { opacity: 1; border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.3); transform: scale(1.05); background: rgba(52, 199, 89, 0.1); }
 .daily-item.claimed { opacity: 1; background: #34c759; color: white; }
 .daily-item.claimed .daily-val { color: white; }
-
-#toast-container { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 90%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-#confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+#toast-container { position: fixed; top: 120px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 90%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
 .toast { background: rgba(44, 44, 46, 0.95); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); animation: slideIn 0.3s ease-out forwards; }
 .toast img { width: 24px; height: 24px; }
 @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(3deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-3deg); } 100% { transform: rotate(0deg); } }
