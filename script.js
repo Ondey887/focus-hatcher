@@ -383,8 +383,14 @@ function renderDailyModal(curr) {
         const d = document.createElement('div');
         let st = ''; if(i<curr) st='claimed'; if(i===curr) st='active';
         d.className = `daily-item ${st}`;
-        let v = (r.type==='money'||r.type==='mixed') ? `$${r.money||r.val}` : '+1 Буст';
-        d.innerHTML = `<div class="daily-day">День ${r.day}</div><div class="daily-val">${v}</div>`;
+        
+        let iconHTML = '';
+        if (r.type === 'money') iconHTML = `<img src="assets/ui/coin.png" class="daily-icon-img">`;
+        else if (r.type === 'booster' && r.id === 'speed') iconHTML = `<img src="assets/ui/booster-speed.png" class="daily-icon-img">`;
+        else if (r.type === 'mixed') iconHTML = `<img src="assets/ui/icon-trophy.png" class="daily-icon-img">`; 
+        
+        let v = (r.type==='money'||r.type==='mixed') ? `+${r.money||r.val}` : '+1 Буст';
+        d.innerHTML = `<div class="daily-day">День ${r.day}</div>${iconHTML}<div class="daily-val">${v}</div>`;
         g.appendChild(d);
     });
 }
