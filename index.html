@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=34-final-polish">
+    <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
-
-    <canvas id="confetti-canvas"></canvas>
     <div id="toast-container"></div>
     <div id="debug-console" style="display:none; color:red; position:absolute; top:0;"></div>
 
@@ -133,6 +131,7 @@
     </div>
 
     <div class="container">
+        
         <div class="top-bar">
             <div class="left-buttons">
                 <button id="header-profile-btn" class="icon-btn" onclick="openProfile()">
@@ -167,10 +166,12 @@
             
             <div class="slider-container">
                 <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
+                
                 <div id="egg-wrapper">
                     <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
                     <div id="crack-overlay" class="crack-overlay"></div>
                 </div>
+                
                 <button id="next-btn" class="arrow-btn" onclick="nextMode()">❯</button>
             </div>
         </div>
@@ -189,6 +190,8 @@
         </div>
     </div>
 
-    <script src="script.js?v=34-final-polish"></script>
+    <canvas id="confetti-canvas"></canvas>
+
+    <script src="script.js?v=35"></script>
 </body>
 </html>
