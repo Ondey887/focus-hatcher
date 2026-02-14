@@ -62,14 +62,12 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
 .toast.fade-out { animation: fadeOut 0.3s ease-in forwards; }
 
-/* МАГАЗИН */
 .boosters-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; min-height: 50px; }
 .booster-slot { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; position: relative; border: 2px solid transparent; transition: all 0.2s; }
 .booster-slot.active { background: rgba(52, 199, 89, 0.2); border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.5); transform: scale(1.1); }
 .booster-slot.empty { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
 .booster-count { position: absolute; bottom: -5px; right: -5px; background: #007aff; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
-/* ДРУГОЕ */
 .inventory-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 20px; cursor: pointer; font-weight: bold; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
 .inventory-header:active { background: rgba(255,255,255,0.1); }
 #collection { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 15px; overflow: hidden; }
@@ -177,3 +175,6 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 .avatar-item { background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 30px; padding: 10px; cursor: pointer; border: 2px solid transparent; }
 .avatar-item:hover { background: rgba(255,255,255,0.2); }
 .avatar-item.selected { border-color: #34c759; background: rgba(52, 199, 89, 0.2); }
+
+/* ИСПРАВЛЕНИЕ Z-INDEX ДЛЯ АВАТАРКИ */
+#avatar-modal { z-index: 200; }
