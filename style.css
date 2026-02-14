@@ -1,14 +1,8 @@
 /* === БАЗА === */
 body { 
-    background-color: #1c1c1e; 
-    color: white; 
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    background-color: #1c1c1e; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
     display: flex; flex-direction: column; align-items: center; 
-    min-height: 100vh; 
-    margin: 0; 
-    /* ГЛАВНОЕ: РАЗРЕШАЕМ СКРОЛЛ */
-    overflow-y: auto !important; 
-    -webkit-overflow-scrolling: touch;
+    min-height: 100vh; margin: 0; overflow-y: auto; 
     user-select: none; -webkit-tap-highlight-color: transparent; 
     transition: background 0.5s ease;
     background-size: cover; background-position: center; background-attachment: fixed;
@@ -17,48 +11,35 @@ body {
 /* === ГЛАВНЫЙ КОНТЕЙНЕР === */
 .container { 
     width: 100%; max-width: 450px; 
-    /* Минимальная высота, может расти */
     min-height: 100vh; 
     box-sizing: border-box;
-    display: flex; 
-    flex-direction: column; 
-    justify-content: space-between; 
-    /* МАЛЕНЬКИЙ ОТСТУП СВЕРХУ */
-    padding: 10px 15px 20px 15px; 
-    position: relative;
-    text-align: center;
+    display: flex; flex-direction: column; justify-content: space-between; 
+    /* МИНИМАЛЬНЫЙ ОТСТУП СВЕРХУ (БЫЛО 55) */
+    padding: 15px 15px 20px 15px; 
+    position: relative; text-align: center;
 }
 
-/* === ШАПКА (RELATIVE - ИДЕТ ПО ПОРЯДКУ) === */
+/* === ШАПКА === */
 .top-bar { 
-    position: relative; /* Не absolute! */
-    width: 100%;
-    z-index: 10; 
+    position: relative; width: 100%; z-index: 10; 
     display: flex; justify-content: space-between; 
-    margin-bottom: 20px; /* Отступ до заголовка */
+    margin-bottom: 20px; 
 }
 .left-buttons { display: flex; gap: 12px; }
 
-/* ИКОНКИ (55px) */
 .icon-btn { 
-    background: rgba(255,255,255,0.15); 
-    border: none; padding: 0; border-radius: 50%; 
+    background: rgba(255,255,255,0.15); border: none; padding: 0; border-radius: 50%; 
     cursor: pointer; width: 55px; height: 55px; 
     display: flex; justify-content: center; align-items: center; 
-    backdrop-filter: blur(5px); overflow: hidden; 
-    position: relative;
+    backdrop-filter: blur(5px); overflow: hidden; position: relative;
 }
-.header-icon-img { 
-    width: 100%; height: 100%; object-fit: cover; 
-    border-radius: 50%; /* Чтобы аватарка была круглой */
-}
+.header-icon-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .red-dot { position: absolute; top: 5px; right: 5px; width: 12px; height: 12px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; z-index: 2; }
 
 /* === ЦЕНТР === */
 .content-wrapper {
-    flex-grow: 1; /* Растягивается */
-    display: flex; flex-direction: column; align-items: center;
-    width: 100%;
+    flex-grow: 1; display: flex; flex-direction: column; 
+    align-items: center; width: 100%; justify-content: flex-start;
 }
 
 .main-title { 
@@ -81,30 +62,28 @@ body {
 /* СЛАЙДЕР */
 .slider-container { 
     display: flex; justify-content: space-between; align-items: center; 
-    flex-grow: 1; margin: 10px 0; width: 100%; position: relative;
+    flex-grow: 1; margin: 0; width: 100%; position: relative;
 }
 .arrow-btn { 
     background: none; border: none; color: rgba(255, 255, 255, 0.4); 
-    font-size: 50px; cursor: pointer; padding: 10px; 
-    position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+    font-size: 45px; cursor: pointer; padding: 0; width: 60px; text-align: center; 
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; 
 }
 #prev-btn { left: 0; }
 #next-btn { right: 0; }
 
-#egg-wrapper { 
-    position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;
-}
+#egg-wrapper { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+
 .egg-img { 
     width: 380px; height: 380px; 
-    max-width: 85vw; max-height: 45vh; /* Ограничители */
-    object-fit: contain; transition: transform 0.1s; 
-    position: relative; z-index: 1; 
+    max-width: 85vw; max-height: 45vh; 
+    object-fit: contain; transition: transform 0.1s; position: relative; z-index: 1; 
     filter: drop-shadow(0 15px 30px rgba(0,0,0,0.4));
 }
 .egg-img.shaking { animation: shake 0.5s infinite !important; }
 
-/* === НИЖНЯЯ ПАНЕЛЬ === */
-.bottom-controls { flex-shrink: 0; width: 100%; padding-bottom: 10px; position: relative; z-index: 5; }
+/* === НИЗ === */
+.bottom-controls { flex-shrink: 0; width: 100%; padding-bottom: 20px; position: relative; z-index: 5; }
 
 #mode-info h2 { font-size: 22px; margin: 0; color: white; }
 #mode-subtitle { font-size: 14px; color: #8e8e93; margin: 5px 0 15px 0; }
@@ -123,13 +102,10 @@ body {
 .btn.stop { background-color: #ff3b30; }
 .share-btn { background-color: #34c759; }
 
-/* КНОПКА ИНВЕНТАРЯ */
 .inventory-btn-main { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 5px; }
-
-/* СЕТКА КОЛЛЕКЦИИ (В МОДАЛКЕ) */
 .collection-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px; }
 
-/* ОБЩИЕ СТИЛИ (ОСТАЛЬНОЕ) */
+/* ОБЩИЕ */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
 .modal-content { background: #2c2c2e; width: 90%; max-width: 340px; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); max-height: 85vh; overflow-y: auto; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -171,12 +147,15 @@ input:checked + .slider:before { transform: translateX(24px); }
 .stat-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; }
 
 .pet-img-big { width: auto; height: auto; max-width: 180px; max-height: 180px; object-fit: contain; margin: 0 auto 15px auto; display: block; animation: breathe 3s infinite; }
-.pet-slot { background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; cursor: pointer; position: relative; height: 60px; display: flex; justify-content: center; align-items: center; }
+
+.pet-slot { background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; cursor: pointer; position: relative; height: 55px; display: flex; justify-content: center; align-items: center; }
 .pet-slot.common { border: 2px solid #8e8e93; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
+/* ТЕПЕРЬ ТУТ ЧЕРНЫЙ СИЛУЭТ */
 .pet-slot.locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); }
-.pet-slot.locked img { filter: grayscale(100%) opacity(0.5); }
+.pet-slot.locked img { filter: brightness(0) opacity(0.6); }
+
 .pet-img-slot { width: 100%; height: 100%; object-fit: contain; }
 .slot-count { position: absolute; bottom: 2px; right: 2px; background: #007aff; color: white; font-size: 10px; padding: 2px 5px; border-radius: 6px; font-weight: bold; z-index: 2; }
 .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
@@ -202,3 +181,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 .toast img { width: 24px; height: 24px; }
 @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(3deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-3deg); } 100% { transform: rotate(0deg); } }
 @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+.crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; transition: opacity 0.3s; }
+.crack-stage-1 { background: linear-gradient(135deg, transparent 48%, rgba(0,0,0,0.5) 49%, rgba(0,0,0,0.5) 51%, transparent 52%); }
+.crack-stage-2 { background: linear-gradient(135deg, transparent 48%, rgba(0,0,0,0.6) 49%, rgba(0,0,0,0.6) 51%, transparent 52%), linear-gradient(45deg, transparent 48%, rgba(0,0,0,0.6) 49%, rgba(0,0,0,0.6) 51%, transparent 52%); }
