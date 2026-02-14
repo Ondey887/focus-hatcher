@@ -282,7 +282,7 @@ function initGame() {
     checkTutorial();
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
 
-    updateLevelUI(); renderCollection(); applyTheme(); updateUI(); updateBalanceUI();
+    updateLevelUI(); updateBalanceUI(); applyTheme(); updateUI(); 
     if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
@@ -326,7 +326,7 @@ function loadFromCloud() {
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
             if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
-            updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
+            updateBalanceUI(); updateLevelUI(); applyTheme(); applyEggSkin();
         });
     }
 }
@@ -563,42 +563,60 @@ function finishTimer() {
     if(isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(200);
 }
 
-function toggleInventory() { playSound('click'); const c=getEl('collection'); const a=getEl('inventory-arrow'); if(c.classList.contains('hidden')) { c.classList.remove('hidden'); a.textContent="▲"; } else { c.classList.add('hidden'); a.textContent="▼"; } }
-function renderCollection() {
-    const c=getEl('collection'); c.innerHTML='';
+// === НОВАЯ ФУНКЦИЯ ОТКРЫТИЯ КОЛЛЕКЦИИ (МОДАЛЬНОЕ ОКНО) ===
+function openInventory() {
+    playSound('click');
+    const container = document.getElementById('collection-container'); 
+    container.innerHTML = ''; 
+    
+    // РЕНДЕР КОЛЛЕКЦИИ (ТО ЖЕ САМОЕ ЧТО БЫЛО В renderCollection)
     ALL_PETS_FLAT.forEach(pet => {
-        const count=collection.filter(p=>p===pet).length; const r=getPetRarity(pet); const d=document.createElement('div');
-        if(count>0) {
-            d.className=`pet-slot ${r}`; 
+        const count = collection.filter(p => p === pet).length;
+        const r = getPetRarity(pet);
+        const d = document.createElement('div');
+        
+        if(count > 0) {
+            d.className = `pet-slot ${r}`; 
             d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot">`;
-            if(count>1) { const b=document.createElement('div'); b.className='slot-count'; b.textContent=`x${count}`; d.appendChild(b); }
-            d.onclick=()=>openPetModal(pet, true);
+            if(count > 1) { 
+                const b = document.createElement('div'); 
+                b.className = 'slot-count'; 
+                b.textContent = `x${count}`; 
+                d.appendChild(b); 
+            }
+            d.onclick = () => openPetModal(pet, true);
         } else {
-            d.className=`pet-slot locked`; 
+            d.className = `pet-slot locked`; 
             d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot">`;
-            d.onclick=()=>openPetModal(pet, false);
+            d.onclick = () => openPetModal(pet, false);
         }
-        c.appendChild(d);
+        container.appendChild(d);
     });
+
+    document.getElementById('inventory-modal').style.display = 'flex';
 }
+
+// ЭТА ФУНКЦИЯ ТЕПЕРЬ ПРОСТО ВЫЗЫВАЕТ МОДАЛКУ
+function toggleInventory() {
+    openInventory(); 
+}
+
 function openPetModal(pet, owned) {
     selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r]; playSound('click');
     getEl('pet-modal').style.display='flex';
+    // ОБРАТИ ВНИМАНИЕ: ЗДЕСЬ ТОЖЕ МОНЕТКА ВМЕСТО $
     getEl('pet-detail-view').innerHTML = owned ? 
         `<img src="assets/pets/pet-${pet}.png" class="pet-img-big"><h3 class="pet-name">Питомец</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p><button class="btn sell-action" onclick="sellPet()">Продать (${p})</button>` : 
         `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)"><h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
 }
-function sellPet() {
-    if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
-    const p=PRICES[getPetRarity(selectedPet)]; walletBalance+=p; userStats.earned+=p;
-    collection.splice(idx,1); saveData(); updateBalanceUI(); renderCollection(); closeModal('pet-modal'); showToast(`Продано +${p}`, 'img'); playSound('money');
-}
+
 function switchShopTab(t) { currentShopTab=t; document.querySelectorAll('#shop-modal .tab-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); renderShop(); playSound('click'); }
 function renderShop() {
     const c=getEl('shop-items'); c.innerHTML='';
     SHOP_DATA[currentShopTab].forEach(item => {
         const d=document.createElement('div'); d.className='shop-item';
         let btnHTML='';
+        // ВЕЗДЕ МОНЕТКИ ВМЕСТО $
         if(currentShopTab==='boosters') {
             btnHTML=`<button class="buy-btn" onclick="buyItem('${item.id}',${item.price})">${item.price}</button>`;
             d.innerHTML=`<img src="${item.icon}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#888">${item.desc}</div>${btnHTML}`;
@@ -617,24 +635,7 @@ function renderShop() {
         c.appendChild(d);
     });
 }
-function buyItem(id, price) {
-    if(currentShopTab==='boosters') {
-        if(walletBalance>=price) { walletBalance-=price; if(!myBoosters[id])myBoosters[id]=0; myBoosters[id]++; saveData(); updateBalanceUI(); showToast("Куплено!", "🧪"); playSound('money'); } else showToast("Мало денег", "🚫");
-        return;
-    }
-    const category = currentShopTab; 
-    const owned=ownedItems[category].includes(id);
-    if(owned) {
-        if(category==='themes') { activeTheme=id; applyTheme(); } else { activeEggSkin=id; applyEggSkin(); }
-        saveData(); renderShop(); playSound('click');
-    } else {
-        if(walletBalance>=price) {
-            walletBalance-=price; ownedItems[category].push(id);
-            if(category==='themes') { activeTheme=id; applyTheme(); } else { activeEggSkin=id; applyEggSkin(); }
-            saveData(); updateBalanceUI(); renderShop(); showToast("Куплено!", "🛍️"); playSound('money');
-        } else showToast("Мало денег", "🚫");
-    }
-}
+
 function switchAchTab(t) { currentAchTab=t; document.querySelectorAll('#achievements-modal .tab-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); if(t==='achievements')renderAch();else renderQuests(); playSound('click'); }
 function renderAch() {
     const c=getEl('achievements-list'); c.innerHTML=''; let u=new Set(collection).size;
@@ -657,81 +658,7 @@ function renderQuests() {
         c.appendChild(d);
     });
 }
+
 function clickLink(id, u, r) { if(window.Telegram.WebApp)window.Telegram.WebApp.openLink(u); else window.open(u,'_blank'); const b=getEl(`qbtn-${id}`); if(b){b.textContent="Проверяю...";b.disabled=true;b.style.background="#555";setTimeout(()=>claimQuest(id,r),4000);}}
 function claimAch(id, r) { if(claimedAchievements.includes(id))return; claimedAchievements.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderAch(); showToast(`Награда +${r}`, 'img'); playSound('money'); }
 function claimQuest(id, r) { if(claimedQuests.includes(id))return; claimedQuests.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderQuests(); showToast(`Награда +${r}`, 'img'); playSound('money'); }
-function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.invites++; saveData(); checkAchievements(); const t=`У меня ${new Set(collection).size} петов в Focus Hatcher!`; const u=`https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(t)}`; if(window.Telegram.WebApp)window.Telegram.WebApp.openTelegramLink(u); else window.open(u,'_blank'); }
-function saveData() {
-    localStorage.setItem('walletBalance', walletBalance);
-    localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
-    localStorage.setItem('activeTheme', activeTheme);
-    localStorage.setItem('activeEggSkin', activeEggSkin);
-    localStorage.setItem('selectedAvatar', selectedAvatar);
-    localStorage.setItem('userStats', JSON.stringify(userStats));
-    localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
-    localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
-    localStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
-    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
-    localStorage.setItem('myCollection', JSON.stringify(collection));
-    localStorage.setItem('userXP', userXP);
-    localStorage.setItem('userLevel', userLevel);
-
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
-        Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
-        Telegram.WebApp.CloudStorage.setItem('userLevel', userLevel.toString());
-        Telegram.WebApp.CloudStorage.setItem('myCollection', JSON.stringify(collection));
-        Telegram.WebApp.CloudStorage.setItem('ownedItems', JSON.stringify(ownedItems));
-        Telegram.WebApp.CloudStorage.setItem('activeTheme', activeTheme);
-        Telegram.WebApp.CloudStorage.setItem('activeEggSkin', activeEggSkin);
-        Telegram.WebApp.CloudStorage.setItem('selectedAvatar', selectedAvatar);
-        Telegram.WebApp.CloudStorage.setItem('userStats', JSON.stringify(userStats));
-        Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
-        Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
-        Telegram.WebApp.CloudStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
-        Telegram.WebApp.CloudStorage.setItem('usedCodes', JSON.stringify(usedCodes));
-        if(localStorage.getItem('tutorialSeen')) Telegram.WebApp.CloudStorage.setItem('tutorialSeen', 'true');
-    }
-}
-function applyTheme() { 
-    const t=SHOP_DATA.themes.find(x=>x.id===activeTheme); 
-    if(t && t.bgFile) {
-        document.body.style.backgroundImage = `url('${t.bgFile}')`;
-    } else {
-        document.body.style.backgroundImage = 'none';
-        document.body.style.backgroundColor = '#1c1c1e';
-    }
-}
-function applyEggSkin() { 
-    const s=SHOP_DATA.eggs.find(x=>x.id===activeEggSkin); 
-    const egg=getEl('egg-display'); 
-    
-    // Если скин есть в магазине, берем его картинку
-    if (s) {
-        egg.src = s.img;
-    } else {
-        egg.src = 'assets/eggs/egg-default.png';
-    }
-    
-    // Сбрасываем старые CSS классы кроме базового
-    egg.className = 'egg-img'; 
-    if(isRunning) egg.classList.add('shaking'); 
-}
-function updateLevelUI() { const max=userLevel*200; let p=(userXP/max)*100; if(p>100)p=100; getEl('xp-bar').style.width=`${p}%`; getEl('level-number').textContent=`Lvl ${userLevel}`; let r=Math.floor(userLevel/5); getEl('rank-name').textContent=RANKS[Math.min(r,RANKS.length-1)]; }
-
-// ЗАПУСК ПОСЛЕ ЗАГРУЗКИ (ВАЖНО!)
-window.onload = initGame;
-// ... (ВЕСЬ ПРЕДЫДУЩИЙ КОД SCRIPT.JS) ...
-
-// ВСТАВЬ В КОНЕЦ ФАЙЛА (ИЛИ ЗАМЕНИ toggleInventory НА ЭТО):
-
-function openInventory() {
-    playSound('click');
-    renderCollection(); // Обновляем данные
-    document.getElementById('inventory-modal').style.display = 'flex';
-}
-
-function toggleInventory() {
-    // Эта функция больше не нужна, но оставим пустой для совместимости, если где-то есть вызов
-    openInventory();
-}
