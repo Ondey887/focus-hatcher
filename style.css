@@ -1,103 +1,105 @@
 /* === БАЗА === */
-body { background-color: #1c1c1e; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; overflow-y: auto; user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 0.5s ease; }
+body { 
+    background-color: #1c1c1e; 
+    color: white; 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    display: flex; flex-direction: column; align-items: center; 
+    min-height: 100vh; margin: 0; overflow-y: auto; 
+    user-select: none; -webkit-tap-highlight-color: transparent; 
+    transition: background 0.5s ease;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
 
-/* === КОНФЕТТИ === */
+/* === ИЗОБРАЖЕНИЯ === */
+.egg-img { width: 220px; height: 220px; object-fit: contain; transition: transform 0.1s; position: relative; z-index: 1; }
+.tut-icon-img { width: 50px; height: 50px; object-fit: contain; }
+.shop-icon-img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 5px; }
+.pet-img-big { width: 150px; height: 150px; object-fit: contain; animation: breathe 3s infinite; }
+.pet-img-slot { width: 100%; height: 100%; object-fit: contain; }
+.profile-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+/* АНИМАЦИИ */
+.egg-img.shaking { animation: shake 0.5s infinite !important; }
+@keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(3deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-3deg); } 100% { transform: rotate(0deg); } }
+@keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+/* ТРЕЩИНЫ */
+.crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; transition: opacity 0.3s; }
+/* Тут можно вставить реальные картинки трещин, если есть, или оставить градиент */
+.crack-stage-1 { background: linear-gradient(135deg, transparent 48%, rgba(0,0,0,0.5) 49%, rgba(0,0,0,0.5) 51%, transparent 52%); }
+.crack-stage-2 { background: linear-gradient(135deg, transparent 48%, rgba(0,0,0,0.6) 49%, rgba(0,0,0,0.6) 51%, transparent 52%), linear-gradient(45deg, transparent 48%, rgba(0,0,0,0.6) 49%, rgba(0,0,0,0.6) 51%, transparent 52%); }
+
+/* UI ЭЛЕМЕНТЫ */
 #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+#debug-console { width: 95%; background: rgba(0, 0, 0, 0.8); border: 1px solid #ff3b30; color: #0f0; font-size: 10px; font-family: monospace; padding: 10px; margin-top: 5px; border-radius: 8px; z-index: 9999; display: none; }
+.error-msg { color: #ff3b30; font-weight: bold; }
 
-/* ОТЛАДКА */
-#debug-console { width: 95%; background: rgba(0, 0, 0, 0.8); border: 1px solid #ff3b30; color: #0f0; font-size: 10px; font-family: monospace; padding: 10px; margin-top: 5px; border-radius: 8px; z-index: 9999; word-wrap: break-word; display: none; }
-.error-msg { color: #ff3b30; font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #555; }
-#emergency-reset { background: #ff3b30; color: white; border: none; padding: 10px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; z-index: 10000; font-weight: bold; width: 90%; font-size: 12px;}
-
-/* UI */
 .container { text-align: center; width: 100%; max-width: 350px; padding: 20px; position: relative; padding-bottom: 80px; }
 .top-bar { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 10; display: flex; justify-content: space-between; }
 .left-buttons { display: flex; gap: 10px; }
-.icon-btn { background: rgba(255,255,255,0.1); border: none; font-size: 20px; padding: 0; border-radius: 50%; cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+.icon-btn { background: rgba(255,255,255,0.1); border: none; font-size: 20px; padding: 0; border-radius: 50%; cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); overflow: hidden; }
 .red-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; }
 
-h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
-.level-container { background: rgba(255, 255, 255, 0.1); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.level-container { background: rgba(255, 255, 255, 0.1); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; cursor: pointer; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); }
 .level-container:active { background: rgba(255, 255, 255, 0.2); transform: scale(0.98); }
 
 .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.money-display { font-size: 16px; font-weight: bold; color: #85bb65; }
+.money-display { font-size: 16px; font-weight: bold; color: #ffd700; display: flex; align-items: center; gap: 5px; }
 .progress-bar-bg { background: rgba(0, 0, 0, 0.5); height: 8px; border-radius: 4px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #34c759, #32d74b); width: 0%; transition: width 0.5s ease-out; }
 
 .slider-container { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
 .arrow-btn { background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 40px; cursor: pointer; padding: 10px; }
 
-#timer { font-size: 56px; font-weight: bold; margin: 15px 0; font-variant-numeric: tabular-nums; }
-.btn { background-color: #007aff; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: transform 0.1s; }
+#timer { font-size: 56px; font-weight: bold; margin: 15px 0; font-variant-numeric: tabular-nums; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.btn { background-color: #007aff; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: transform 0.1s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 .btn:active { transform: scale(0.96); }
 .btn.stop { background-color: #ff3b30; }
 .share-btn { background-color: #34c759; }
 
-/* ЯЙЦО И АНИМАЦИИ */
-.egg { font-size: 100px; display: inline-block; transition: transform 0.1s; position: relative; z-index: 1; }
-.egg.breathe { animation: breathe 3s infinite ease-in-out; }
-@keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-.shaking { animation: shake 0.5s infinite !important; }
-@keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(3deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-3deg); } 100% { transform: rotate(0deg); } }
-.egg.diamond-egg { filter: drop-shadow(0 0 15px cyan); transform: rotate(180deg); }
-.egg.diamond-egg.breathe { animation: breathe-diamond 3s infinite ease-in-out !important; }
-.egg.diamond-egg.shaking { animation: shake-inverted 0.5s infinite !important; }
-@keyframes breathe-diamond { 0% { transform: rotate(180deg) scale(1); } 50% { transform: rotate(180deg) scale(1.05); } 100% { transform: rotate(180deg) scale(1); } }
-@keyframes shake-inverted { 0% { transform: rotate(180deg); } 25% { transform: rotate(183deg); } 50% { transform: rotate(180deg); } 75% { transform: rotate(177deg); } 100% { transform: rotate(180deg); } }
-.egg.skin-glow { filter: drop-shadow(0 0 15px #fff); }
-.egg.skin-gold { filter: drop-shadow(0 0 10px #ffd700) brightness(1.2); }
-.egg.skin-glitch { animation: shake 0.2s infinite !important; filter: hue-rotate(90deg); }
-.egg.skin-ice { filter: drop-shadow(0 0 10px #00ffff) hue-rotate(180deg); }
-
-/* ТРЕЩИНЫ */
-.crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; transition: all 0.3s; }
-.crack-stage-1 { background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.7) 49%, rgba(40,40,40,0.7) 51%, transparent 52%); filter: drop-shadow(0 0 1px white); opacity: 0.8; }
-.crack-stage-2 { background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%), linear-gradient(45deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%); filter: drop-shadow(0 0 1px white); opacity: 0.9; }
-
-/* УВЕДОМЛЕНИЯ */
-#toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-.toast { background: rgba(44, 44, 46, 0.95); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; animation: slideIn 0.3s ease-out forwards; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
-@keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
-.toast.fade-out { animation: fadeOut 0.3s ease-in forwards; }
-
+/* БУСТЕРЫ */
 .boosters-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; min-height: 50px; }
-.booster-slot { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; position: relative; border: 2px solid transparent; transition: all 0.2s; }
+.booster-slot { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; border: 2px solid transparent; transition: all 0.2s; }
+.booster-slot img { width: 30px; height: 30px; }
 .booster-slot.active { background: rgba(52, 199, 89, 0.2); border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.5); transform: scale(1.1); }
 .booster-slot.empty { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
 .booster-count { position: absolute; bottom: -5px; right: -5px; background: #007aff; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
+/* ИНВЕНТАРЬ */
 .inventory-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 20px; cursor: pointer; font-weight: bold; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
 .inventory-header:active { background: rgba(255,255,255,0.1); }
 #collection { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 15px; overflow: hidden; }
 #collection.hidden { display: none; }
-.pet-slot { font-size: 28px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; text-align: center; cursor: pointer; position: relative; height: 40px; display: flex; justify-content: center; align-items: center; }
+.pet-slot { background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; cursor: pointer; position: relative; height: 50px; display: flex; justify-content: center; align-items: center; }
 .pet-slot.common { border: 2px solid #8e8e93; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
 .pet-slot.locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); }
-.pet-silhouette { filter: brightness(0) opacity(0.3); pointer-events: none; }
+.pet-slot.locked img { filter: brightness(0) opacity(0.3); }
 .slot-count { position: absolute; bottom: -2px; right: -2px; background: #007aff; color: white; font-size: 9px; padding: 1px 4px; border-radius: 6px; font-weight: bold; }
 
+/* МОДАЛЬНЫЕ ОКНА */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
 .modal-content { background: #2c2c2e; width: 90%; max-width: 320px; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); max-height: 80vh; overflow-y: auto; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .modal-header h2 { margin: 0; color: #fff; font-size: 20px; }
 .close-btn { background: none; border: none; color: #8e8e93; font-size: 24px; cursor: pointer; padding: 5px; }
 
+/* МАГАЗИН UI */
 .shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
 .tab-btn { flex: 1; background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: bold; min-width: 70px; }
 .tab-btn.active { background: #007aff; }
 .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .shop-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; }
 .shop-item.active { border-color: #34c759; }
-.shop-item-icon { font-size: 30px; margin-bottom: 5px; }
-.shop-item-name { font-size: 14px; margin-bottom: 5px; font-weight: bold; }
 .buy-btn { background: #34c759; border: none; color: #fff; padding: 8px; border-radius: 8px; font-size: 12px; width: 100%; cursor: pointer; font-weight: bold; }
 .buy-btn.locked { background: #3a3a3c; color: #8e8e93; }
 .buy-btn.owned { background: #007aff; }
 
+/* АЧИВКИ */
 .achievement-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid transparent; opacity: 0.8; }
 .achievement-card.unlocked { opacity: 1; border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
 .ach-icon { font-size: 24px; }
@@ -105,15 +107,7 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .ach-title { font-size: 14px; font-weight: bold; margin: 0; }
 .ach-desc { font-size: 12px; color: #8e8e93; margin: 2px 0 0 0; }
 
-.pet-big-icon { font-size: 80px; margin: 10px 0; animation: breathe 3s infinite; }
-.pet-name { font-size: 24px; margin: 5px 0; }
-.pet-rarity { font-size: 14px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-.pet-rarity.common { color: #8e8e93; }
-.pet-rarity.rare { color: #007aff; }
-.pet-rarity.legendary { color: #ffd700; }
-.pet-price { font-size: 18px; color: #85bb65; margin-bottom: 15px; }
-.sell-action { background-color: #ff3b30; margin-top: 10px; }
-
+/* НАСТРОЙКИ */
 .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; }
 .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
 .switch input { opacity: 0; width: 0; height: 0; }
@@ -124,43 +118,16 @@ input:checked + .slider:before { transform: translateX(22px); }
 .slider.round { border-radius: 34px; }
 .slider.round:before { border-radius: 50%; }
 
-body.theme-forest { background: linear-gradient(135deg, #134e5e, #71b280); }
-body.theme-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); }
-body.theme-gold { background: linear-gradient(135deg, #3e2b0e, #d4af37); }
-body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
-
-/* ЕЖЕДНЕВНЫЕ НАГРАДЫ */
-.daily-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.daily-item:last-child { grid-column: span 4; background: linear-gradient(45deg, #ffd700, #ffa500); color: black; font-weight: bold; }
-.daily-item { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; border: 2px solid transparent; }
-.daily-day { font-size: 10px; margin-bottom: 5px; }
-.daily-icon { font-size: 24px; margin-bottom: 5px; }
-.daily-val { font-size: 12px; font-weight: bold; color: #85bb65; }
-.daily-item.active { opacity: 1; border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.3); transform: scale(1.05); background: rgba(52, 199, 89, 0.1); }
-.daily-item.claimed { opacity: 1; background: #34c759; color: white; }
-.daily-item.claimed .daily-val { color: white; }
-
-/* ОБУЧЕНИЕ */
-.tutorial-step { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; }
-.tut-icon { font-size: 30px; min-width: 40px; text-align: center; }
-.tut-title { font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #ffd700; }
-.tut-desc { font-size: 13px; color: #d1d1d6; line-height: 1.4; }
-
-/* ПРОМОКОД */
-.promo-input { width: 90%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 16px; text-transform: uppercase; text-align: center; margin-top: 10px; outline: none; }
-.promo-input:focus { border-color: #007aff; }
-
 /* ПРОФИЛЬ */
 .profile-header-block { margin-bottom: 20px; }
-.profile-avatar-container { position: relative; width: 80px; height: 80px; margin: 0 auto 10px; cursor: pointer; }
-.profile-avatar { width: 100%; height: 100%; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; border: 3px solid #007aff; overflow: hidden; }
-.edit-badge { position: absolute; bottom: 0; right: 0; background: #007aff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; border: 2px solid #2c2c2e; }
+.profile-avatar-container { position: relative; width: 80px; height: 80px; margin: 0 auto 10px; cursor: pointer; border-radius: 50%; border: 3px solid #007aff; overflow: hidden; }
+.edit-badge { position: absolute; bottom: 5px; right: 5px; background: #007aff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid #2c2c2e; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; }
 .stat-val { font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 5px; }
 .stat-label { font-size: 12px; color: #8e8e93; text-transform: uppercase; }
 
-/* СПИСОК УРОВНЕЙ */
+/* УРОВНИ */
 .levels-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; text-align: left; }
 .level-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; }
 .level-item.active { border-color: #007aff; background: rgba(0, 122, 255, 0.1); }
@@ -170,11 +137,23 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 .rank-title { font-weight: bold; font-size: 14px; }
 .rank-desc { font-size: 11px; color: #8e8e93; }
 
-/* ВЫБОР АВАТАРА */
+/* АВАТАР */
 .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.avatar-item { background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 30px; padding: 10px; cursor: pointer; border: 2px solid transparent; }
-.avatar-item:hover { background: rgba(255,255,255,0.2); }
+.avatar-item { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 5px; cursor: pointer; border: 2px solid transparent; }
+.avatar-item img { width: 100%; height: auto; border-radius: 8px; }
 .avatar-item.selected { border-color: #34c759; background: rgba(52, 199, 89, 0.2); }
-
-/* ИСПРАВЛЕНИЕ Z-INDEX ДЛЯ АВАТАРКИ */
 #avatar-modal { z-index: 200; }
+
+/* ПРОМОКОД */
+.promo-input { width: 90%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 16px; text-transform: uppercase; text-align: center; margin-top: 10px; outline: none; }
+.promo-input:focus { border-color: #007aff; }
+
+/* DAILY */
+.daily-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.daily-item:last-child { grid-column: span 4; background: linear-gradient(45deg, #ffd700, #ffa500); color: black; font-weight: bold; }
+.daily-item { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; border: 2px solid transparent; }
+.daily-day { font-size: 10px; margin-bottom: 5px; }
+.daily-val { font-size: 10px; font-weight: bold; color: #85bb65; }
+.daily-item.active { opacity: 1; border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.3); transform: scale(1.05); background: rgba(52, 199, 89, 0.1); }
+.daily-item.claimed { opacity: 1; background: #34c759; color: white; }
+.daily-item.claimed .daily-val { color: white; }

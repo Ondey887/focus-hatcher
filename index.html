@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=15">
+    <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 
@@ -25,8 +25,8 @@
             <div class="modal-header"><h2>Досье</h2><button class="close-btn" onclick="closeModal('profile-modal')">✖</button></div>
             <div class="profile-header-block">
                 <div class="profile-avatar-container" onclick="openAvatarSelector()">
-                    <div id="profile-avatar" class="profile-avatar">👤</div>
-                    <div class="edit-badge">✏️</div>
+                    <img id="profile-avatar" src="assets/ui/icon-profile.png" class="profile-avatar-img">
+                    <div class="edit-badge"><img src="assets/ui/icon-edit.png" style="width:12px;"></div>
                 </div>
                 <h3 id="profile-rank">Новичок</h3>
                 <div id="profile-level" style="color: #8e8e93; font-size: 14px;">Lvl 1</div>
@@ -43,7 +43,6 @@
     <div id="promo-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Ввести код</h2><button class="close-btn" onclick="closeModal('promo-modal')">✖</button></div>
-            <p style="color: #8e8e93; font-size: 12px; margin-top: -10px;">Ищи коды в нашем канале!</p>
             <input type="text" id="promo-input" class="promo-input" placeholder="ВВЕДИТЕ КОД">
             <button class="btn" style="background: #007aff; margin-top: 15px;" onclick="activatePromo()">Активировать ✨</button>
         </div>
@@ -52,9 +51,18 @@
     <div id="tutorial-modal" class="modal" style="display: none; z-index: 3000;">
         <div class="modal-content" style="text-align: left;">
             <div class="modal-header" style="justify-content: center;"><h2>🎓 Как играть?</h2></div>
-            <div class="tutorial-step"><div class="tut-icon">⏱️</div><div><div class="tut-title">Выбери время</div><div class="tut-desc">25 или 60 минут.</div></div></div>
-            <div class="tutorial-step"><div class="tut-icon">🧘</div><div><div class="tut-title">Не сворачивай!</div><div class="tut-desc">Если не включен "Авто-Фокус", держи игру открытой.</div></div></div>
-            <div class="tutorial-step"><div class="tut-icon">🦄</div><div><div class="tut-title">Коллекция</div><div class="tut-desc">Собирай петов и ставь их на аватарку!</div></div></div>
+            <div class="tutorial-step">
+                <img src="assets/ui/booster-speed.png" class="tut-icon-img">
+                <div><div class="tut-title">Таймер</div><div class="tut-desc">Выбери время. Чем дольше — тем круче пет.</div></div>
+            </div>
+            <div class="tutorial-step">
+                <img src="assets/ui/booster-afk.png" class="tut-icon-img">
+                <div><div class="tut-title">Фокус</div><div class="tut-desc">Не сворачивай игру (или купи Авто-Фокус).</div></div>
+            </div>
+            <div class="tutorial-step">
+                <img src="assets/ui/icon-trophy.png" class="tut-icon-img">
+                <div><div class="tut-title">Коллекция</div><div class="tut-desc">Собирай уникальных петов!</div></div>
+            </div>
             <button class="btn" style="background: #007aff; margin-top: 20px;" onclick="closeTutorial()">Погнали! 🚀</button>
         </div>
     </div>
@@ -68,9 +76,9 @@
 
     <div id="daily-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <div class="modal-header"><h2>Ежедневный Бонус</h2></div>
+            <div class="modal-header"><h2>Бонус</h2></div>
             <div id="daily-grid" class="daily-grid"></div>
-            <button id="claim-btn" class="btn" style="background: #34c759; margin-top: 15px;" onclick="claimDaily()">Забрать награду</button>
+            <button id="claim-btn" class="btn" style="background: #34c759; margin-top: 15px;" onclick="claimDaily()">Забрать</button>
         </div>
     </div>
 
@@ -80,7 +88,7 @@
             <div class="settings-list">
                 <div class="setting-item"><span>Вибрация</span><label class="switch"><input type="checkbox" id="vibration-toggle" checked><span class="slider round"></span></label></div>
                 <div class="setting-item"><span>Звук</span><label class="switch"><input type="checkbox" id="sound-toggle"><span class="slider round"></span></label></div>
-                <button class="btn" style="background: #5856d6; margin-top: 15px; font-size: 14px; padding: 10px;" onclick="openPromo()">🎁 Ввести Промокод</button>
+                <button class="btn" style="background: #5856d6; margin-top: 15px; font-size: 14px; padding: 10px;" onclick="openPromo()">🎁 Промокод</button>
                 <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
                 <button class="btn stop" style="font-size:14px; padding:10px;" onclick="hardReset()">Полный сброс</button>
             </div>
@@ -120,9 +128,18 @@
     <div class="container">
         <div class="top-bar">
             <div class="left-buttons">
-                <button id="header-profile-btn" class="icon-btn" onclick="openProfile()">👤</button>
-                <button class="icon-btn" onclick="openShop()">🛍️</button>
-                <button class="icon-btn" onclick="openAch()">🏆<div id="ach-badge" class="red-dot" style="display: none;"></div></button>
+                <button id="header-profile-btn" class="icon-btn" onclick="openProfile()">
+                    <img src="assets/ui/icon-profile.png" style="width: 24px; height: 24px; border-radius: 50%;">
+                </button>
+                
+                <button class="icon-btn" onclick="openShop()">
+                    <img src="assets/ui/icon-shop.png" style="width: 24px;">
+                </button>
+                
+                <button class="icon-btn" onclick="openAch()">
+                    <img src="assets/ui/icon-trophy.png" style="width: 24px;">
+                    <div id="ach-badge" class="red-dot" style="display: none;"></div>
+                </button>
             </div>
             <button class="icon-btn" onclick="openSettings()">⚙️</button>
         </div>
@@ -130,17 +147,24 @@
         <h1>Focus Hatcher</h1>
 
         <div class="level-container" onclick="openLevels()">
-            <div class="stats-row"><div class="level-info"><span id="rank-name">Новичок</span> <span id="level-number">Lvl 1</span> <span style="font-size: 10px;">ⓘ</span></div><div class="money-display" id="total-money">💰 0</div></div>
-            <div id="unique-count" style="font-size: 12px; color: #8e8e93; margin-bottom: 5px; text-align: left;">Коллекция: 0 / 24</div>
+            <div class="stats-row">
+                <div class="level-info"><span id="rank-name">Новичок</span> <span id="level-number">Lvl 1</span> <span style="font-size: 10px;">ⓘ</span></div>
+                <div class="money-display" id="total-money">
+                    <img src="assets/ui/coin.png" style="width: 16px; vertical-align: middle;"> 0
+                </div>
+            </div>
+            <div id="unique-count" style="font-size: 12px; color: #8e8e93; margin-bottom: 5px; text-align: left;">Коллекция: 0 / 25</div>
             <div class="progress-bar-bg"><div id="xp-bar" class="progress-bar-fill" style="width: 0%;"></div></div>
         </div>
         
         <div class="slider-container">
             <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
+            
             <div id="egg-wrapper" style="position: relative; display: inline-block;">
-                <div id="egg-display" class="egg">🥚</div>
+                <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
                 <div id="crack-overlay" class="crack-overlay"></div>
             </div>
+            
             <button id="next-btn" class="arrow-btn" onclick="nextMode()">❯</button>
         </div>
 
@@ -160,6 +184,6 @@
         <div id="collection" class="hidden"></div>
     </div>
 
-    <script src="script.js?v=15"></script>
+    <script src="script.js?v=16"></script>
 </body>
 </html>
