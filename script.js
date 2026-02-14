@@ -105,7 +105,7 @@ const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
 
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
-    { id: 'rich_kid', title: 'Богач', desc: 'Заработай $1000', goal: 1000, type: 'money', reward: 500 },
+    { id: 'rich_kid', title: 'Богач', desc: 'Заработай 1000', goal: 1000, type: 'money', reward: 500 },
     { id: 'collector', title: 'Коллекционер', desc: 'Собери 5 уникальных', goal: 5, type: 'unique', reward: 1000 },
     { id: 'hard_worker', title: 'Трудяга', desc: 'Вырасти 10 питомцев', goal: 10, reward: 2000 }
 ];
@@ -242,8 +242,8 @@ function activatePromo() {
     if (usedCodes.includes(code)) { showToast("Уже активирован!", "🚫"); return; }
     if (PROMO_CODES[code]) {
         const reward = PROMO_CODES[code];
-        if (reward.type === 'money') { walletBalance += reward.val; showToast(`+${reward.val} монет!`, "💰"); } 
-        else if (reward.type === 'booster') { if (!myBoosters[reward.id]) myBoosters[reward.id] = 0; myBoosters[reward.id] += reward.val; showToast(`+${reward.val} бустеров!`, "⚡"); }
+        if (reward.type === 'money') { walletBalance += reward.val; showToast(`+${reward.val}`, 'img'); } 
+        else if (reward.type === 'booster') { if (!myBoosters[reward.id]) myBoosters[reward.id] = 0; myBoosters[reward.id] += reward.val; showToast(`+${reward.val} буст`, 'img'); }
         usedCodes.push(code); saveData(); updateBalanceUI(); playSound('win'); closeModal('promo-modal'); input.value = "";
     } else { showToast("Неверный код", "❌"); }
 }
@@ -584,13 +584,13 @@ function openPetModal(pet, owned) {
     selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r]; playSound('click');
     getEl('pet-modal').style.display='flex';
     getEl('pet-detail-view').innerHTML = owned ? 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big"><h3 class="pet-name">Питомец</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: $${p}</p><button class="btn sell-action" onclick="sellPet()">Продать ($${p})</button>` : 
+        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big"><h3 class="pet-name">Питомец</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p><button class="btn sell-action" onclick="sellPet()">Продать (${p})</button>` : 
         `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)"><h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
 }
 function sellPet() {
     if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
     const p=PRICES[getPetRarity(selectedPet)]; walletBalance+=p; userStats.earned+=p;
-    collection.splice(idx,1); saveData(); updateBalanceUI(); renderCollection(); closeModal('pet-modal'); showToast(`Продано +$${p}`, "💰"); playSound('money');
+    collection.splice(idx,1); saveData(); updateBalanceUI(); renderCollection(); closeModal('pet-modal'); showToast(`Продано +${p}`, 'img'); playSound('money');
 }
 function switchShopTab(t) { currentShopTab=t; document.querySelectorAll('#shop-modal .tab-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); renderShop(); playSound('click'); }
 function renderShop() {
@@ -599,16 +599,16 @@ function renderShop() {
         const d=document.createElement('div'); d.className='shop-item';
         let btnHTML='';
         if(currentShopTab==='boosters') {
-            btnHTML=`<button class="buy-btn" onclick="buyItem('${item.id}',${item.price})">$${item.price}</button>`;
+            btnHTML=`<button class="buy-btn" onclick="buyItem('${item.id}',${item.price})">${item.price}</button>`;
             d.innerHTML=`<img src="${item.icon}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#888">${item.desc}</div>${btnHTML}`;
         } else if(currentShopTab==='eggs') {
             const owned=ownedItems.eggs.includes(item.id); const active=activeEggSkin===item.id;
-            let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать"):`$${item.price}`;
+            let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать"):`${item.price}`;
             btnHTML=`<button class="${cls}" onclick="buyItem('${item.id}',${item.price})">${txt}</button>`;
             d.innerHTML=`<img src="${item.img}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div>${btnHTML}`;
         } else {
             const owned=ownedItems.themes.includes(item.id); const active=activeTheme===item.id;
-            let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать"):`$${item.price}`;
+            let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать"):`${item.price}`;
             btnHTML=`<button class="${cls}" onclick="buyItem('${item.id}',${item.price})">${txt}</button>`;
             let icon = item.bgFile ? `<img src="${item.bgFile}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;margin-bottom:5px">` : `<div style="width:60px;height:60px;background:#333;border-radius:10px;margin-bottom:5px"></div>`;
             d.innerHTML=`${icon}<div class="shop-item-name">${item.name}</div>${btnHTML}`;
@@ -641,7 +641,7 @@ function renderAch() {
         const claimed=claimedAchievements.includes(a.id);
         let done=false; if((a.type==='money'&&userStats.earned>=a.goal)||(a.type==='unique'&&u>=a.goal)||(!a.type&&userStats.hatched>=a.goal)) done=true;
         const d=document.createElement('div'); d.className=`achievement-card ${done?'unlocked':''}`;
-        let btn=''; if(done&&!claimed)btn=`<button class="buy-btn" onclick="claimAch('${a.id}',${a.reward})">Забрать</button>`; else if(claimed)btn="✅"; else btn=`<span style="font-size:12px;color:#888">Цель: ${a.goal}</span>`;
+        let btn=''; if(done&&!claimed)btn=`<button class="buy-btn" onclick="claimAch('${a.id}',${a.reward})">Забрать ${a.reward}</button>`; else if(claimed)btn="✅"; else btn=`<span style="font-size:12px;color:#888">Цель: ${a.goal}</span>`;
         d.innerHTML=`<div class="ach-icon">${done?'<img src="assets/ui/icon-trophy.png">':'<img src="assets/ui/icon-lock.png">'}</div><div class="ach-info"><div class="ach-title">${a.title}</div><div class="ach-desc">${a.desc}</div></div><div>${btn}</div>`;
         c.appendChild(d);
     });
@@ -651,7 +651,7 @@ function renderQuests() {
     QUESTS_DATA.forEach(q => {
         const claimed=claimedQuests.includes(q.id);
         const d=document.createElement('div'); d.className=`achievement-card ${claimed?'unlocked':''}`;
-        let btn=''; if(claimed)btn="✅"; else if(q.type==='link')btn=`<button id="qbtn-${q.id}" class="buy-btn" style="background:#007aff" onclick="clickLink('${q.id}','${q.url}',${q.reward})">Выполнить</button>`; else if(q.type==='invite') { if((userStats.invites||0)>=q.goal)btn=`<button class="buy-btn" onclick="claimQuest('${q.id}',${q.reward})">Забрать</button>`; else btn=`<span style="font-size:12px;color:#888">${userStats.invites||0}/${q.goal}</span>`; }
+        let btn=''; if(claimed)btn="✅"; else if(q.type==='link')btn=`<button id="qbtn-${q.id}" class="buy-btn" style="background:#007aff" onclick="clickLink('${q.id}','${q.url}',${q.reward})">Выполнить</button>`; else if(q.type==='invite') { if((userStats.invites||0)>=q.goal)btn=`<button class="buy-btn" onclick="claimQuest('${q.id}',${q.reward})">Забрать ${q.reward}</button>`; else btn=`<span style="font-size:12px;color:#888">${userStats.invites||0}/${q.goal}</span>`; }
         d.innerHTML=`<div class="ach-icon">📜</div><div class="ach-info"><div class="ach-title">${q.title}</div><div class="ach-desc">${q.desc}</div></div><div>${btn}</div>`;
         c.appendChild(d);
     });

@@ -4,9 +4,9 @@ body {
     color: white; 
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
     display: flex; flex-direction: column; align-items: center; 
-    height: 100vh; 
+    min-height: 100dvh; /* Dynamic Viewport Height для мобилок */
     margin: 0; 
-    overflow: hidden; 
+    overflow-y: auto; /* ОБЯЗАТЕЛЬНО РАЗРЕШАЕМ СКРОЛЛ */
     user-select: none; -webkit-tap-highlight-color: transparent; 
     transition: background 0.5s ease;
     background-size: cover; background-position: center; background-attachment: fixed;
@@ -15,12 +15,12 @@ body {
 /* === ГЛАВНЫЙ КОНТЕЙНЕР === */
 .container { 
     width: 100%; max-width: 450px; 
-    height: 100%; 
+    min-height: 100vh; 
     box-sizing: border-box;
     display: flex; 
     flex-direction: column; 
     justify-content: space-between; 
-    padding: 75px 15px 20px 15px; /* Отступ сверху под шапку */
+    padding: 70px 15px 20px 15px; 
     position: relative;
     text-align: center;
 }
@@ -32,35 +32,22 @@ body {
 }
 .left-buttons { display: flex; gap: 12px; }
 
-/* ИКОНКИ (55px) */
+/* ИКОНКИ */
 .icon-btn { 
     background: rgba(255,255,255,0.15); 
     border: none; padding: 0; border-radius: 50%; 
     cursor: pointer; width: 55px; height: 55px; 
     display: flex; justify-content: center; align-items: center; 
-    backdrop-filter: blur(5px); overflow: hidden; 
-    position: relative;
+    backdrop-filter: blur(5px); overflow: hidden; position: relative;
 }
 .header-icon-img { width: 100%; height: 100%; object-fit: cover; }
-.header-avatar { border-radius: 50%; } /* Чтобы аватарка тоже круглилась */
+.header-avatar { border-radius: 50%; }
 .red-dot { position: absolute; top: 5px; right: 5px; width: 12px; height: 12px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; z-index: 2; }
 
-/* === ЦЕНТРАЛЬНАЯ СЕКЦИЯ (ЭТО ВАЖНО ДЛЯ ЦЕНТРОВКИ) === */
-.center-section {
-    flex-grow: 1; /* Занимает всё доступное место */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Центрует содержимое по вертикали */
-    align-items: center;
-    width: 100%;
-    margin-bottom: 10px; /* Отступ от нижних кнопок */
-}
-
-/* ЗАГОЛОВОК */
-.main-title { 
+h1 { 
     font-size: 26px; margin: 0 0 15px 0; 
     color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.5); opacity: 0.9; 
-    width: 100%;
+    flex-shrink: 0;
 }
 
 /* БЛОК УРОВНЯ */
@@ -68,37 +55,44 @@ body {
     background: rgba(255, 255, 255, 0.1); 
     padding: 10px 15px; 
     border-radius: 12px; 
-    margin-bottom: 20px; 
+    margin-bottom: 10px; 
     text-align: left; cursor: pointer; 
     backdrop-filter: blur(5px); 
     border: 1px solid rgba(255,255,255,0.1); 
-    width: 100%; box-sizing: border-box;
+    flex-shrink: 0;
 }
 .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
 .money-display { font-size: 22px; font-weight: bold; color: #ffd700; display: flex; align-items: center; gap: 8px; }
-/* МОНЕТКА ЖИРНАЯ */
-.coin-img { width: 36px !important; height: 36px !important; object-fit: contain; }
-.coin-icon-small { width: 20px; height: 20px; vertical-align: middle; margin-right: 5px; }
+
+/* МОНЕТКА (40px!) */
+.coin-img { width: 40px !important; height: 40px !important; object-fit: contain; }
+
 .progress-bar-bg { background: rgba(0, 0, 0, 0.5); height: 8px; border-radius: 4px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #34c759, #32d74b); width: 0%; transition: width 0.5s ease-out; }
 
-/* СЛАЙДЕР С ЯЙЦОМ */
+/* === ЦЕНТРАЛЬНАЯ ЧАСТЬ (ЯЙЦО) === */
 .slider-container { 
     display: flex; justify-content: space-between; align-items: center; 
-    width: 100%; margin: 10px 0;
+    flex-grow: 1; 
+    margin: 10px 0;
+    width: 100%;
 }
-.arrow-btn { background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 45px; cursor: pointer; padding: 10px; }
+/* СТРЕЛКИ ФИКСИРОВАННОЙ ШИРИНЫ ДЛЯ ЦЕНТРОВКИ */
+.arrow-btn { 
+    background: none; border: none; color: rgba(255, 255, 255, 0.4); 
+    font-size: 45px; cursor: pointer; padding: 0; 
+    width: 60px; text-align: center;
+}
 #egg-wrapper { 
     position: relative; 
     display: flex; justify-content: center; align-items: center; 
     flex-grow: 1; height: 100%; 
 }
 
-/* ЯЙЦО (ПРИНУДИТЕЛЬНО БОЛЬШОЕ) */
+/* ЯЙЦО (ОГРОМНОЕ) */
 .egg-img { 
-    width: 320px !important; height: 320px !important;
-    max-width: 85vw; /* Если экран узкий, чуть уменьшится */
-    max-height: 45vh; /* Если экран низкий, чуть уменьшится */
+    width: auto; height: auto;
+    max-width: 80vw; max-height: 45vh; 
     object-fit: contain; 
     transition: transform 0.1s; 
     position: relative; z-index: 1; 
@@ -107,7 +101,7 @@ body {
 .egg-img.shaking { animation: shake 0.5s infinite !important; }
 
 /* === НИЖНЯЯ ПАНЕЛЬ === */
-.bottom-controls { flex-shrink: 0; width: 100%; position: relative; }
+.bottom-controls { flex-shrink: 0; width: 100%; position: relative; padding-bottom: 20px; }
 
 #mode-info h2 { font-size: 20px; margin: 0; color: white; }
 #mode-subtitle { font-size: 14px; color: #8e8e93; margin: 5px 0 15px 0; }
@@ -186,7 +180,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; }
 
-/* ПИТОМЕЦ ПРИ ВЫПАДЕНИИ (КОМПАКТНЫЙ) */
+/* ПИТОМЕЦ ПРИ ВЫПАДЕНИИ */
 .pet-img-big { width: auto; height: auto; max-width: 180px; max-height: 180px; object-fit: contain; margin: 0 auto 15px auto; display: block; animation: breathe 3s infinite; }
 
 /* СЛОТЫ ПИТОМЦЕВ */
@@ -219,7 +213,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 .daily-item.claimed { opacity: 1; background: #34c759; color: white; }
 .daily-item.claimed .daily-val { color: white; }
 
-/* УВЕДОМЛЕНИЯ ВЕРНУЛ НА МЕСТО */
+/* УВЕДОМЛЕНИЯ */
 #toast-container { position: fixed; top: 120px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 90%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
 .toast { background: rgba(44, 44, 46, 0.95); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); animation: slideIn 0.3s ease-out forwards; }
 
