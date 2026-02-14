@@ -170,7 +170,7 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 .rank-title { font-weight: bold; font-size: 14px; }
 .rank-desc { font-size: 11px; color: #8e8e93; }
 
-/* ВЫБОР АВАТАРА (НОВОЕ) */
+/* ВЫБОР АВАТАРА */
 .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .avatar-item { background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 30px; padding: 10px; cursor: pointer; border: 2px solid transparent; }
 .avatar-item:hover { background: rgba(255,255,255,0.2); }

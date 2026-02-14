@@ -137,7 +137,6 @@ const SHOP_DATA = {
         { id: 'glitch', name: 'Глюк', price: 7777, skinClass: 'skin-glitch' },
         { id: 'gold', name: 'Золото', price: 15000, skinClass: 'skin-gold' }
     ],
-    // ДОБАВЛЕН БУСТЕР "AFK" (Авто-Фокус)
     boosters: [
         { id: 'luck', name: 'Зелье Удачи', price: 200, icon: '🍀', desc: 'Шанс x5' },
         { id: 'speed', name: 'Ускоритель', price: 500, icon: '⏳', desc: 'Время / 2' },
@@ -160,14 +159,14 @@ const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 // =============================================================
 let collection = [], userXP = 0, userLevel = 1, walletBalance = 0;
 let ownedItems = { themes: ['default'], eggs: ['default'] };
-let activeTheme = 'default', activeEggSkin = 'default', selectedAvatar = '👤'; // АВАТАР
+let activeTheme = 'default', activeEggSkin = 'default', selectedAvatar = '👤'; 
 let userStats = { hatched: 0, earned: 0, invites: 0 };
-let myBoosters = { luck: 0, speed: 0, afk: 0 }; // AFK БУСТЕР
+let myBoosters = { luck: 0, speed: 0, afk: 0 }; 
 let claimedAchievements = [], claimedQuests = [], usedCodes = [];
 let isVibrationOn = true, isSoundOn = false;
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
-let activeBoosters = { luck: false, speed: false, afk: false }; // AFK АКТИВНОСТЬ
+let activeBoosters = { luck: false, speed: false, afk: false }; 
 let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 
 // =============================================================
@@ -205,7 +204,6 @@ function openLevels() {
     modal.style.display = 'flex';
 }
 
-// === ПРОФИЛЬ И АВАТАРЫ (НОВОЕ) ===
 function openProfile() {
     playSound('click');
     getEl('profile-rank').textContent = RANKS[Math.floor(userLevel / 5)] || "Бог Фокуса";
@@ -215,7 +213,6 @@ function openProfile() {
     getEl('stat-invites').textContent = userStats.invites || 0;
     getEl('stat-unique').textContent = new Set(collection).size;
     getEl('profile-avatar').textContent = selectedAvatar;
-    
     getEl('profile-modal').style.display = 'flex';
 }
 
@@ -224,13 +221,8 @@ function openAvatarSelector() {
     const modal = getEl('avatar-modal');
     const list = getEl('avatar-list');
     list.innerHTML = '';
-    
-    // Получаем уникальных петов
     const uniquePets = [...new Set(collection)];
-    if (uniquePets.length === 0) {
-        list.innerHTML = "<p style='color:#888; grid-column:span 4;'>Сначала выбей питомца!</p>";
-    }
-    
+    if (uniquePets.length === 0) { list.innerHTML = "<p style='color:#888; grid-column:span 4;'>Сначала выбей питомца!</p>"; }
     uniquePets.forEach(pet => {
         const div = document.createElement('div');
         div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
@@ -239,16 +231,15 @@ function openAvatarSelector() {
             selectedAvatar = pet;
             saveData();
             getEl('profile-avatar').textContent = pet;
+            getEl('header-profile-btn').textContent = pet; // ОБНОВЛЯЕМ КНОПКУ В ХЕДЕРЕ
             closeModal('avatar-modal');
             showToast("Аватар изменен!");
         };
         list.appendChild(div);
     });
-    
     modal.style.display = 'flex';
 }
 
-// === ПРОМОКОДЫ ===
 function openPromo() { playSound('click'); getEl('settings-modal').style.display = 'none'; getEl('promo-modal').style.display = 'flex'; }
 function activatePromo() {
     const input = getEl('promo-input'); const code = input.value.toUpperCase().trim();
@@ -261,7 +252,6 @@ function activatePromo() {
     } else { showToast("Неверный код", "❌"); }
 }
 
-// === ОБУЧЕНИЕ ===
 function checkTutorial() { if (!localStorage.getItem('tutorialSeen')) getEl('tutorial-modal').style.display = 'flex'; }
 window.closeTutorial = function() { playSound('click'); localStorage.setItem('tutorialSeen', 'true'); getEl('tutorial-modal').style.display = 'none'; checkDailyReward(); }
 
@@ -281,7 +271,7 @@ function initGame() {
         ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
         activeTheme = localStorage.getItem('activeTheme') || 'default';
         activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
-        selectedAvatar = localStorage.getItem('selectedAvatar') || '👤'; // АВАТАР
+        selectedAvatar = localStorage.getItem('selectedAvatar') || '👤'; 
         let s = JSON.parse(localStorage.getItem('userStats')); if(s) userStats = s;
         let b = JSON.parse(localStorage.getItem('myBoosters')); if(b) myBoosters = b;
         claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
@@ -291,9 +281,7 @@ function initGame() {
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
     } catch(e) { console.error("Local Load Error", e); }
 
-    // ПРОВЕРКА AFK (ФОНОВОГО ВЫЛУПЛЕНИЯ)
     checkBackgroundHatch();
-
     checkTutorial();
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
 
@@ -308,16 +296,14 @@ function checkBackgroundHatch() {
     if (hatchEndTime) {
         const now = Date.now();
         if (now >= hatchEndTime) {
-            // Время вышло пока нас не было
-            finishTimer(); // Сразу выдаем награду
+            finishTimer(); 
             localStorage.removeItem('hatchEndTime');
             showToast("Вылупилось в фоне!", "🤖");
         } else {
-            // Время еще есть, продолжаем
             const remaining = Math.round((hatchEndTime - now) / 1000);
             timeLeft = remaining;
-            activeBoosters.afk = true; // Восстанавливаем статус
-            startTimer(true); // Запускаем без сброса
+            activeBoosters.afk = true;
+            startTimer(true); 
         }
     }
 }
@@ -342,8 +328,14 @@ function loadFromCloud() {
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
             
+            // ОБНОВЛЯЕМ КНОПКУ В ХЕДЕРЕ ПРИ ЗАГРУЗКЕ ИЗ ОБЛАКА
+            getEl('header-profile-btn').textContent = selectedAvatar;
+
             updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
         });
+    } else {
+        // ЕСЛИ ОБЛАКА НЕТ, ГРУЗИМ ИЗ ЛОКАЛКИ
+        getEl('header-profile-btn').textContent = selectedAvatar;
     }
 }
 
@@ -440,7 +432,7 @@ function renderBoostersPanel() {
     const p = getEl('boosters-panel'); p.innerHTML = '';
     p.appendChild(createBoosterBtn('luck', '🍀', myBoosters.luck||0, activeBoosters.luck));
     p.appendChild(createBoosterBtn('speed', '⏳', myBoosters.speed||0, activeBoosters.speed));
-    p.appendChild(createBoosterBtn('afk', '🤖', myBoosters.afk||0, activeBoosters.afk)); // ДОБАВЛЕНО
+    p.appendChild(createBoosterBtn('afk', '🤖', myBoosters.afk||0, activeBoosters.afk)); 
 }
 function createBoosterBtn(type, icon, count, isActive) {
     const d = document.createElement('div');
@@ -472,10 +464,9 @@ function startTimer(isResuming = false) {
     
     if (!isResuming) {
         timeLeft = activeBoosters.speed ? Math.floor(m.time/2) : m.time;
-        // ЕСЛИ АКТИВЕН AFK БУСТЕР -> СОХРАНЯЕМ ВРЕМЯ ОКОНЧАНИЯ
         if (activeBoosters.afk) {
             localStorage.setItem('hatchEndTime', Date.now() + timeLeft * 1000);
-            myBoosters.afk--; // Списываем бустер
+            myBoosters.afk--; 
             saveData();
         }
     }
@@ -494,7 +485,6 @@ function startTimer(isResuming = false) {
     getEl('egg-display').classList.add('shaking'); 
     renderBoostersPanel();
     
-    // Для трещин используем полное время, если это не возобновление
     const totalTime = isResuming ? timeLeft : (activeBoosters.speed ? Math.floor(m.time/2) : m.time); 
 
     timerInterval = setInterval(() => {
@@ -511,8 +501,8 @@ function startTimer(isResuming = false) {
 
 function stopTimer() {
     clearInterval(timerInterval); isRunning = false;
-    localStorage.removeItem('hatchEndTime'); // Удаляем AFK таймер при отмене
-    activeBoosters.afk = false; // Сбрасываем активность
+    localStorage.removeItem('hatchEndTime'); 
+    activeBoosters.afk = false; 
     
     getEl('main-btn').textContent = "Начать фокус"; getEl('main-btn').className = "btn";
     getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
