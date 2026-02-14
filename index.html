@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=29">
+    <link rel="stylesheet" href="style.css?v=30-final">
 </head>
 <body>
 
@@ -17,6 +17,13 @@
         <div class="modal-content">
             <div class="modal-header"><h2>Выбери Аватар</h2><button class="close-btn" onclick="closeModal('avatar-modal')">✖</button></div>
             <div id="avatar-list" class="avatar-grid"></div>
+        </div>
+    </div>
+
+    <div id="inventory-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-height: 90vh;">
+            <div class="modal-header"><h2>Моя Коллекция</h2><button class="close-btn" onclick="closeModal('inventory-modal')">✖</button></div>
+            <div id="collection" class="collection-grid"></div>
         </div>
     </div>
 
@@ -135,8 +142,8 @@
             </button>
         </div>
 
-        <div class="main-game-area">
-            <h1>Focus Hatcher</h1>
+        <div class="content-wrapper">
+            <h1 class="main-title">Focus Hatcher</h1>
 
             <div class="level-container" onclick="openLevels()">
                 <div class="stats-row">
@@ -151,12 +158,10 @@
             
             <div class="slider-container">
                 <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
-                
                 <div id="egg-wrapper">
                     <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
                     <div id="crack-overlay" class="crack-overlay"></div>
                 </div>
-                
                 <button id="next-btn" class="arrow-btn" onclick="nextMode()">❯</button>
             </div>
         </div>
@@ -169,15 +174,12 @@
             <button id="main-btn" class="btn" onclick="toggleTimer()">Начать фокус</button>
             <button id="share-btn" class="btn share-btn" style="display: none;" onclick="handleShare()">Похвастаться 📢</button>
             
-            <div class="inventory-header" id="inventory-btn" onclick="toggleInventory()">
-                <span>Моя коллекция</span>
-                <span id="inventory-arrow">▼</span>
-            </div>
-            
-            <div id="collection" class="hidden"></div>
+            <button class="inventory-btn-main" onclick="openInventory()">
+                Моя коллекция ▼
+            </button>
         </div>
     </div>
 
-    <script src="script.js?v=29"></script>
+    <script src="script.js?v=30-final"></script>
 </body>
 </html>

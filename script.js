@@ -721,3 +721,17 @@ function updateLevelUI() { const max=userLevel*200; let p=(userXP/max)*100; if(p
 
 // ЗАПУСК ПОСЛЕ ЗАГРУЗКИ (ВАЖНО!)
 window.onload = initGame;
+// ... (ВЕСЬ ПРЕДЫДУЩИЙ КОД SCRIPT.JS) ...
+
+// ВСТАВЬ В КОНЕЦ ФАЙЛА (ИЛИ ЗАМЕНИ toggleInventory НА ЭТО):
+
+function openInventory() {
+    playSound('click');
+    renderCollection(); // Обновляем данные
+    document.getElementById('inventory-modal').style.display = 'flex';
+}
+
+function toggleInventory() {
+    // Эта функция больше не нужна, но оставим пустой для совместимости, если где-то есть вызов
+    openInventory();
+}
