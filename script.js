@@ -147,7 +147,7 @@ const DAILY_REWARDS = [
     { day: 4, type: 'money', val: 1000, icon: '💰' }, { day: 5, type: 'money', val: 2000, icon: '💰' }, { day: 6, type: 'booster', id: 'speed', val: 1, icon: '⏳' }, { day: 7, type: 'mixed', money: 5000, booster: 'luck', icon: '🎁' }
 ];
 
-// === ПРОМОКОДЫ (НОВОЕ) ===
+// === ПРОМОКОДЫ ===
 const PROMO_CODES = {
     'START2026': { type: 'money', val: 1000 },
     'SPEED': { type: 'booster', id: 'speed', val: 5 },
@@ -164,7 +164,7 @@ let ownedItems = { themes: ['default'], eggs: ['default'] };
 let activeTheme = 'default', activeEggSkin = 'default';
 let userStats = { hatched: 0, earned: 0, invites: 0 };
 let myBoosters = { luck: 0, speed: 0 };
-let claimedAchievements = [], claimedQuests = [], usedCodes = []; // usedCodes - новое
+let claimedAchievements = [], claimedQuests = [], usedCodes = [];
 let isVibrationOn = true, isSoundOn = false;
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
@@ -212,10 +212,23 @@ function openLevels() {
     modal.style.display = 'flex';
 }
 
-// === ПРОМОКОДЫ (НОВОЕ) ===
+// === ПРОФИЛЬ (НОВОЕ) ===
+function openProfile() {
+    playSound('click');
+    getEl('profile-rank').textContent = RANKS[Math.floor(userLevel / 5)] || "Бог Фокуса";
+    getEl('profile-level').textContent = `Уровень ${userLevel}`;
+    getEl('stat-hatched').textContent = userStats.hatched || 0;
+    getEl('stat-earned').textContent = userStats.earned || 0;
+    getEl('stat-invites').textContent = userStats.invites || 0;
+    getEl('stat-unique').textContent = new Set(collection).size;
+    
+    getEl('profile-modal').style.display = 'flex';
+}
+
+// === ПРОМОКОДЫ ===
 function openPromo() {
     playSound('click');
-    getEl('settings-modal').style.display = 'none'; // Закрыть настройки
+    getEl('settings-modal').style.display = 'none';
     getEl('promo-modal').style.display = 'flex';
 }
 
@@ -245,7 +258,7 @@ function activatePromo() {
         updateBalanceUI();
         playSound('win');
         closeModal('promo-modal');
-        input.value = ""; // Очистить
+        input.value = "";
     } else {
         showToast("Неверный код", "❌");
     }
@@ -288,7 +301,7 @@ function initGame() {
         let b = JSON.parse(localStorage.getItem('myBoosters')); if(b) myBoosters = b;
         claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
         claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
-        usedCodes = JSON.parse(localStorage.getItem('usedCodes')) || []; // Загружаем использованные коды
+        usedCodes = JSON.parse(localStorage.getItem('usedCodes')) || [];
         isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
     } catch(e) { console.error("Local Load Error", e); }
@@ -662,10 +675,10 @@ function saveData() {
     localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
     localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
     localStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
     localStorage.setItem('myCollection', JSON.stringify(collection));
     localStorage.setItem('userXP', userXP);
     localStorage.setItem('userLevel', userLevel);
-    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
@@ -679,8 +692,8 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
         Telegram.WebApp.CloudStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
-        if(localStorage.getItem('tutorialSeen')) Telegram.WebApp.CloudStorage.setItem('tutorialSeen', 'true');
         Telegram.WebApp.CloudStorage.setItem('usedCodes', JSON.stringify(usedCodes));
+        if(localStorage.getItem('tutorialSeen')) Telegram.WebApp.CloudStorage.setItem('tutorialSeen', 'true');
     }
 }
 function applyTheme() { const t=SHOP_DATA.themes.find(x=>x.id===activeTheme); document.body.className=t?t.cssClass:''; }
