@@ -2,10 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=17">
+    <link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
 
@@ -26,7 +26,7 @@
             <div class="profile-header-block">
                 <div class="profile-avatar-container" onclick="openAvatarSelector()">
                     <img id="profile-avatar" src="assets/ui/icon-profile.png" class="profile-avatar-img">
-                    <div class="edit-badge"><img src="assets/ui/icon-edit.png" style="width:12px;"></div>
+                    <div class="edit-badge"><img src="assets/ui/icon-edit.png"></div>
                 </div>
                 <h3 id="profile-rank">Новичок</h3>
                 <div id="profile-level" style="color: #8e8e93; font-size: 14px;">Lvl 1</div>
@@ -51,18 +51,9 @@
     <div id="tutorial-modal" class="modal" style="display: none; z-index: 3000;">
         <div class="modal-content" style="text-align: left;">
             <div class="modal-header" style="justify-content: center;"><h2>🎓 Как играть?</h2></div>
-            <div class="tutorial-step">
-                <img src="assets/ui/booster-speed.png" class="tut-icon-img">
-                <div><div class="tut-title">Таймер</div><div class="tut-desc">Выбери время. Чем дольше — тем круче пет.</div></div>
-            </div>
-            <div class="tutorial-step">
-                <img src="assets/ui/booster-afk.png" class="tut-icon-img">
-                <div><div class="tut-title">Фокус</div><div class="tut-desc">Не сворачивай игру (или купи Авто-Фокус).</div></div>
-            </div>
-            <div class="tutorial-step">
-                <img src="assets/ui/icon-trophy.png" class="tut-icon-img">
-                <div><div class="tut-title">Коллекция</div><div class="tut-desc">Собирай уникальных петов!</div></div>
-            </div>
+            <div class="tutorial-step"><img src="assets/ui/booster-speed.png" class="tut-icon-img"><div><div class="tut-title">Таймер</div><div class="tut-desc">Выбери время. Чем дольше — тем круче пет.</div></div></div>
+            <div class="tutorial-step"><img src="assets/ui/booster-afk.png" class="tut-icon-img"><div><div class="tut-title">Фокус</div><div class="tut-desc">Не сворачивай игру (или купи Авто-Фокус).</div></div></div>
+            <div class="tutorial-step"><img src="assets/ui/icon-trophy.png" class="tut-icon-img"><div><div class="tut-title">Коллекция</div><div class="tut-desc">Собирай уникальных петов!</div></div></div>
             <button class="btn" style="background: #007aff; margin-top: 20px;" onclick="closeTutorial()">Погнали! 🚀</button>
         </div>
     </div>
@@ -129,15 +120,13 @@
         <div class="top-bar">
             <div class="left-buttons">
                 <button id="header-profile-btn" class="icon-btn" onclick="openProfile()">
-                    <img src="assets/ui/icon-profile.png" style="width: 24px; height: 24px; border-radius: 50%;">
+                    <img src="assets/ui/icon-profile.png" class="header-icon-img">
                 </button>
-                
                 <button class="icon-btn" onclick="openShop()">
-                    <img src="assets/ui/icon-shop.png" style="width: 24px;">
+                    <img src="assets/ui/icon-shop.png" class="header-icon-img">
                 </button>
-                
                 <button class="icon-btn" onclick="openAch()">
-                    <img src="assets/ui/icon-trophy.png" style="width: 24px;">
+                    <img src="assets/ui/icon-trophy.png" class="header-icon-img">
                     <div id="ach-badge" class="red-dot" style="display: none;"></div>
                 </button>
             </div>
@@ -150,7 +139,7 @@
             <div class="stats-row">
                 <div class="level-info"><span id="rank-name">Новичок</span> <span id="level-number">Lvl 1</span> <span style="font-size: 10px;">ⓘ</span></div>
                 <div class="money-display" id="total-money">
-                    <img src="assets/ui/coin.png" style="width: 16px; vertical-align: middle;"> 0
+                    <img src="assets/ui/coin.png" style="width: 24px; vertical-align: middle;"> 0
                 </div>
             </div>
             <div id="unique-count" style="font-size: 12px; color: #8e8e93; margin-bottom: 5px; text-align: left;">Коллекция: 0 / 25</div>
@@ -160,7 +149,7 @@
         <div class="slider-container">
             <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
             
-            <div id="egg-wrapper" style="position: relative; display: inline-block;">
+            <div id="egg-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center; width: 100%;">
                 <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
                 <div id="crack-overlay" class="crack-overlay"></div>
             </div>
@@ -168,22 +157,23 @@
             <button id="next-btn" class="arrow-btn" onclick="nextMode()">❯</button>
         </div>
 
-        <div id="mode-info"><h2 id="mode-title">25 минут</h2><p id="mode-subtitle">Обычный шанс</p></div>
-        
-        <div id="boosters-panel" class="boosters-container"></div>
-        <div id="timer">25:00</div>
-        
-        <button id="main-btn" class="btn" onclick="toggleTimer()">Начать фокус</button>
-        <button id="share-btn" class="btn share-btn" style="display: none;" onclick="handleShare()">Похвастаться 📢</button>
-        
-        <div class="inventory-header" id="inventory-btn" onclick="toggleInventory()">
-            <span>Моя коллекция</span>
-            <span id="inventory-arrow">▼</span>
+        <div class="bottom-controls">
+            <div id="mode-info"><h2 id="mode-title">25 минут</h2><p id="mode-subtitle">Обычный шанс</p></div>
+            <div id="boosters-panel" class="boosters-container"></div>
+            <div id="timer">25:00</div>
+            
+            <button id="main-btn" class="btn" onclick="toggleTimer()">Начать фокус</button>
+            <button id="share-btn" class="btn share-btn" style="display: none;" onclick="handleShare()">Похвастаться 📢</button>
+            
+            <div class="inventory-header" id="inventory-btn" onclick="toggleInventory()">
+                <span>Моя коллекция</span>
+                <span id="inventory-arrow">▼</span>
+            </div>
         </div>
         
         <div id="collection" class="hidden"></div>
     </div>
 
-    <script src="script.js?v=17"></script>
+    <script src="script.js?v=18"></script>
 </body>
 </html>

@@ -78,7 +78,7 @@ function fireConfetti() {
 }
 
 // =============================================================
-// 4. КОНСТАНТЫ (ВСЕ ВЕРНУЛ)
+// 4. КОНСТАНТЫ
 // =============================================================
 const MODES = [
     { id: 'short', time: 10, xpReward: 250, egg: 'default', title: '25 минут', sub: 'Шанс Легендарки: 1%', style: '' },
@@ -103,7 +103,6 @@ const petDatabase = {
 const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, "god"];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
 
-// === ВОТ ЭТО БЫЛО ПОТЕРЯНО, ВЕРНУЛ ===
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
     { id: 'rich_kid', title: 'Богач', desc: 'Заработай $1000', goal: 1000, type: 'money', reward: 500 },
@@ -228,7 +227,7 @@ function openAvatarSelector() {
             selectedAvatar = pet;
             saveData();
             getEl('profile-avatar').src = getPetImg(pet);
-            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 24px; height: 24px; border-radius: 50%;">`;
+            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 32px; height: 32px; border-radius: 50%;">`;
             closeModal('avatar-modal');
             showToast("Аватар изменен!");
         };
@@ -283,7 +282,7 @@ function initGame() {
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
 
     updateLevelUI(); renderCollection(); applyTheme(); updateUI(); updateBalanceUI();
-    if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 24px; height: 24px; border-radius: 50%;">`; }
+    if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 32px; height: 32px; border-radius: 50%;">`; }
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     loadFromCloud();
@@ -325,7 +324,7 @@ function loadFromCloud() {
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
-            if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 24px; height: 24px; border-radius: 50%;">`; }
+            if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 32px; height: 32px; border-radius: 50%;">`; }
             updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
         });
     }
@@ -408,7 +407,7 @@ window.claimDaily = function() {
 // 9. ОСНОВНАЯ ЛОГИКА
 // =============================================================
 function updateBalanceUI() {
-    getEl('total-money').innerHTML = `<img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"> ${walletBalance}`;
+    getEl('total-money').innerHTML = `<img src="assets/ui/coin.png" style="width:24px;vertical-align:middle"> ${walletBalance}`;
     getEl('unique-count').textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
     checkAchievements();
     renderBoostersPanel();
