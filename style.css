@@ -4,9 +4,9 @@ body {
     color: white; 
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
     display: flex; flex-direction: column; align-items: center; 
-    min-height: 100vh; 
+    height: 100vh; 
     margin: 0; 
-    overflow-y: auto; 
+    overflow: hidden; 
     user-select: none; -webkit-tap-highlight-color: transparent; 
     transition: background 0.5s ease;
     background-size: cover; background-position: center; background-attachment: fixed;
@@ -15,13 +15,12 @@ body {
 /* === ГЛАВНЫЙ КОНТЕЙНЕР === */
 .container { 
     width: 100%; max-width: 450px; 
-    min-height: 100vh; 
+    height: 100%; 
     box-sizing: border-box;
     display: flex; 
     flex-direction: column; 
     justify-content: space-between; 
-    /* УВЕЛИЧЕН ОТСТУП СВЕРХУ, ЧТОБЫ СПУСТИТЬ ИГРУ НИЖЕ */
-    padding: 100px 15px 20px 15px; 
+    padding: 75px 15px 20px 15px; /* Отступ сверху под шапку */
     position: relative;
     text-align: center;
 }
@@ -33,21 +32,35 @@ body {
 }
 .left-buttons { display: flex; gap: 12px; }
 
-/* ИКОНКИ (БОЛЬШИЕ) */
+/* ИКОНКИ (55px) */
 .icon-btn { 
     background: rgba(255,255,255,0.15); 
     border: none; padding: 0; border-radius: 50%; 
     cursor: pointer; width: 55px; height: 55px; 
     display: flex; justify-content: center; align-items: center; 
     backdrop-filter: blur(5px); overflow: hidden; 
+    position: relative;
 }
 .header-icon-img { width: 100%; height: 100%; object-fit: cover; }
+.header-avatar { border-radius: 50%; } /* Чтобы аватарка тоже круглилась */
 .red-dot { position: absolute; top: 5px; right: 5px; width: 12px; height: 12px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; z-index: 2; }
 
-h1 { 
+/* === ЦЕНТРАЛЬНАЯ СЕКЦИЯ (ЭТО ВАЖНО ДЛЯ ЦЕНТРОВКИ) === */
+.center-section {
+    flex-grow: 1; /* Занимает всё доступное место */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Центрует содержимое по вертикали */
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px; /* Отступ от нижних кнопок */
+}
+
+/* ЗАГОЛОВОК */
+.main-title { 
     font-size: 26px; margin: 0 0 15px 0; 
     color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.5); opacity: 0.9; 
-    flex-shrink: 0;
+    width: 100%;
 }
 
 /* БЛОК УРОВНЯ */
@@ -55,32 +68,37 @@ h1 {
     background: rgba(255, 255, 255, 0.1); 
     padding: 10px 15px; 
     border-radius: 12px; 
-    margin-bottom: 10px; 
+    margin-bottom: 20px; 
     text-align: left; cursor: pointer; 
     backdrop-filter: blur(5px); 
     border: 1px solid rgba(255,255,255,0.1); 
-    flex-shrink: 0;
+    width: 100%; box-sizing: border-box;
 }
 .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
 .money-display { font-size: 22px; font-weight: bold; color: #ffd700; display: flex; align-items: center; gap: 8px; }
-/* МОНЕТКА ТЕПЕРЬ ОГРОМНАЯ (36px) */
-.coin-img { width: 36px; height: 36px; object-fit: contain; }
+/* МОНЕТКА ЖИРНАЯ */
+.coin-img { width: 36px !important; height: 36px !important; object-fit: contain; }
+.coin-icon-small { width: 20px; height: 20px; vertical-align: middle; margin-right: 5px; }
 .progress-bar-bg { background: rgba(0, 0, 0, 0.5); height: 8px; border-radius: 4px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #34c759, #32d74b); width: 0%; transition: width 0.5s ease-out; }
 
-/* === ЦЕНТРАЛЬНАЯ ЧАСТЬ (ЯЙЦО) === */
+/* СЛАЙДЕР С ЯЙЦОМ */
 .slider-container { 
     display: flex; justify-content: space-between; align-items: center; 
-    flex-grow: 1; 
-    margin: 10px 0;
+    width: 100%; margin: 10px 0;
 }
 .arrow-btn { background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 45px; cursor: pointer; padding: 10px; }
-#egg-wrapper { position: relative; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
+#egg-wrapper { 
+    position: relative; 
+    display: flex; justify-content: center; align-items: center; 
+    flex-grow: 1; height: 100%; 
+}
 
-/* ЯЙЦО */
+/* ЯЙЦО (ПРИНУДИТЕЛЬНО БОЛЬШОЕ) */
 .egg-img { 
-    width: auto; height: auto;
-    max-width: 80vw; max-height: 40vh; 
+    width: 320px !important; height: 320px !important;
+    max-width: 85vw; /* Если экран узкий, чуть уменьшится */
+    max-height: 45vh; /* Если экран низкий, чуть уменьшится */
     object-fit: contain; 
     transition: transform 0.1s; 
     position: relative; z-index: 1; 
@@ -98,7 +116,6 @@ h1 {
 .booster-slot { width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; border: 2px solid transparent; transition: all 0.2s; }
 .booster-slot img { width: 40px; height: 40px; object-fit: contain; }
 .booster-slot.active { background: rgba(52, 199, 89, 0.2); border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.5); transform: scale(1.1); }
-/* БУСТЕРЫ ЕСЛИ 0 -> СЕРЫЕ */
 .booster-slot.empty { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .booster-count { position: absolute; bottom: -5px; right: -5px; background: #007aff; color: white; font-size: 12px; font-weight: bold; padding: 2px 6px; border-radius: 10px; }
 
@@ -120,6 +137,7 @@ h1 {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; 
     background: rgba(44, 44, 46, 0.95); padding: 10px; border-radius: 15px; 
     border: 1px solid rgba(255,255,255,0.1); max-height: 300px; overflow-y: auto;
+    position: absolute; bottom: 80px; left: 0; right: 0; z-index: 100;
 }
 #collection.hidden { display: none; }
 
@@ -142,12 +160,7 @@ h1 {
 .buy-btn.owned { background: #007aff; }
 
 /* АЧИВКИ */
-.achievement-card { 
-    background: rgba(255,255,255,0.08); 
-    padding: 12px; border-radius: 12px; 
-    display: flex; align-items: center; gap: 12px; text-align: left; 
-    border: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;
-}
+.achievement-card { background: rgba(255,255,255,0.08); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; text-align: left; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px; }
 .achievement-card.unlocked { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
 .ach-icon img { width: 36px; height: 36px; object-fit: contain; }
 .ach-info { flex: 1; }
@@ -174,14 +187,13 @@ input:checked + .slider:before { transform: translateX(24px); }
 .stat-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; }
 
 /* ПИТОМЕЦ ПРИ ВЫПАДЕНИИ (КОМПАКТНЫЙ) */
-.pet-img-big { width: auto; height: auto; max-width: 160px; max-height: 160px; object-fit: contain; margin: 0 auto 15px auto; display: block; animation: breathe 3s infinite; }
+.pet-img-big { width: auto; height: auto; max-width: 180px; max-height: 180px; object-fit: contain; margin: 0 auto 15px auto; display: block; animation: breathe 3s infinite; }
 
 /* СЛОТЫ ПИТОМЦЕВ */
 .pet-slot { background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; cursor: pointer; position: relative; height: 55px; display: flex; justify-content: center; align-items: center; }
 .pet-slot.common { border: 2px solid #8e8e93; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
-/* НЕДОСТУПНЫЕ ПЕТЫ -> СЕРЫЕ */
 .pet-slot.locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); }
 .pet-slot.locked img { filter: grayscale(100%) opacity(0.5); }
 .pet-img-slot { width: 100%; height: 100%; object-fit: contain; }
@@ -202,6 +214,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 .daily-item { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; border: 2px solid transparent; }
 .daily-day { font-size: 10px; margin-bottom: 5px; }
 .daily-val { font-size: 10px; font-weight: bold; color: #85bb65; }
+.daily-icon-img { width: 35px; height: 35px; object-fit: contain; margin-bottom: 5px; }
 .daily-item.active { opacity: 1; border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.3); transform: scale(1.05); background: rgba(52, 199, 89, 0.1); }
 .daily-item.claimed { opacity: 1; background: #34c759; color: white; }
 .daily-item.claimed .daily-val { color: white; }

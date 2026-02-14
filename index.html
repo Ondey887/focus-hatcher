@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=24">
+    <link rel="stylesheet" href="style.css?v=25-fix">
 </head>
 <body>
 
@@ -129,7 +129,7 @@
         <div class="top-bar">
             <div class="left-buttons">
                 <button id="header-profile-btn" class="icon-btn" onclick="openProfile()">
-                    <img src="assets/ui/icon-profile.png" class="header-icon-img">
+                    <img src="assets/ui/icon-profile.png" class="header-icon-img header-avatar">
                 </button>
                 <button class="icon-btn" onclick="openShop()">
                     <img src="assets/ui/icon-shop.png" class="header-icon-img">
@@ -144,28 +144,30 @@
             </button>
         </div>
 
-        <h1>Focus Hatcher</h1>
+        <div class="center-section">
+            <h1 class="main-title">Focus Hatcher</h1>
 
-        <div class="level-container" onclick="openLevels()">
-            <div class="stats-row">
-                <div class="level-info"><span id="rank-name">Новичок</span> <span id="level-number">Lvl 1</span> <span style="font-size: 10px;">ⓘ</span></div>
-                <div class="money-display" id="total-money">
-                    <img src="assets/ui/coin.png" class="coin-img"> 0
+            <div class="level-container" onclick="openLevels()">
+                <div class="stats-row">
+                    <div class="level-info"><span id="rank-name">Новичок</span> <span id="level-number">Lvl 1</span> <span style="font-size: 10px;">ⓘ</span></div>
+                    <div class="money-display" id="total-money">
+                        <img src="assets/ui/coin.png" class="coin-img"> 0
+                    </div>
                 </div>
-            </div>
-            <div id="unique-count" style="font-size: 12px; color: #8e8e93; margin-bottom: 5px; text-align: left;">Коллекция: 0 / 25</div>
-            <div class="progress-bar-bg"><div id="xp-bar" class="progress-bar-fill" style="width: 0%;"></div></div>
-        </div>
-        
-        <div class="slider-container">
-            <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
-            
-            <div id="egg-wrapper">
-                <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
-                <div id="crack-overlay" class="crack-overlay"></div>
+                <div id="unique-count" style="font-size: 12px; color: #8e8e93; margin-bottom: 5px; text-align: left;">Коллекция: 0 / 25</div>
+                <div class="progress-bar-bg"><div id="xp-bar" class="progress-bar-fill" style="width: 0%;"></div></div>
             </div>
             
-            <button id="next-btn" class="arrow-btn" onclick="nextMode()">❯</button>
+            <div class="slider-container">
+                <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
+                
+                <div id="egg-wrapper">
+                    <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
+                    <div id="crack-overlay" class="crack-overlay"></div>
+                </div>
+                
+                <button id="next-btn" class="arrow-btn" onclick="nextMode()">❯</button>
+            </div>
         </div>
 
         <div class="bottom-controls">
@@ -185,6 +187,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=24"></script>
+    <script src="script.js?v=25-fix"></script>
 </body>
 </html>
