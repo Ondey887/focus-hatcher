@@ -55,16 +55,6 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 .crack-stage-1 { background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.7) 49%, rgba(40,40,40,0.7) 51%, transparent 52%); filter: drop-shadow(0 0 1px white); opacity: 0.8; }
 .crack-stage-2 { background: linear-gradient(135deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%), linear-gradient(45deg, transparent 48%, rgba(40,40,40,0.8) 49%, rgba(40,40,40,0.8) 51%, transparent 52%); filter: drop-shadow(0 0 1px white); opacity: 0.9; }
 
-/* СПИСОК УРОВНЕЙ */
-.levels-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; text-align: left; }
-.level-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; }
-.level-item.active { border-color: #007aff; background: rgba(0, 122, 255, 0.1); }
-.level-item.locked { opacity: 0.5; }
-.rank-icon { font-size: 20px; margin-right: 10px; }
-.rank-details { flex: 1; }
-.rank-title { font-weight: bold; font-size: 14px; }
-.rank-desc { font-size: 11px; color: #8e8e93; }
-
 /* УВЕДОМЛЕНИЯ */
 #toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
 .toast { background: rgba(44, 44, 46, 0.95); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; animation: slideIn 0.3s ease-out forwards; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
@@ -72,12 +62,14 @@ h1 { font-size: 24px; margin-bottom: 15px; color: #ffd700; margin-top: 40px; }
 @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
 .toast.fade-out { animation: fadeOut 0.3s ease-in forwards; }
 
+/* МАГАЗИН */
 .boosters-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; min-height: 50px; }
 .booster-slot { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; position: relative; border: 2px solid transparent; transition: all 0.2s; }
 .booster-slot.active { background: rgba(52, 199, 89, 0.2); border-color: #34c759; box-shadow: 0 0 10px rgba(52, 199, 89, 0.5); transform: scale(1.1); }
 .booster-slot.empty { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
 .booster-count { position: absolute; bottom: -5px; right: -5px; background: #007aff; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
+/* ДРУГОЕ */
 .inventory-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 20px; cursor: pointer; font-weight: bold; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
 .inventory-header:active { background: rgba(255,255,255,0.1); }
 #collection { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 15px; overflow: hidden; }
@@ -160,10 +152,28 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 .promo-input { width: 90%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 16px; text-transform: uppercase; text-align: center; margin-top: 10px; outline: none; }
 .promo-input:focus { border-color: #007aff; }
 
-/* ПРОФИЛЬ (НОВОЕ) */
+/* ПРОФИЛЬ */
 .profile-header-block { margin-bottom: 20px; }
-.profile-avatar { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%; margin: 0 auto 10px; display: flex; justify-content: center; align-items: center; font-size: 40px; border: 3px solid #007aff; }
+.profile-avatar-container { position: relative; width: 80px; height: 80px; margin: 0 auto 10px; cursor: pointer; }
+.profile-avatar { width: 100%; height: 100%; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; border: 3px solid #007aff; overflow: hidden; }
+.edit-badge { position: absolute; bottom: 0; right: 0; background: #007aff; width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; border: 2px solid #2c2c2e; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; }
 .stat-val { font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 5px; }
 .stat-label { font-size: 12px; color: #8e8e93; text-transform: uppercase; }
+
+/* СПИСОК УРОВНЕЙ */
+.levels-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; text-align: left; }
+.level-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; }
+.level-item.active { border-color: #007aff; background: rgba(0, 122, 255, 0.1); }
+.level-item.locked { opacity: 0.5; }
+.rank-icon { font-size: 20px; margin-right: 10px; }
+.rank-details { flex: 1; }
+.rank-title { font-weight: bold; font-size: 14px; }
+.rank-desc { font-size: 11px; color: #8e8e93; }
+
+/* ВЫБОР АВАТАРА (НОВОЕ) */
+.avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.avatar-item { background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 30px; padding: 10px; cursor: pointer; border: 2px solid transparent; }
+.avatar-item:hover { background: rgba(255,255,255,0.2); }
+.avatar-item.selected { border-color: #34c759; background: rgba(52, 199, 89, 0.2); }

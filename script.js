@@ -55,7 +55,7 @@ function playNote(freq, time, duration) {
 }
 
 // =============================================================
-// 3. ВИЗУАЛЬНЫЕ ЭФФЕКТЫ (КОНФЕТТИ)
+// 3. КОНФЕТТИ
 // =============================================================
 function fireConfetti() {
     const canvas = document.getElementById('confetti-canvas');
@@ -137,23 +137,22 @@ const SHOP_DATA = {
         { id: 'glitch', name: 'Глюк', price: 7777, skinClass: 'skin-glitch' },
         { id: 'gold', name: 'Золото', price: 15000, skinClass: 'skin-gold' }
     ],
+    // ДОБАВЛЕН БУСТЕР "AFK" (Авто-Фокус)
     boosters: [
         { id: 'luck', name: 'Зелье Удачи', price: 200, icon: '🍀', desc: 'Шанс x5' },
-        { id: 'speed', name: 'Ускоритель', price: 500, icon: '⏳', desc: 'Время / 2' }
+        { id: 'speed', name: 'Ускоритель', price: 500, icon: '⏳', desc: 'Время / 2' },
+        { id: 'afk', name: 'Авто-Фокус', price: 2000, icon: '🤖', desc: 'Фокус в фоне' }
     ]
 };
 const DAILY_REWARDS = [
     { day: 1, type: 'money', val: 100, icon: '💰' }, { day: 2, type: 'money', val: 250, icon: '💰' }, { day: 3, type: 'money', val: 500, icon: '💰' },
     { day: 4, type: 'money', val: 1000, icon: '💰' }, { day: 5, type: 'money', val: 2000, icon: '💰' }, { day: 6, type: 'booster', id: 'speed', val: 1, icon: '⏳' }, { day: 7, type: 'mixed', money: 5000, booster: 'luck', icon: '🎁' }
 ];
-
-// === ПРОМОКОДЫ ===
 const PROMO_CODES = {
     'START2026': { type: 'money', val: 1000 },
     'SPEED': { type: 'booster', id: 'speed', val: 5 },
     'SECRET': { type: 'money', val: 5000 }
 };
-
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 // =============================================================
@@ -161,14 +160,14 @@ const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 // =============================================================
 let collection = [], userXP = 0, userLevel = 1, walletBalance = 0;
 let ownedItems = { themes: ['default'], eggs: ['default'] };
-let activeTheme = 'default', activeEggSkin = 'default';
+let activeTheme = 'default', activeEggSkin = 'default', selectedAvatar = '👤'; // АВАТАР
 let userStats = { hatched: 0, earned: 0, invites: 0 };
-let myBoosters = { luck: 0, speed: 0 };
+let myBoosters = { luck: 0, speed: 0, afk: 0 }; // AFK БУСТЕР
 let claimedAchievements = [], claimedQuests = [], usedCodes = [];
 let isVibrationOn = true, isSoundOn = false;
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
-let activeBoosters = { luck: false, speed: false };
+let activeBoosters = { luck: false, speed: false, afk: false }; // AFK АКТИВНОСТЬ
 let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 
 // =============================================================
@@ -195,24 +194,18 @@ function hardReset() { if(confirm("Сбросить все?")) { localStorage.cl
 
 function openLevels() {
     playSound('click');
-    const modal = getEl('levels-modal');
-    const list = getEl('levels-list');
-    list.innerHTML = '';
-    
+    const modal = getEl('levels-modal'); const list = getEl('levels-list'); list.innerHTML = '';
     for (let lvl = 1; lvl <= 50; lvl++) {
         if (!LEVEL_REWARDS[lvl]) continue;
-        const info = LEVEL_REWARDS[lvl];
-        const isReached = userLevel >= lvl;
-        const div = document.createElement('div');
-        div.className = `level-item ${isReached ? 'active' : 'locked'}`;
-        const status = isReached ? '✅' : '🔒';
-        div.innerHTML = `<div class="rank-icon">${status}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${info.reward || "Нет"}</div></div>`;
+        const info = LEVEL_REWARDS[lvl]; const isReached = userLevel >= lvl;
+        const div = document.createElement('div'); div.className = `level-item ${isReached ? 'active' : 'locked'}`;
+        div.innerHTML = `<div class="rank-icon">${isReached ? '✅' : '🔒'}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${info.reward || "Нет"}</div></div>`;
         list.appendChild(div);
     }
     modal.style.display = 'flex';
 }
 
-// === ПРОФИЛЬ (НОВОЕ) ===
+// === ПРОФИЛЬ И АВАТАРЫ (НОВОЕ) ===
 function openProfile() {
     playSound('click');
     getEl('profile-rank').textContent = RANKS[Math.floor(userLevel / 5)] || "Бог Фокуса";
@@ -221,74 +214,65 @@ function openProfile() {
     getEl('stat-earned').textContent = userStats.earned || 0;
     getEl('stat-invites').textContent = userStats.invites || 0;
     getEl('stat-unique').textContent = new Set(collection).size;
+    getEl('profile-avatar').textContent = selectedAvatar;
     
     getEl('profile-modal').style.display = 'flex';
 }
 
-// === ПРОМОКОДЫ ===
-function openPromo() {
+function openAvatarSelector() {
     playSound('click');
-    getEl('settings-modal').style.display = 'none';
-    getEl('promo-modal').style.display = 'flex';
+    const modal = getEl('avatar-modal');
+    const list = getEl('avatar-list');
+    list.innerHTML = '';
+    
+    // Получаем уникальных петов
+    const uniquePets = [...new Set(collection)];
+    if (uniquePets.length === 0) {
+        list.innerHTML = "<p style='color:#888; grid-column:span 4;'>Сначала выбей питомца!</p>";
+    }
+    
+    uniquePets.forEach(pet => {
+        const div = document.createElement('div');
+        div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
+        div.textContent = pet;
+        div.onclick = () => {
+            selectedAvatar = pet;
+            saveData();
+            getEl('profile-avatar').textContent = pet;
+            closeModal('avatar-modal');
+            showToast("Аватар изменен!");
+        };
+        list.appendChild(div);
+    });
+    
+    modal.style.display = 'flex';
 }
 
+// === ПРОМОКОДЫ ===
+function openPromo() { playSound('click'); getEl('settings-modal').style.display = 'none'; getEl('promo-modal').style.display = 'flex'; }
 function activatePromo() {
-    const input = getEl('promo-input');
-    const code = input.value.toUpperCase().trim();
-    
-    if (usedCodes.includes(code)) {
-        showToast("Уже активирован!", "🚫");
-        return;
-    }
-    
+    const input = getEl('promo-input'); const code = input.value.toUpperCase().trim();
+    if (usedCodes.includes(code)) { showToast("Уже активирован!", "🚫"); return; }
     if (PROMO_CODES[code]) {
         const reward = PROMO_CODES[code];
-        
-        if (reward.type === 'money') {
-            walletBalance += reward.val;
-            showToast(`+${reward.val} монет!`, "💰");
-        } else if (reward.type === 'booster') {
-            if (!myBoosters[reward.id]) myBoosters[reward.id] = 0;
-            myBoosters[reward.id] += reward.val;
-            showToast(`+${reward.val} бустеров!`, "⚡");
-        }
-        
-        usedCodes.push(code);
-        saveData();
-        updateBalanceUI();
-        playSound('win');
-        closeModal('promo-modal');
-        input.value = "";
-    } else {
-        showToast("Неверный код", "❌");
-    }
+        if (reward.type === 'money') { walletBalance += reward.val; showToast(`+${reward.val} монет!`, "💰"); } 
+        else if (reward.type === 'booster') { if (!myBoosters[reward.id]) myBoosters[reward.id] = 0; myBoosters[reward.id] += reward.val; showToast(`+${reward.val} бустеров!`, "⚡"); }
+        usedCodes.push(code); saveData(); updateBalanceUI(); playSound('win'); closeModal('promo-modal'); input.value = "";
+    } else { showToast("Неверный код", "❌"); }
 }
 
 // === ОБУЧЕНИЕ ===
-function checkTutorial() {
-    if (!localStorage.getItem('tutorialSeen')) {
-        getEl('tutorial-modal').style.display = 'flex';
-    }
-}
-
-window.closeTutorial = function() {
-    playSound('click');
-    localStorage.setItem('tutorialSeen', 'true');
-    getEl('tutorial-modal').style.display = 'none';
-    checkDailyReward();
-}
+function checkTutorial() { if (!localStorage.getItem('tutorialSeen')) getEl('tutorial-modal').style.display = 'flex'; }
+window.closeTutorial = function() { playSound('click'); localStorage.setItem('tutorialSeen', 'true'); getEl('tutorial-modal').style.display = 'none'; checkDailyReward(); }
 
 // =============================================================
 // 7. ИНИЦИАЛИЗАЦИЯ
 // =============================================================
 function initGame() {
     if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.expand();
-        window.Telegram.WebApp.enableClosingConfirmation();
-        window.Telegram.WebApp.setHeaderColor('#1c1c1e');
-        window.Telegram.WebApp.setBackgroundColor('#1c1c1e');
+        window.Telegram.WebApp.expand(); window.Telegram.WebApp.enableClosingConfirmation();
+        window.Telegram.WebApp.setHeaderColor('#1c1c1e'); window.Telegram.WebApp.setBackgroundColor('#1c1c1e');
     }
-
     try {
         collection = JSON.parse(localStorage.getItem('myCollection')) || [];
         userXP = parseInt(localStorage.getItem('userXP')) || 0;
@@ -297,6 +281,7 @@ function initGame() {
         ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
         activeTheme = localStorage.getItem('activeTheme') || 'default';
         activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
+        selectedAvatar = localStorage.getItem('selectedAvatar') || '👤'; // АВАТАР
         let s = JSON.parse(localStorage.getItem('userStats')); if(s) userStats = s;
         let b = JSON.parse(localStorage.getItem('myBoosters')); if(b) myBoosters = b;
         claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
@@ -306,40 +291,40 @@ function initGame() {
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
     } catch(e) { console.error("Local Load Error", e); }
 
+    // ПРОВЕРКА AFK (ФОНОВОГО ВЫЛУПЛЕНИЯ)
+    checkBackgroundHatch();
+
     checkTutorial();
-    if (localStorage.getItem('tutorialSeen')) {
-        checkDailyReward();
-    }
+    if (localStorage.getItem('tutorialSeen')) checkDailyReward();
 
-    updateLevelUI();
-    renderCollection();
-    applyTheme();
-    updateUI();
-    updateBalanceUI();
-    
-    if(getEl('vibration-toggle')) {
-        getEl('vibration-toggle').checked = isVibrationOn;
-        getEl('vibration-toggle').onchange = (e) => { 
-            isVibrationOn = e.target.checked; 
-            localStorage.setItem('isVibrationOn', isVibrationOn); 
-            playSound('click');
-        };
-    }
-    if(getEl('sound-toggle')) {
-        getEl('sound-toggle').checked = isSoundOn;
-        getEl('sound-toggle').onchange = (e) => { 
-            isSoundOn = e.target.checked; 
-            localStorage.setItem('isSoundOn', isSoundOn); 
-            if(isSoundOn) playSound('click');
-        };
-    }
-
+    updateLevelUI(); renderCollection(); applyTheme(); updateUI(); updateBalanceUI();
+    if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
+    if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     loadFromCloud();
+}
+
+function checkBackgroundHatch() {
+    const hatchEndTime = parseInt(localStorage.getItem('hatchEndTime'));
+    if (hatchEndTime) {
+        const now = Date.now();
+        if (now >= hatchEndTime) {
+            // Время вышло пока нас не было
+            finishTimer(); // Сразу выдаем награду
+            localStorage.removeItem('hatchEndTime');
+            showToast("Вылупилось в фоне!", "🤖");
+        } else {
+            // Время еще есть, продолжаем
+            const remaining = Math.round((hatchEndTime - now) / 1000);
+            timeLeft = remaining;
+            activeBoosters.afk = true; // Восстанавливаем статус
+            startTimer(true); // Запускаем без сброса
+        }
+    }
 }
 
 function loadFromCloud() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'tutorialSeen', 'usedCodes'];
+        const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'tutorialSeen', 'usedCodes', 'selectedAvatar'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
@@ -349,27 +334,25 @@ function loadFromCloud() {
             if (values.ownedItems) ownedItems = JSON.parse(values.ownedItems);
             if (values.activeTheme) activeTheme = values.activeTheme;
             if (values.activeEggSkin) activeEggSkin = values.activeEggSkin;
+            if (values.selectedAvatar) selectedAvatar = values.selectedAvatar;
             if (values.userStats) userStats = JSON.parse(values.userStats);
             if (values.myBoosters) myBoosters = JSON.parse(values.myBoosters);
             if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
+            if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
             
-            if (values.tutorialSeen) {
-                localStorage.setItem('tutorialSeen', 'true');
-            }
-
             updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
         });
     }
 }
 
-// === СОХРАНЕНИЕ ===
 function saveData() {
     localStorage.setItem('walletBalance', walletBalance);
     localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
     localStorage.setItem('activeTheme', activeTheme);
     localStorage.setItem('activeEggSkin', activeEggSkin);
+    localStorage.setItem('selectedAvatar', selectedAvatar);
     localStorage.setItem('userStats', JSON.stringify(userStats));
     localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
     localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
@@ -387,6 +370,7 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('ownedItems', JSON.stringify(ownedItems));
         Telegram.WebApp.CloudStorage.setItem('activeTheme', activeTheme);
         Telegram.WebApp.CloudStorage.setItem('activeEggSkin', activeEggSkin);
+        Telegram.WebApp.CloudStorage.setItem('selectedAvatar', selectedAvatar);
         Telegram.WebApp.CloudStorage.setItem('userStats', JSON.stringify(userStats));
         Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
@@ -427,18 +411,13 @@ window.claimDaily = function() {
     const l = localStorage.getItem('lastLoginDate');
     const y = new Date(); y.setDate(y.getDate() - 1);
     if (l && l !== y.toDateString()) s = 0;
-    
     const r = DAILY_REWARDS[s];
     if (r.type === 'money') walletBalance += r.val;
     else if (r.type === 'booster') { if (!myBoosters[r.id]) myBoosters[r.id] = 0; myBoosters[r.id]++; } 
     else if (r.type === 'mixed') { walletBalance += r.money; if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; myBoosters[r.booster]++; }
-    
     s++; if (s >= 7) s = 0;
-    localStorage.setItem('dailyStreak', s);
-    localStorage.setItem('lastLoginDate', t);
-    saveData(); updateBalanceUI(); showToast("Награда получена!", "📅");
-    getEl('daily-modal').style.display = 'none';
-    playSound('money');
+    localStorage.setItem('dailyStreak', s); localStorage.setItem('lastLoginDate', t);
+    saveData(); updateBalanceUI(); showToast("Награда получена!", "📅"); getEl('daily-modal').style.display = 'none'; playSound('money');
 }
 
 // =============================================================
@@ -461,6 +440,7 @@ function renderBoostersPanel() {
     const p = getEl('boosters-panel'); p.innerHTML = '';
     p.appendChild(createBoosterBtn('luck', '🍀', myBoosters.luck||0, activeBoosters.luck));
     p.appendChild(createBoosterBtn('speed', '⏳', myBoosters.speed||0, activeBoosters.speed));
+    p.appendChild(createBoosterBtn('afk', '🤖', myBoosters.afk||0, activeBoosters.afk)); // ДОБАВЛЕНО
 }
 function createBoosterBtn(type, icon, count, isActive) {
     const d = document.createElement('div');
@@ -486,23 +466,40 @@ function updateUI() {
     getEl('mode-subtitle').textContent = m.sub;
 }
 function toggleTimer() { playSound('click'); if(isRunning) stopTimer(); else startTimer(); }
-function startTimer() {
+
+function startTimer(isResuming = false) {
     const m = MODES[currentModeIndex];
-    timeLeft = activeBoosters.speed ? Math.floor(m.time/2) : m.time;
+    
+    if (!isResuming) {
+        timeLeft = activeBoosters.speed ? Math.floor(m.time/2) : m.time;
+        // ЕСЛИ АКТИВЕН AFK БУСТЕР -> СОХРАНЯЕМ ВРЕМЯ ОКОНЧАНИЯ
+        if (activeBoosters.afk) {
+            localStorage.setItem('hatchEndTime', Date.now() + timeLeft * 1000);
+            myBoosters.afk--; // Списываем бустер
+            saveData();
+        }
+    }
+    
     isRunning = true;
     getEl('timer').textContent = formatTime(timeLeft);
     getEl('main-btn').textContent = "Сдаться"; getEl('main-btn').className = "btn stop";
     getEl('share-btn').style.display = 'none'; getEl('prev-btn').style.visibility = 'hidden'; getEl('next-btn').style.visibility = 'hidden';
     
-    getEl('egg-display').textContent = m.egg; 
-    getEl('crack-overlay').className = 'crack-overlay'; // Сброс
-    applyEggSkin(); getEl('egg-display').classList.add('shaking'); renderBoostersPanel();
+    if (!isResuming) {
+        getEl('egg-display').textContent = m.egg; 
+        getEl('crack-overlay').className = 'crack-overlay'; 
+        applyEggSkin(); 
+    }
     
-    const totalTime = timeLeft;
+    getEl('egg-display').classList.add('shaking'); 
+    renderBoostersPanel();
+    
+    // Для трещин используем полное время, если это не возобновление
+    const totalTime = isResuming ? timeLeft : (activeBoosters.speed ? Math.floor(m.time/2) : m.time); 
+
     timerInterval = setInterval(() => {
         timeLeft--; getEl('timer').textContent = formatTime(timeLeft);
         
-        // Трещины
         const progress = 1 - (timeLeft / totalTime);
         const overlay = getEl('crack-overlay');
         if (progress > 0.3 && progress < 0.6) overlay.className = 'crack-overlay crack-stage-1';
@@ -511,8 +508,12 @@ function startTimer() {
         if(timeLeft <= 0) finishTimer();
     }, 1000);
 }
+
 function stopTimer() {
     clearInterval(timerInterval); isRunning = false;
+    localStorage.removeItem('hatchEndTime'); // Удаляем AFK таймер при отмене
+    activeBoosters.afk = false; // Сбрасываем активность
+    
     getEl('main-btn').textContent = "Начать фокус"; getEl('main-btn').className = "btn";
     getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
     getEl('egg-display').classList.remove('shaking'); 
@@ -520,8 +521,12 @@ function stopTimer() {
     applyEggSkin(); updateUI(); renderBoostersPanel();
     showToast("Фокус прерван", "⚠️");
 }
+
 function finishTimer() {
     clearInterval(timerInterval); isRunning = false;
+    localStorage.removeItem('hatchEndTime');
+    activeBoosters.afk = false;
+
     getEl('main-btn').textContent = "Еще раз"; getEl('main-btn').className = "btn";
     getEl('share-btn').style.display = 'block'; getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
     getEl('egg-display').className = 'egg';
@@ -531,29 +536,19 @@ function finishTimer() {
     userXP+=m.xpReward; 
     
     if(userXP >= userLevel * 200) { 
-        userXP -= userLevel * 200; 
-        userLevel++; 
-        showToast(`Lvl UP: ${userLevel}`, "🎉"); 
-        playSound('win'); 
-        
-        if (userLevel === 10) {
-            collection.push("🐲 God");
-            showToast("Получен: 🐲 God", "🎁");
-        }
+        userXP -= userLevel * 200; userLevel++; 
+        showToast(`Lvl UP: ${userLevel}`, "🎉"); playSound('win'); 
+        if (userLevel === 10) { collection.push("🐲 God"); showToast("Получен: 🐲 God", "🎁"); }
     }
     
-    localStorage.setItem('userXP', userXP);
-    localStorage.setItem('userLevel', userLevel);
-    updateLevelUI();
-
+    localStorage.setItem('userXP', userXP); localStorage.setItem('userLevel', userLevel); updateLevelUI();
     userStats.hatched++;
     
     let leg=m.id==='short'?1:5; let rare=m.id==='short'?15:30;
     if(activeBoosters.luck) { leg*=5; myBoosters.luck--; activeBoosters.luck=false; }
     if(activeBoosters.speed) { myBoosters.speed--; activeBoosters.speed=false; }
     
-    saveData(); 
-    renderBoostersPanel();
+    saveData(); renderBoostersPanel();
     
     const rnd = Math.random()*100; let pool;
     if(rnd<leg) { pool=petDatabase.legendary; playSound('legendary'); }
@@ -569,14 +564,10 @@ function finishTimer() {
     fireConfetti();
     showToast(`Получено: ${dropped}`, "🐣");
     renderCollection(); updateBalanceUI();
-    const col=getEl('collection'); if(col.classList.contains('hidden')) { col.classList.remove('hidden'); getEl('inventory-arrow').textContent="▲"; }
     if(isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(200);
 }
-function toggleInventory() { 
-    playSound('click');
-    const c=getEl('collection'); const a=getEl('inventory-arrow');
-    if(c.classList.contains('hidden')) { c.classList.remove('hidden'); a.textContent="▲"; } else { c.classList.add('hidden'); a.textContent="▼"; }
-}
+
+function toggleInventory() { playSound('click'); const c=getEl('collection'); const a=getEl('inventory-arrow'); if(c.classList.contains('hidden')) { c.classList.remove('hidden'); a.textContent="▲"; } else { c.classList.add('hidden'); a.textContent="▼"; } }
 function renderCollection() {
     const c=getEl('collection'); c.innerHTML='';
     ALL_PETS_FLAT.forEach(pet => {
@@ -594,9 +585,7 @@ function renderCollection() {
 function openPetModal(pet, owned) {
     selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r]; playSound('click');
     getEl('pet-modal').style.display='flex';
-    getEl('pet-detail-view').innerHTML = owned ? 
-        `<div class="pet-big-icon">${pet}</div><h3 class="pet-name">Питомец</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: $${p}</p><button class="btn sell-action" onclick="sellPet()">Продать ($${p})</button>` :
-        `<div class="pet-big-icon" style="filter:brightness(0) opacity(0.3)">${pet}</div><h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
+    getEl('pet-detail-view').innerHTML = owned ? `<div class="pet-big-icon">${pet}</div><h3 class="pet-name">Питомец</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: $${p}</p><button class="btn sell-action" onclick="sellPet()">Продать ($${p})</button>` : `<div class="pet-big-icon" style="filter:brightness(0) opacity(0.3)">${pet}</div><h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
 }
 function sellPet() {
     if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
@@ -671,6 +660,7 @@ function saveData() {
     localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
     localStorage.setItem('activeTheme', activeTheme);
     localStorage.setItem('activeEggSkin', activeEggSkin);
+    localStorage.setItem('selectedAvatar', selectedAvatar);
     localStorage.setItem('userStats', JSON.stringify(userStats));
     localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
     localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
@@ -688,6 +678,7 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('ownedItems', JSON.stringify(ownedItems));
         Telegram.WebApp.CloudStorage.setItem('activeTheme', activeTheme);
         Telegram.WebApp.CloudStorage.setItem('activeEggSkin', activeEggSkin);
+        Telegram.WebApp.CloudStorage.setItem('selectedAvatar', selectedAvatar);
         Telegram.WebApp.CloudStorage.setItem('userStats', JSON.stringify(userStats));
         Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
