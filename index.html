@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=20">
+    <link rel="stylesheet" href="style.css?v=21">
 </head>
 <body>
 
@@ -122,11 +122,9 @@
                 <button id="header-profile-btn" class="icon-btn" onclick="openProfile()">
                     <img src="assets/ui/icon-profile.png" class="header-icon-img">
                 </button>
-                
                 <button class="icon-btn" onclick="openShop()">
                     <img src="assets/ui/icon-shop.png" class="header-icon-img">
                 </button>
-                
                 <button class="icon-btn" onclick="openAch()">
                     <img src="assets/ui/icon-trophy.png" class="header-icon-img">
                     <div id="ach-badge" class="red-dot" style="display: none;"></div>
@@ -151,7 +149,7 @@
         <div class="slider-container">
             <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
             
-            <div id="egg-wrapper" style="position: relative; display: inline-block;">
+            <div id="egg-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center; width: 100%;">
                 <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
                 <div id="crack-overlay" class="crack-overlay"></div>
             </div>
@@ -176,6 +174,6 @@
         <div id="collection" class="hidden"></div>
     </div>
 
-    <script src="script.js?v=20"></script>
+    <script src="script.js?v=21"></script>
 </body>
 </html>

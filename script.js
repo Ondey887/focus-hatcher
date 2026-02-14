@@ -227,7 +227,7 @@ function openAvatarSelector() {
             selectedAvatar = pet;
             saveData();
             getEl('profile-avatar').src = getPetImg(pet);
-            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 36px; height: 36px; border-radius: 50%;">`;
+            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 100%; height: 100%; border-radius: 50%;">`;
             closeModal('avatar-modal');
             showToast("Аватар изменен!");
         };
@@ -282,7 +282,7 @@ function initGame() {
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
 
     updateLevelUI(); renderCollection(); applyTheme(); updateUI(); updateBalanceUI();
-    if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 36px; height: 36px; border-radius: 50%;">`; }
+    if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     loadFromCloud();
@@ -324,7 +324,7 @@ function loadFromCloud() {
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
-            if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 36px; height: 36px; border-radius: 50%;">`; }
+            if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
             updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
         });
     }
