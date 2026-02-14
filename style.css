@@ -150,16 +150,24 @@ body.theme-neon { background: linear-gradient(135deg, #200122, #6f0000); }
 .daily-item.claimed { opacity: 1; background: #34c759; color: white; }
 .daily-item.claimed .daily-val { color: white; }
 
-/* === ОБУЧЕНИЕ (НОВОЕ) === */
-.tutorial-step {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    background: rgba(255,255,255,0.05);
-    padding: 15px;
-    border-radius: 15px;
-}
+/* ОБУЧЕНИЕ */
+.tutorial-step { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; }
 .tut-icon { font-size: 30px; min-width: 40px; text-align: center; }
 .tut-title { font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #ffd700; }
 .tut-desc { font-size: 13px; color: #d1d1d6; line-height: 1.4; }
+
+/* ПРОМОКОД (НОВОЕ) */
+.promo-input {
+    width: 90%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.3);
+    color: white;
+    font-size: 16px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 10px;
+    outline: none;
+}
+.promo-input:focus { border-color: #007aff; }

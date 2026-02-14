@@ -20,10 +20,8 @@ function playSound(type) {
 
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
-    
     osc.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-
     const now = audioCtx.currentTime;
 
     if (type === 'click') {
@@ -113,6 +111,7 @@ const petDatabase = {
 };
 const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, "🐲 God"];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
+
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
     { id: 'rich_kid', title: 'Богач', desc: 'Заработай $1000', goal: 1000, type: 'money', reward: 500 },
@@ -147,6 +146,14 @@ const DAILY_REWARDS = [
     { day: 1, type: 'money', val: 100, icon: '💰' }, { day: 2, type: 'money', val: 250, icon: '💰' }, { day: 3, type: 'money', val: 500, icon: '💰' },
     { day: 4, type: 'money', val: 1000, icon: '💰' }, { day: 5, type: 'money', val: 2000, icon: '💰' }, { day: 6, type: 'booster', id: 'speed', val: 1, icon: '⏳' }, { day: 7, type: 'mixed', money: 5000, booster: 'luck', icon: '🎁' }
 ];
+
+// === ПРОМОКОДЫ (НОВОЕ) ===
+const PROMO_CODES = {
+    'START2026': { type: 'money', val: 1000 },
+    'SPEED': { type: 'booster', id: 'speed', val: 5 },
+    'SECRET': { type: 'money', val: 5000 }
+};
+
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 // =============================================================
@@ -157,7 +164,7 @@ let ownedItems = { themes: ['default'], eggs: ['default'] };
 let activeTheme = 'default', activeEggSkin = 'default';
 let userStats = { hatched: 0, earned: 0, invites: 0 };
 let myBoosters = { luck: 0, speed: 0 };
-let claimedAchievements = [], claimedQuests = [];
+let claimedAchievements = [], claimedQuests = [], usedCodes = []; // usedCodes - новое
 let isVibrationOn = true, isSoundOn = false;
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
@@ -205,6 +212,45 @@ function openLevels() {
     modal.style.display = 'flex';
 }
 
+// === ПРОМОКОДЫ (НОВОЕ) ===
+function openPromo() {
+    playSound('click');
+    getEl('settings-modal').style.display = 'none'; // Закрыть настройки
+    getEl('promo-modal').style.display = 'flex';
+}
+
+function activatePromo() {
+    const input = getEl('promo-input');
+    const code = input.value.toUpperCase().trim();
+    
+    if (usedCodes.includes(code)) {
+        showToast("Уже активирован!", "🚫");
+        return;
+    }
+    
+    if (PROMO_CODES[code]) {
+        const reward = PROMO_CODES[code];
+        
+        if (reward.type === 'money') {
+            walletBalance += reward.val;
+            showToast(`+${reward.val} монет!`, "💰");
+        } else if (reward.type === 'booster') {
+            if (!myBoosters[reward.id]) myBoosters[reward.id] = 0;
+            myBoosters[reward.id] += reward.val;
+            showToast(`+${reward.val} бустеров!`, "⚡");
+        }
+        
+        usedCodes.push(code);
+        saveData();
+        updateBalanceUI();
+        playSound('win');
+        closeModal('promo-modal');
+        input.value = ""; // Очистить
+    } else {
+        showToast("Неверный код", "❌");
+    }
+}
+
 // === ОБУЧЕНИЕ ===
 function checkTutorial() {
     if (!localStorage.getItem('tutorialSeen')) {
@@ -242,6 +288,7 @@ function initGame() {
         let b = JSON.parse(localStorage.getItem('myBoosters')); if(b) myBoosters = b;
         claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
         claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
+        usedCodes = JSON.parse(localStorage.getItem('usedCodes')) || []; // Загружаем использованные коды
         isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
     } catch(e) { console.error("Local Load Error", e); }
@@ -279,7 +326,7 @@ function initGame() {
 
 function loadFromCloud() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'tutorialSeen'];
+        const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'tutorialSeen', 'usedCodes'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
@@ -293,11 +340,10 @@ function loadFromCloud() {
             if (values.myBoosters) myBoosters = JSON.parse(values.myBoosters);
             if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
+            if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             
-            // ИСПРАВЛЕНО: НЕ ЗАКРЫВАЕМ ОКНО АВТОМАТИЧЕСКИ
             if (values.tutorialSeen) {
                 localStorage.setItem('tutorialSeen', 'true');
-                // Мы просто обновляем локальный статус, но не дергаем UI, чтобы не было "мигания"
             }
 
             updateBalanceUI(); updateLevelUI(); renderCollection(); applyTheme(); applyEggSkin();
@@ -315,6 +361,7 @@ function saveData() {
     localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
     localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
     localStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
     localStorage.setItem('myCollection', JSON.stringify(collection));
     localStorage.setItem('userXP', userXP);
     localStorage.setItem('userLevel', userLevel);
@@ -331,6 +378,7 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
         Telegram.WebApp.CloudStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
+        Telegram.WebApp.CloudStorage.setItem('usedCodes', JSON.stringify(usedCodes));
         if(localStorage.getItem('tutorialSeen')) Telegram.WebApp.CloudStorage.setItem('tutorialSeen', 'true');
     }
 }
@@ -617,6 +665,7 @@ function saveData() {
     localStorage.setItem('myCollection', JSON.stringify(collection));
     localStorage.setItem('userXP', userXP);
     localStorage.setItem('userLevel', userLevel);
+    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
@@ -631,6 +680,7 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
         Telegram.WebApp.CloudStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
         if(localStorage.getItem('tutorialSeen')) Telegram.WebApp.CloudStorage.setItem('tutorialSeen', 'true');
+        Telegram.WebApp.CloudStorage.setItem('usedCodes', JSON.stringify(usedCodes));
     }
 }
 function applyTheme() { const t=SHOP_DATA.themes.find(x=>x.id===activeTheme); document.body.className=t?t.cssClass:''; }
