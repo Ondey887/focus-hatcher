@@ -78,7 +78,7 @@ function fireConfetti() {
 }
 
 // =============================================================
-// 4. КОНСТАНТЫ
+// 4. КОНСТАНТЫ (ВСЕ ВЕРНУЛ)
 // =============================================================
 const MODES = [
     { id: 'short', time: 10, xpReward: 250, egg: 'default', title: '25 минут', sub: 'Шанс Легендарки: 1%', style: '' },
@@ -95,7 +95,6 @@ const LEVEL_REWARDS = {
     50: { title: "Бог Фокуса", reward: "???" }
 };
 
-// БАЗА ДАННЫХ ПИТОМЦЕВ (ID = Имя файла без .png)
 const petDatabase = {
     common: ["chick", "kitten", "puppy", "hamster", "bunny", "frog", "bear", "koala", "duck", "caterpillar"],
     rare: ["fox", "panda", "tiger", "lion", "cow", "pig", "monkey", "owl"],
@@ -104,7 +103,7 @@ const petDatabase = {
 const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, "god"];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
 
-// === ВОССТАНОВЛЕННЫЕ ДАННЫЕ ===
+// === ВОТ ЭТО БЫЛО ПОТЕРЯНО, ВЕРНУЛ ===
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
     { id: 'rich_kid', title: 'Богач', desc: 'Заработай $1000', goal: 1000, type: 'money', reward: 500 },
@@ -447,7 +446,6 @@ function updateUI() {
     let t = m.time;
     if(activeBoosters.speed) t = Math.floor(t/2);
     if(!isRunning) { 
-        // ИСПРАВЛЕНА ЛОГИКА: Сначала проверяем режим, потом скин
         if (m.egg === 'diamond') {
              getEl('egg-display').src = 'assets/eggs/egg-diamond.png';
         } else {
@@ -509,7 +507,7 @@ function stopTimer() {
     getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
     getEl('egg-display').classList.remove('shaking'); 
     getEl('crack-overlay').className = 'crack-overlay';
-    updateUI(); // Вызовет updateUI, который вернет правильное яйцо
+    updateUI(); 
     renderBoostersPanel();
     showToast("Фокус прерван", "⚠️");
 }
@@ -639,7 +637,7 @@ function renderAch() {
         let done=false; if((a.type==='money'&&userStats.earned>=a.goal)||(a.type==='unique'&&u>=a.goal)||(!a.type&&userStats.hatched>=a.goal)) done=true;
         const d=document.createElement('div'); d.className=`achievement-card ${done?'unlocked':''}`;
         let btn=''; if(done&&!claimed)btn=`<button class="buy-btn" onclick="claimAch('${a.id}',${a.reward})">Забрать $${a.reward}</button>`; else if(claimed)btn="✅"; else btn=`<span style="font-size:12px;color:#888">Цель: ${a.goal}</span>`;
-        d.innerHTML=`<div class="ach-icon">${done?'🏆':'🔒'}</div><div class="ach-info"><div class="ach-title">${a.title}</div><div class="ach-desc">${a.desc}</div></div><div>${btn}</div>`;
+        d.innerHTML=`<div class="ach-icon">${done?'<img src="assets/ui/icon-trophy.png">':'<img src="assets/ui/icon-lock.png">'}</div><div class="ach-info"><div class="ach-title">${a.title}</div><div class="ach-desc">${a.desc}</div></div><div>${btn}</div>`;
         c.appendChild(d);
     });
 }
