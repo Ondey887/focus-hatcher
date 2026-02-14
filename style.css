@@ -20,17 +20,19 @@ body {
     display: flex; 
     flex-direction: column; 
     justify-content: space-between; 
-    /* УМЕНЬШИЛ ОТСТУП СВЕРХУ (БЫЛО 70px) */
-    padding: 55px 15px 20px 15px; 
+    /* ОТСТУП СВЕРХУ МИНИМАЛЬНЫЙ, ТАК КАК ШАПКА ТЕПЕРЬ RELATIVE */
+    padding: 10px 15px 20px 15px; 
     position: relative;
     text-align: center;
 }
 
-/* === ШАПКА === */
+/* === ШАПКА (ТЕПЕРЬ RELATIVE!) === */
 .top-bar { 
-    /* ПОДНЯЛ ИКОНКИ ВЫШЕ (БЫЛО 15px) */
-    position: absolute; top: 5px; left: 15px; right: 15px; 
-    z-index: 10; display: flex; justify-content: space-between; 
+    position: relative; /* ВАЖНО: ТЕПЕРЬ ОНА ЗАНИМАЕТ МЕСТО */
+    width: 100%;
+    z-index: 10; 
+    display: flex; justify-content: space-between; 
+    margin-bottom: 30px; /* ОТСТУП ОТ ШАПКИ ДО НАЗВАНИЯ */
 }
 .left-buttons { display: flex; gap: 12px; }
 
@@ -43,9 +45,22 @@ body {
     backdrop-filter: blur(5px); overflow: hidden; 
     position: relative;
 }
-.header-icon-img { width: 100%; height: 100%; object-fit: cover; }
-.header-avatar { border-radius: 50%; }
+/* ЧТОБЫ ИКОНКИ ЗАПОЛНЯЛИ КНОПКУ ПОЛНОСТЬЮ */
+.header-icon-img { 
+    width: 100%; height: 100%; 
+    object-fit: cover; /* Заполняет всю кнопку */
+    border-radius: 50%; /* Круглит картинку */
+}
 .red-dot { position: absolute; top: 5px; right: 5px; width: 12px; height: 12px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; z-index: 2; }
+
+/* === БЛОК КОНТЕНТА === */
+.content-wrapper {
+    flex-grow: 1; /* Растягивается */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
 
 h1 { 
     font-size: 26px; margin: 0 0 15px 0; 
@@ -62,12 +77,12 @@ h1 {
     text-align: left; cursor: pointer; 
     backdrop-filter: blur(5px); 
     border: 1px solid rgba(255,255,255,0.1); 
-    flex-shrink: 0;
+    flex-shrink: 0; width: 100%; box-sizing: border-box;
 }
 .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
 .money-display { font-size: 22px; font-weight: bold; color: #ffd700; display: flex; align-items: center; gap: 8px; }
 
-/* МОНЕТКА */
+/* МОНЕТКА (ЕЩЕ БОЛЬШЕ) */
 .coin-img { width: 40px !important; height: 40px !important; object-fit: contain; }
 
 .progress-bar-bg { background: rgba(0, 0, 0, 0.5); height: 8px; border-radius: 4px; overflow: hidden; }
@@ -91,10 +106,10 @@ h1 {
     flex-grow: 1; height: 100%; 
 }
 
-/* ЯЙЦО */
+/* ЯЙЦО (ЕЩЕ БОЛЬШЕ - 380PX) */
 .egg-img { 
-    width: auto; height: auto;
-    max-width: 80vw; max-height: 45vh; 
+    width: 380px !important; height: 380px !important;
+    max-width: 90vw; max-height: 50vh; 
     object-fit: contain; 
     transition: transform 0.1s; 
     position: relative; z-index: 1; 
