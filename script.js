@@ -87,6 +87,16 @@ const MODES = [
 const PRICES = { common: 15, rare: 150, legendary: 5000 };
 const RANKS = ["Новичок", "Искатель", "Укротитель", "Мастер", "Ниндзя", "Легенда", "Бог Фокуса"];
 
+// СЛОВАРЬ ИМЕН
+const PET_NAMES = {
+    "chick": "Цыпленок", "kitten": "Котенок", "puppy": "Щенок", "hamster": "Хомяк", "bunny": "Зайчик",
+    "frog": "Лягушка", "bear": "Мишка", "koala": "Коала", "duck": "Утенок", "caterpillar": "Гусеница",
+    "fox": "Лисенок", "panda": "Панда", "tiger": "Тигренок", "lion": "Львенок", "cow": "Коровка",
+    "pig": "Свинка", "monkey": "Обезьянка", "owl": "Сова",
+    "unicorn": "Единорог", "dragon": "Дракон", "alien": "Пришелец", "robot": "Робот", "dino": "Динозавр",
+    "fireball": "Огонек", "god": "Бог Фокуса"
+};
+
 const LEVEL_REWARDS = {
     1: { title: "Новичок", reward: null },
     5: { title: "Искатель", reward: "1000 монет" },
@@ -197,7 +207,8 @@ function openLevels() {
         const info = LEVEL_REWARDS[lvl]; const isReached = userLevel >= lvl;
         const status = isReached ? `<img src="assets/ui/icon-check.png" style="width:20px">` : `<img src="assets/ui/icon-lock.png" style="width:20px">`;
         const div = document.createElement('div'); div.className = `level-item ${isReached ? 'active' : 'locked'}`;
-        let rewardText = info.reward;
+        
+        let rewardText = info.reward || "Нет";
         if(rewardText.includes("монет")) rewardText = rewardText.replace("монет", `<img src="assets/ui/coin.png" style="width:16px;vertical-align:middle">`);
         
         div.innerHTML = `<div class="rank-icon">${status}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${rewardText}</div></div>`;
@@ -231,7 +242,7 @@ function openAvatarSelector() {
             selectedAvatar = pet;
             saveData();
             getEl('profile-avatar').src = getPetImg(pet);
-            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 100%; height: 100%; border-radius: 50%;">`;
+            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 36px; height: 36px; border-radius: 50%;">`;
             closeModal('avatar-modal');
             showToast("Аватар изменен!");
         };
@@ -289,7 +300,6 @@ function initGame() {
     if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
-    
     loadFromCloud();
 }
 
@@ -329,7 +339,6 @@ function loadFromCloud() {
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
-            
             if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
             updateBalanceUI(); updateLevelUI(); applyTheme(); applyEggSkin();
             saveData(); 
@@ -453,13 +462,19 @@ function createBoosterBtn(type, img, count, isActive) {
 }
 function prevMode() { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); playSound('click'); }}
 function nextMode() { if(!isRunning) { currentModeIndex=currentModeIndex===0?1:0; updateUI(); playSound('click'); }}
+
+// === ФИКС ДЛЯ ХРОНОЛОГИИ ===
 function updateUI() {
     const m = MODES[currentModeIndex];
     let t = m.time;
     if(activeBoosters.speed) t = Math.floor(t/2);
     if(!isRunning) { 
+        // ПРИ СМЕНЕ СЛАЙДА ВСЕГДА ВОЗВРАЩАЕМ EGG-IMG
+        const eggDisplay = getEl('egg-display');
+        eggDisplay.className = 'egg-img'; // Сбрасываем hatched-img
+        
         if (m.egg === 'diamond') {
-             getEl('egg-display').src = 'assets/eggs/egg-diamond.png';
+             eggDisplay.src = 'assets/eggs/egg-diamond.png';
         } else {
              applyEggSkin();
         }
@@ -485,7 +500,7 @@ function startTimer(isResuming = false) {
     isRunning = true;
     getEl('timer').textContent = formatTime(timeLeft);
     getEl('main-btn').textContent = "Сдаться"; getEl('main-btn').className = "btn stop";
-    getEl('share-btn').style.display = 'none'; getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
+    getEl('share-btn').style.display = 'none'; getEl('prev-btn').style.visibility = 'hidden'; getEl('next-btn').style.visibility = 'hidden';
     
     if (!isResuming) {
         if (m.egg === 'diamond') getEl('egg-display').src = 'assets/eggs/egg-diamond.png';
@@ -493,6 +508,7 @@ function startTimer(isResuming = false) {
         getEl('crack-overlay').className = 'crack-overlay'; 
     }
     
+    // АНИМАЦИЯ ЯЙЦА
     const eggDisplay = getEl('egg-display');
     eggDisplay.className = 'egg-img shaking'; 
     renderBoostersPanel();
@@ -569,6 +585,7 @@ function finishTimer() {
     const eggDisplay = getEl('egg-display');
     eggDisplay.src = `assets/pets/pet-${dropped}.png`;
     
+    // ПРИ ВЫПАДЕНИИ ПЕТА МЕНЯЕМ КЛАСС НА hatched-img (ОН МЕНЬШЕ)
     eggDisplay.className = 'hatched-img';
     
     fireConfetti();
@@ -616,9 +633,19 @@ function toggleInventory() {
 function openPetModal(pet, owned) {
     selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r]; playSound('click');
     getEl('pet-modal').style.display='flex';
+    
+    const petName = PET_NAMES[pet] || "Питомец";
+    
     getEl('pet-detail-view').innerHTML = owned ? 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big"><h3 class="pet-name">Питомец</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p><button class="btn sell-action" onclick="sellPet()">Продать (${p})</button>` : 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)"><h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
+        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big">
+         <h3 class="pet-name">${petName}</h3>
+         <p class="pet-rarity ${r}">${r}</p>
+         <p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
+         <button class="btn sell-action" onclick="sellPet()">Продать ${p}</button>` : 
+        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)">
+         <h3 class="pet-name">???</h3>
+         <p class="pet-rarity ${r}">${r}</p>
+         <button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
 }
 
 function sellPet() {
