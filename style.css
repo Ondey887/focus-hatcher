@@ -217,5 +217,32 @@ input:checked + .slider:before { transform: translateX(24px); }
 .toast img { width: 24px; height: 24px; }
 .collection-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px; }
 .crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; transition: opacity 0.3s; }
-.crack-stage-1 { background: linear-gradient(135deg, transparent 48%, rgba(0,0,0,0.5) 49%, rgba(0,0,0,0.5) 51%, transparent 52%); }
-.crack-stage-2 { background: linear-gradient(135deg, transparent 48%, rgba(0,0,0,0.6) 49%, rgba(0,0,0,0.6) 51%, transparent 52%), linear-gradient(45deg, transparent 48%, rgba(0,0,0,0.6) 49%, rgba(0,0,0,0.6) 51%, transparent 52%); }
+/* === ТРЕЩИНЫ (REALISTIC IMAGES) === */
+.crack-overlay { 
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    pointer-events: none; z-index: 2; 
+    transition: opacity 0.3s;
+    
+    /* Настройки картинки */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain; /* Картинка подстроится под размер блока */
+    
+    /* Важно: Скрыто по умолчанию */
+    opacity: 0; 
+    
+    /* Добавляем тот же зум, что у яйца, чтобы трещина легла ровно на скорлупу */
+    transform: scale(1.4); 
+}
+
+/* Стадия 1: Появляется первая трещина */
+.crack-stage-1 { 
+    opacity: 0.9; 
+    background-image: url('assets/ui/crack-1.png'); 
+}
+
+/* Стадия 2: Яйцо разбито (берем crack-3 для эпичности) */
+.crack-stage-2 { 
+    opacity: 1; 
+    background-image: url('assets/ui/crack-3.png'); 
+}
