@@ -90,7 +90,7 @@ const RANKS = ["Новичок", "Искатель", "Укротитель", "М
 const LEVEL_REWARDS = {
     1: { title: "Новичок", reward: null },
     5: { title: "Искатель", reward: "1000 монет" },
-    10: { title: "Укротитель", reward: "Уникальный: 🐲 God" },
+    10: { title: "Укротитель", reward: "Уникальный: <img src='assets/pets/pet-god.png' style='width:24px;vertical-align:middle'> God" },
     20: { title: "Мастер", reward: "5000 монет" },
     50: { title: "Бог Фокуса", reward: "???" }
 };
@@ -197,7 +197,11 @@ function openLevels() {
         const info = LEVEL_REWARDS[lvl]; const isReached = userLevel >= lvl;
         const status = isReached ? `<img src="assets/ui/icon-check.png" style="width:20px">` : `<img src="assets/ui/icon-lock.png" style="width:20px">`;
         const div = document.createElement('div'); div.className = `level-item ${isReached ? 'active' : 'locked'}`;
-        div.innerHTML = `<div class="rank-icon">${status}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${info.reward || "Нет"}</div></div>`;
+        // Добавил картинку монетки в награды
+        let rewardText = info.reward;
+        if(rewardText.includes("монет")) rewardText = rewardText.replace("монет", `<img src="assets/ui/coin.png" style="width:16px;vertical-align:middle">`);
+        
+        div.innerHTML = `<div class="rank-icon">${status}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${rewardText}</div></div>`;
         list.appendChild(div);
     }
     getEl('levels-modal').style.display = 'flex';
@@ -228,7 +232,7 @@ function openAvatarSelector() {
             selectedAvatar = pet;
             saveData();
             getEl('profile-avatar').src = getPetImg(pet);
-            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 100%; height: 100%; border-radius: 50%;">`;
+            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 36px; height: 36px; border-radius: 50%;">`;
             closeModal('avatar-modal');
             showToast("Аватар изменен!");
         };
@@ -282,10 +286,12 @@ function initGame() {
     checkTutorial();
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
 
-    updateLevelUI(); updateBalanceUI(); applyTheme(); updateUI(); 
+    updateLevelUI(); updateBalanceUI(); applyTheme(); applyEggSkin(); updateUI(); 
     if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
+    
+    // ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА ИЗ ОБЛАКА ПРИ СТАРТЕ
     loadFromCloud();
 }
 
@@ -311,6 +317,7 @@ function loadFromCloud() {
         const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'tutorialSeen', 'usedCodes', 'selectedAvatar'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
+            // ЕСЛИ В ОБЛАКЕ ЕСТЬ ДАННЫЕ - ПЕРЕЗАПИСЫВАЕМ ЛОКАЛЬНЫЕ
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
             if (values.userXP) userXP = parseInt(values.userXP);
             if (values.userLevel) userLevel = parseInt(values.userLevel);
@@ -325,8 +332,13 @@ function loadFromCloud() {
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
+            
+            // ОБНОВЛЯЕМ ИНТЕРФЕЙС
             if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
             updateBalanceUI(); updateLevelUI(); applyTheme(); applyEggSkin();
+            
+            // СОХРАНЯЕМ ОБНОВЛЕННЫЕ ДАННЫЕ В LOCALSTORAGE
+            saveData(); 
         });
     }
 }
@@ -487,7 +499,9 @@ function startTimer(isResuming = false) {
         getEl('crack-overlay').className = 'crack-overlay'; 
     }
     
-    getEl('egg-display').classList.add('shaking'); 
+    // МЕНЯЕМ КЛАСС НА ЯЙЦО ПРИ СТАРТЕ
+    const eggDisplay = getEl('egg-display');
+    eggDisplay.className = 'egg-img shaking'; 
     renderBoostersPanel();
     
     const totalTime = isResuming ? timeLeft : (activeBoosters.speed ? Math.floor(m.time/2) : m.time); 
@@ -511,7 +525,12 @@ function stopTimer() {
     
     getEl('main-btn').textContent = "Начать фокус"; getEl('main-btn').className = "btn";
     getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
-    getEl('egg-display').classList.remove('shaking'); 
+    
+    // СБРОС КЛАССА НА ОБЫЧНОЕ ЯЙЦО
+    const eggDisplay = getEl('egg-display');
+    eggDisplay.className = 'egg-img';
+    eggDisplay.classList.remove('shaking'); 
+    
     getEl('crack-overlay').className = 'crack-overlay';
     updateUI(); 
     renderBoostersPanel();
@@ -525,7 +544,6 @@ function finishTimer() {
 
     getEl('main-btn').textContent = "Еще раз"; getEl('main-btn').className = "btn";
     getEl('share-btn').style.display = 'block'; getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
-    getEl('egg-display').className = 'egg';
     getEl('crack-overlay').className = 'crack-overlay';
 
     const m = MODES[currentModeIndex];
@@ -556,21 +574,24 @@ function finishTimer() {
     
     saveData();
     
-    getEl('egg-display').src = `assets/pets/pet-${dropped}.png`;
+    const eggDisplay = getEl('egg-display');
+    eggDisplay.src = `assets/pets/pet-${dropped}.png`;
+    
+    // ВАЖНО: МЕНЯЕМ КЛАСС НА ПЕТА, ЧТОБЫ УБРАТЬ ЗУМ И ИЗМЕНИТЬ РАЗМЕР
+    eggDisplay.className = 'hatched-img';
+    
     fireConfetti();
     showToast(`Получено!`, "🐣");
     renderCollection(); updateBalanceUI();
     if(isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(200);
 }
 
-// === НОВАЯ ФУНКЦИЯ ОТКРЫТИЯ КОЛЛЕКЦИИ (МОДАЛЬНОЕ ОКНО) ===
 function openInventory() {
     playSound('click');
     const container = document.getElementById('collection-container'); 
     if(!container) return;
     container.innerHTML = ''; 
     
-    // РЕНДЕР КОЛЛЕКЦИИ (ВОССТАНОВЛЕНА ЛОГИКА)
     ALL_PETS_FLAT.forEach(pet => {
         const count = collection.filter(p => p === pet).length;
         const r = getPetRarity(pet);
@@ -601,7 +622,6 @@ function toggleInventory() {
     openInventory(); 
 }
 
-// === ВОССТАНОВЛЕННЫЕ ФУНКЦИИ ИНТЕРФЕЙСА ===
 function openPetModal(pet, owned) {
     selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r]; playSound('click');
     getEl('pet-modal').style.display='flex';
@@ -614,8 +634,7 @@ function sellPet() {
     if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
     const p=PRICES[getPetRarity(selectedPet)]; walletBalance+=p; userStats.earned+=p;
     collection.splice(idx,1); saveData(); updateBalanceUI(); 
-    renderCollection(); // Обновляем скрытый инвентарь если надо
-    openInventory(); // Обновляем открытое окно
+    openInventory(); 
     closeModal('pet-modal'); showToast(`Продано +${p}`, 'img'); playSound('money');
 }
 
@@ -627,16 +646,16 @@ function renderShop() {
         const d=document.createElement('div'); d.className='shop-item';
         let btnHTML='';
         if(currentShopTab==='boosters') {
-            btnHTML=`<button class="buy-btn" onclick="buyItem('${item.id}',${item.price})">${item.price}</button>`;
+            btnHTML=`<button class="buy-btn" onclick="buyItem('${item.id}',${item.price})">${item.price} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle"></button>`;
             d.innerHTML=`<img src="${item.icon}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#888">${item.desc}</div>${btnHTML}`;
         } else if(currentShopTab==='eggs') {
             const owned=ownedItems.eggs.includes(item.id); const active=activeEggSkin===item.id;
-            let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать"):`${item.price}`;
+            let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать") : `${item.price} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
             btnHTML=`<button class="${cls}" onclick="buyItem('${item.id}',${item.price})">${txt}</button>`;
             d.innerHTML=`<img src="${item.img}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div>${btnHTML}`;
         } else {
             const owned=ownedItems.themes.includes(item.id); const active=activeTheme===item.id;
-            let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать"):`${item.price}`;
+            let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать"):`${item.price} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
             btnHTML=`<button class="${cls}" onclick="buyItem('${item.id}',${item.price})">${txt}</button>`;
             let icon = item.bgFile ? `<img src="${item.bgFile}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;margin-bottom:5px">` : `<div style="width:60px;height:60px;background:#333;border-radius:10px;margin-bottom:5px"></div>`;
             d.innerHTML=`${icon}<div class="shop-item-name">${item.name}</div>${btnHTML}`;
@@ -672,7 +691,7 @@ function renderAch() {
         const claimed=claimedAchievements.includes(a.id);
         let done=false; if((a.type==='money'&&userStats.earned>=a.goal)||(a.type==='unique'&&u>=a.goal)||(!a.type&&userStats.hatched>=a.goal)) done=true;
         const d=document.createElement('div'); d.className=`achievement-card ${done?'unlocked':''}`;
-        let btn=''; if(done&&!claimed)btn=`<button class="buy-btn" onclick="claimAch('${a.id}',${a.reward})">Забрать ${a.reward}</button>`; else if(claimed)btn="✅"; else btn=`<span style="font-size:12px;color:#888">Цель: ${a.goal}</span>`;
+        let btn=''; if(done&&!claimed)btn=`<button class="buy-btn" onclick="claimAch('${a.id}',${a.reward})">Забрать ${a.reward} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle"></button>`; else if(claimed)btn="✅"; else btn=`<span style="font-size:12px;color:#888">Цель: ${a.goal}</span>`;
         d.innerHTML=`<div class="ach-icon">${done?'<img src="assets/ui/icon-trophy.png">':'<img src="assets/ui/icon-lock.png">'}</div><div class="ach-info"><div class="ach-title">${a.title}</div><div class="ach-desc">${a.desc}</div></div><div>${btn}</div>`;
         c.appendChild(d);
     });
@@ -683,7 +702,7 @@ function renderQuests() {
     QUESTS_DATA.forEach(q => {
         const claimed=claimedQuests.includes(q.id);
         const d=document.createElement('div'); d.className=`achievement-card ${claimed?'unlocked':''}`;
-        let btn=''; if(claimed)btn="✅"; else if(q.type==='link')btn=`<button id="qbtn-${q.id}" class="buy-btn" style="background:#007aff" onclick="clickLink('${q.id}','${q.url}',${q.reward})">Выполнить</button>`; else if(q.type==='invite') { if((userStats.invites||0)>=q.goal)btn=`<button class="buy-btn" onclick="claimQuest('${q.id}',${q.reward})">Забрать ${q.reward}</button>`; else btn=`<span style="font-size:12px;color:#888">${userStats.invites||0}/${q.goal}</span>`; }
+        let btn=''; if(claimed)btn="✅"; else if(q.type==='link')btn=`<button id="qbtn-${q.id}" class="buy-btn" style="background:#007aff" onclick="clickLink('${q.id}','${q.url}',${q.reward})">Выполнить</button>`; else if(q.type==='invite') { if((userStats.invites||0)>=q.goal)btn=`<button class="buy-btn" onclick="claimQuest('${q.id}',${q.reward})">Забрать ${q.reward} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle"></button>`; else btn=`<span style="font-size:12px;color:#888">${userStats.invites||0}/${q.goal}</span>`; }
         d.innerHTML=`<div class="ach-icon">📜</div><div class="ach-info"><div class="ach-title">${q.title}</div><div class="ach-desc">${q.desc}</div></div><div>${btn}</div>`;
         c.appendChild(d);
     });
@@ -692,6 +711,7 @@ function renderQuests() {
 function clickLink(id, u, r) { if(window.Telegram.WebApp)window.Telegram.WebApp.openLink(u); else window.open(u,'_blank'); const b=getEl(`qbtn-${id}`); if(b){b.textContent="Проверяю...";b.disabled=true;b.style.background="#555";setTimeout(()=>claimQuest(id,r),4000);}}
 function claimAch(id, r) { if(claimedAchievements.includes(id))return; claimedAchievements.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderAch(); showToast(`Награда +${r}`, 'img'); playSound('money'); }
 function claimQuest(id, r) { if(claimedQuests.includes(id))return; claimedQuests.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderQuests(); showToast(`Награда +${r}`, 'img'); playSound('money'); }
+
 function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.invites++; saveData(); checkAchievements(); const t=`У меня ${new Set(collection).size} петов в Focus Hatcher!`; const u=`https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(t)}`; if(window.Telegram.WebApp)window.Telegram.WebApp.openTelegramLink(u); else window.open(u,'_blank'); }
 
 function applyTheme() { 
@@ -714,18 +734,12 @@ function applyEggSkin() {
         egg.src = 'assets/eggs/egg-default.png';
     }
     
+    // Сбрасываем класс на дефолтный (с зумом)
     egg.className = 'egg-img'; 
     if(isRunning) egg.classList.add('shaking'); 
 }
 
 function updateLevelUI() { const max=userLevel*200; let p=(userXP/max)*100; if(p>100)p=100; getEl('xp-bar').style.width=`${p}%`; getEl('level-number').textContent=`Lvl ${userLevel}`; let r=Math.floor(userLevel/5); getEl('rank-name').textContent=RANKS[Math.min(r,RANKS.length-1)]; }
-
-// ЭТО ДЛЯ СОВМЕСТИМОСТИ С СУЩЕСТВУЮЩЕЙ КНОПКОЙ КОЛЛЕКЦИИ В HTML ЕСЛИ ОНА ЕСТЬ
-function renderCollection() {
-    // Эта функция теперь дублирует логику внутри openInventory, 
-    // но нужна, если где-то еще есть вызов renderCollection()
-    // Оставляем пустой или перенаправляем, если нужно
-}
 
 // ЗАПУСК ПОСЛЕ ЗАГРУЗКИ (ВАЖНО!)
 window.onload = initGame;
