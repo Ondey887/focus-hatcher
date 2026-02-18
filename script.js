@@ -197,7 +197,6 @@ function openLevels() {
         const info = LEVEL_REWARDS[lvl]; const isReached = userLevel >= lvl;
         const status = isReached ? `<img src="assets/ui/icon-check.png" style="width:20px">` : `<img src="assets/ui/icon-lock.png" style="width:20px">`;
         const div = document.createElement('div'); div.className = `level-item ${isReached ? 'active' : 'locked'}`;
-        // Добавил картинку монетки в награды
         let rewardText = info.reward;
         if(rewardText.includes("монет")) rewardText = rewardText.replace("монет", `<img src="assets/ui/coin.png" style="width:16px;vertical-align:middle">`);
         
@@ -232,7 +231,7 @@ function openAvatarSelector() {
             selectedAvatar = pet;
             saveData();
             getEl('profile-avatar').src = getPetImg(pet);
-            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 36px; height: 36px; border-radius: 50%;">`;
+            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width: 100%; height: 100%; border-radius: 50%;">`;
             closeModal('avatar-modal');
             showToast("Аватар изменен!");
         };
@@ -291,7 +290,6 @@ function initGame() {
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     
-    // ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА ИЗ ОБЛАКА ПРИ СТАРТЕ
     loadFromCloud();
 }
 
@@ -317,7 +315,6 @@ function loadFromCloud() {
         const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'tutorialSeen', 'usedCodes', 'selectedAvatar'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
-            // ЕСЛИ В ОБЛАКЕ ЕСТЬ ДАННЫЕ - ПЕРЕЗАПИСЫВАЕМ ЛОКАЛЬНЫЕ
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
             if (values.userXP) userXP = parseInt(values.userXP);
             if (values.userLevel) userLevel = parseInt(values.userLevel);
@@ -333,11 +330,8 @@ function loadFromCloud() {
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
             
-            // ОБНОВЛЯЕМ ИНТЕРФЕЙС
             if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" style="width: 100%; height: 100%; border-radius: 50%;">`; }
             updateBalanceUI(); updateLevelUI(); applyTheme(); applyEggSkin();
-            
-            // СОХРАНЯЕМ ОБНОВЛЕННЫЕ ДАННЫЕ В LOCALSTORAGE
             saveData(); 
         });
     }
@@ -491,7 +485,7 @@ function startTimer(isResuming = false) {
     isRunning = true;
     getEl('timer').textContent = formatTime(timeLeft);
     getEl('main-btn').textContent = "Сдаться"; getEl('main-btn').className = "btn stop";
-    getEl('share-btn').style.display = 'none'; getEl('prev-btn').style.visibility = 'hidden'; getEl('next-btn').style.visibility = 'hidden';
+    getEl('share-btn').style.display = 'none'; getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
     
     if (!isResuming) {
         if (m.egg === 'diamond') getEl('egg-display').src = 'assets/eggs/egg-diamond.png';
@@ -499,7 +493,6 @@ function startTimer(isResuming = false) {
         getEl('crack-overlay').className = 'crack-overlay'; 
     }
     
-    // МЕНЯЕМ КЛАСС НА ЯЙЦО ПРИ СТАРТЕ
     const eggDisplay = getEl('egg-display');
     eggDisplay.className = 'egg-img shaking'; 
     renderBoostersPanel();
@@ -526,7 +519,6 @@ function stopTimer() {
     getEl('main-btn').textContent = "Начать фокус"; getEl('main-btn').className = "btn";
     getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
     
-    // СБРОС КЛАССА НА ОБЫЧНОЕ ЯЙЦО
     const eggDisplay = getEl('egg-display');
     eggDisplay.className = 'egg-img';
     eggDisplay.classList.remove('shaking'); 
@@ -577,12 +569,11 @@ function finishTimer() {
     const eggDisplay = getEl('egg-display');
     eggDisplay.src = `assets/pets/pet-${dropped}.png`;
     
-    // ВАЖНО: МЕНЯЕМ КЛАСС НА ПЕТА, ЧТОБЫ УБРАТЬ ЗУМ И ИЗМЕНИТЬ РАЗМЕР
     eggDisplay.className = 'hatched-img';
     
     fireConfetti();
     showToast(`Получено!`, "🐣");
-    renderCollection(); updateBalanceUI();
+    updateBalanceUI();
     if(isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(200);
 }
 
@@ -734,7 +725,6 @@ function applyEggSkin() {
         egg.src = 'assets/eggs/egg-default.png';
     }
     
-    // Сбрасываем класс на дефолтный (с зумом)
     egg.className = 'egg-img'; 
     if(isRunning) egg.classList.add('shaking'); 
 }
