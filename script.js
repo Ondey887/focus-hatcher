@@ -693,7 +693,7 @@ function finishTimer(fromOffline = false) {
 }
 
 // =============================================================
-// ЛАБОРАТОРИЯ (КРАФТ) - ТОЛЬКО ОБЫЧНЫЕ (ОБНОВЛЕНО)
+// ЛАБОРАТОРИЯ (КРАФТ)
 // =============================================================
 function openCraft() {
     closeModal('inventory-modal');
@@ -701,7 +701,6 @@ function openCraft() {
     const c = getEl('craft-list'); c.innerHTML = '';
     let canCraft = false;
     
-    // ИЗМЕНЕНИЕ: ТЕПЕРЬ МОЖНО КРАФТИТЬ ТОЛЬКО ОБЫЧНЫХ (COMMON) ПЕТОВ
     [...petDatabase.common].forEach(pet => {
         const count = collection.filter(p => p === pet).length;
         if(count >= 5) {
@@ -731,7 +730,6 @@ function craftPet(basePet) {
             showToast(`Успех! Получен Редкий петомец`, '🧪');
             playSound('win');
         } 
-        // Крафт редких петов полностью вырезан отсюда!
         
         collection.push(newPet);
         if(!userStats.crafts) userStats.crafts = 0;
@@ -741,7 +739,7 @@ function craftPet(basePet) {
 }
 
 // =============================================================
-// КОЛЛЕКЦИЯ И МАГАЗИН (остальное)
+// КОЛЛЕКЦИЯ И МАГАЗИН
 // =============================================================
 function openInventory() {
     playSound('click');
@@ -913,17 +911,15 @@ function applyEggSkin() {
 
 function updateLevelUI() { const max=userLevel*200; let p=(userXP/max)*100; if(p>100)p=100; getEl('xp-bar').style.width=`${p}%`; getEl('level-number').textContent=`Lvl ${userLevel}`; let r=Math.floor(userLevel/5); getEl('rank-name').textContent=RANKS[Math.min(r,RANKS.length-1)] || "Создатель"; }
 
-window.onload = initGame;
+
 // =============================================================
 // МУЛЬТИПЛЕЕР И API (ФАЗА 2)
 // =============================================================
 
-// ТВОЯ ССЫЛКА НА БУДУЩИЙ БЭКЕНД НА PYTHON
 const API_URL = "https://your-python-bot-backend.com/api"; 
 let currentPartyCode = null;
 let partyPollingInterval = null;
 
-// Получаем безопасные данные от Telegram для авторизации запросов
 function getTgAuthData() {
     if (window.Telegram && window.Telegram.WebApp) {
         return window.Telegram.WebApp.initData || "debug_mode";
@@ -937,41 +933,26 @@ function openPartyModal() {
     if (currentPartyCode) {
         getEl('party-setup-view').style.display = 'none';
         getEl('party-active-view').style.display = 'block';
-        startPartyPolling(); // Начинаем запрашивать обновления с сервера
+        startPartyPolling(); 
     } else {
         getEl('party-setup-view').style.display = 'block';
         getEl('party-active-view').style.display = 'none';
     }
 }
 
-// --- API ЗАПРОСЫ (КАРКАС) ---
-
 async function apiCreateParty() {
     playSound('click');
     getEl('party-setup-view').innerHTML = "Создаем сервер...";
     
     try {
-        // РЕАЛЬНЫЙ ЗАПРОС К PYTHON БЭКЕНДУ:
-        /*
-        const response = await fetch(`${API_URL}/party/create`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': getTgAuthData() },
-            body: JSON.stringify({ avatar: selectedAvatar, level: userLevel })
-        });
-        const data = await response.json();
-        currentPartyCode = data.partyCode;
-        */
-        
-        // ВРЕМЕННАЯ СИМУЛЯЦИЯ (ПОКА НЕТ БЭКЕНДА):
         setTimeout(() => {
             currentPartyCode = Math.floor(1000 + Math.random() * 9000).toString(); 
             getEl('current-party-code').textContent = currentPartyCode;
             getEl('party-setup-view').style.display = 'none';
             getEl('party-active-view').style.display = 'block';
-            renderPartyPlayers([{ name: "Ты", avatar: selectedAvatar }]); // Добавляем себя
+            renderPartyPlayers([{ name: "Ты", avatar: selectedAvatar }]); 
             showToast("Пати создано! Код: " + currentPartyCode, "🎮");
         }, 1000);
-
     } catch (e) {
         showToast("Ошибка сервера", "❌");
         closeModal('party-modal');
@@ -984,16 +965,6 @@ async function apiJoinParty() {
     if(code.length < 4) return showToast("Неверный код", "❌");
 
     try {
-        // РЕАЛЬНЫЙ ЗАПРОС:
-        /*
-        const response = await fetch(`${API_URL}/party/join`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': getTgAuthData() },
-            body: JSON.stringify({ code: code, avatar: selectedAvatar })
-        });
-        */
-        
-        // ВРЕМЕННАЯ СИМУЛЯЦИЯ:
         currentPartyCode = code;
         getEl('current-party-code').textContent = currentPartyCode;
         getEl('party-setup-view').style.display = 'none';
@@ -1009,7 +980,6 @@ function apiLeaveParty() {
     playSound('click');
     currentPartyCode = null;
     clearInterval(partyPollingInterval);
-    // Тут в будущем будет fetch(`${API_URL}/party/leave`)
     getEl('party-setup-view').style.display = 'block';
     getEl('party-active-view').style.display = 'none';
     getEl('party-setup-view').innerHTML = `
@@ -1020,7 +990,6 @@ function apiLeaveParty() {
     `;
 }
 
-// Отрисовка кружочков с игроками в Лобби
 function renderPartyPlayers(players) {
     const container = getEl('party-players-list');
     container.innerHTML = '';
@@ -1035,14 +1004,8 @@ function renderPartyPlayers(players) {
 }
 
 function startPartyPolling() {
-    // В будущем эта функция будет раз в 3 секунды запрашивать сервер:
-    // fetch(`${API_URL}/party/${currentPartyCode}/status`)
-    // Чтобы обновлять список игроков и проверять, не запустил ли кто-то мини-игру.
 }
 
-// =============================================================
-// ЛОГИКА МИНИ-ИГРЫ: ТАП-БИТВА С БОССОМ
-// =============================================================
 let bossHp = 10000;
 let bossMaxHp = 10000;
 let bossTimerInterval = null;
@@ -1068,7 +1031,6 @@ function startMiniGame(gameType) {
             }
         }, 100);
         
-        // В будущем тут будет WebSocket или частый Polling для синхронизации урона с другими игроками
     } else {
         showToast("Режим в разработке (Нужен Сервер)", "🛠️");
     }
@@ -1078,7 +1040,6 @@ function tapBoss() {
     if (bossTimeLeft <= 0 || bossHp <= 0) return;
     playSound('click');
     
-    // Урон зависит от редкости выбранного аватара
     let damage = 1;
     const r = getPetRarity(selectedAvatar);
     if(r === 'rare') damage = 5;
@@ -1087,16 +1048,12 @@ function tapBoss() {
     bossHp -= damage;
     if (bossHp < 0) bossHp = 0;
     
-    // Анимация удара
     const img = getEl('boss-egg-img');
     img.classList.remove('boss-hit-anim');
-    void img.offsetWidth; // trigger reflow
+    void img.offsetWidth; 
     img.classList.add('boss-hit-anim');
     
     updateBossUI();
-    
-    // В будущем: отправка урона на сервер API
-    // fetch(`${API_URL}/party/${currentPartyCode}/damage`, { method: 'POST', body: JSON.stringify({ damage }) })
     
     if (bossHp === 0) {
         clearInterval(bossTimerInterval);
@@ -1113,3 +1070,5 @@ function updateBossUI() {
     getEl('boss-hp-text').textContent = `${bossHp}/${bossMaxHp}`;
     getEl('boss-hp-bar').style.width = `${(bossHp / bossMaxHp) * 100}%`;
 }
+
+window.onload = initGame;

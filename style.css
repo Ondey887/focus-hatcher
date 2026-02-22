@@ -236,7 +236,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 .toast img { width: 24px; height: 24px; }
 .collection-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px; }
 
-/* === ТРЕЩИНЫ (УМЕНЬШЕНО) === */
+/* === ТРЕЩИНЫ === */
 .crack-overlay { 
     position: absolute; 
     top: 0; left: 0; width: 100%; height: 100%; 
@@ -251,6 +251,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 .crack-stage-1 { opacity: 0.9; background-image: url('assets/ui/crack-1.png'); }
 .crack-stage-2 { opacity: 0.95; background-image: url('assets/ui/crack-2.png'); }
 .crack-stage-3 { opacity: 1; background-image: url('assets/ui/crack-3.png'); }
+
 /* === ПАТИ И МУЛЬТИПЛЕЕР === */
 .party-players-grid {
     display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;
