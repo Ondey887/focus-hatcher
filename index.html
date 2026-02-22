@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=48">
+    <link rel="stylesheet" href="style.css?v=50">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
     <div id="craft-modal" class="modal" style="display: none; z-index: 3001;">
         <div class="modal-content" style="max-height: 85vh;">
             <div class="modal-header"><h2>Синтез</h2><button class="close-btn" onclick="closeModal('craft-modal')">✖</button></div>
-            <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Соедини 5 одинаковых петов, чтобы получить более редкого!</p>
+            <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Соедини 5 одинаковых обычных петов, чтобы получить редкого!</p>
             <div id="craft-list" class="collection-grid"></div>
         </div>
     </div>
@@ -52,6 +52,64 @@
         </div>
     </div>
 
+    <div id="party-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-height: 90vh;">
+            <div class="modal-header"><h2>Пати Лобби</h2><button class="close-btn" onclick="closeModal('party-modal')">✖</button></div>
+            
+            <div id="party-setup-view">
+                <button class="btn" style="background: #007aff; padding: 12px; font-size: 16px; margin-bottom: 10px;" onclick="apiCreateParty()">Создать Пати</button>
+                <div style="margin: 10px 0; color: #8e8e93;">ИЛИ</div>
+                <input type="text" id="party-code-input" class="promo-input" placeholder="КОД ПАТИ">
+                <button class="btn" style="background: #34c759; margin-top: 10px; padding: 12px; font-size: 16px;" onclick="apiJoinParty()">Войти</button>
+            </div>
+
+            <div id="party-active-view" style="display: none;">
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; margin-bottom: 15px;">
+                    Код Пати: <span id="current-party-code" style="color: #ffd700; font-weight: bold; letter-spacing: 2px;">XXXX</span>
+                </div>
+                
+                <h3 style="margin: 10px 0;">Игроки (1/4)</h3>
+                <div id="party-players-list" class="party-players-grid">
+                    </div>
+
+                <h3 style="margin: 20px 0 10px 0;">Мини-игры</h3>
+                <div class="party-games-grid">
+                    <div class="party-game-card" onclick="startMiniGame('mega_egg')">
+                        <div class="game-icon">🥚</div>
+                        <div class="game-title">Мега-Яйцо</div>
+                        <div class="game-desc">Кооп-фокус на 10 часов</div>
+                    </div>
+                    <div class="party-game-card" onclick="startMiniGame('tap_boss')">
+                        <div class="game-icon">⚔️</div>
+                        <div class="game-title">Тап-Битва</div>
+                        <div class="game-desc">Разбей босса за 60 сек</div>
+                    </div>
+                    <div class="party-game-card" onclick="startMiniGame('expedition')">
+                        <div class="game-icon">🗺️</div>
+                        <div class="game-title">Экспедиция</div>
+                        <div class="game-desc">Отправь петов в поход</div>
+                    </div>
+                </div>
+                
+                <button class="btn" style="background: #ff3b30; padding: 10px; font-size: 14px; margin-top: 20px;" onclick="apiLeaveParty()">Выйти из пати</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tap-boss-modal" class="modal" style="display: none; z-index: 3005;">
+        <div class="modal-content" style="background: #1c1c1e;">
+            <div class="modal-header"><h2>Битва!</h2></div>
+            <div style="font-size: 30px; font-weight: bold; color: #ff3b30;" id="boss-timer">60.0</div>
+            <div class="progress-bar-bg" style="height: 20px; margin: 15px 0;"><div id="boss-hp-bar" class="progress-bar-fill" style="background: #ff3b30; width: 100%;"></div></div>
+            <p>HP: <span id="boss-hp-text">10000/10000</span></p>
+            
+            <img id="boss-egg-img" src="assets/eggs/egg-glitch.png" style="width: 200px; height: 200px; object-fit: contain; margin: 20px auto; display: block;" onclick="tapBoss()">
+            
+            <p style="font-size: 12px; color: #888;">Тапай изо всех сил! Урон зависит от редкости твоего аватара.</p>
+        </div>
+    </div>
+
+
     <div id="profile-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Досье</h2><button class="close-btn" onclick="closeModal('profile-modal')">✖</button></div>
@@ -72,87 +130,6 @@
         </div>
     </div>
 
-    <div id="promo-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Ввести код</h2><button class="close-btn" onclick="closeModal('promo-modal')">✖</button></div>
-            <input type="text" id="promo-input" class="promo-input" placeholder="ВВЕДИТЕ КОД">
-            <button class="btn" style="background: #007aff; margin-top: 15px;" onclick="activatePromo()">Активировать ✨</button>
-        </div>
-    </div>
-
-    <div id="tutorial-modal" class="modal" style="display: none; z-index: 3000;">
-        <div class="modal-content" style="text-align: left;">
-            <div class="modal-header" style="justify-content: center;"><h2>🎓 Как играть?</h2></div>
-            <div class="tutorial-step">
-                <div class="tut-icon-wrapper"><img src="assets/ui/booster-speed.png" class="tut-icon-img"></div>
-                <div class="tut-text"><div class="tut-title">Фокус vs Инкубатор</div><div class="tut-desc">Фокус быстрее, но нельзя закрывать игру. Оффлайн дольше, но спи спокойно.</div></div>
-            </div>
-            <div class="tutorial-step">
-                <div class="tut-icon-wrapper"><img src="assets/ui/icon-trophy.png" class="tut-icon-img"></div>
-                <div class="tut-text"><div class="tut-title">Лаборатория</div><div class="tut-desc">Скрещивай 5 одинаковых петов для улучшения редкости!</div></div>
-            </div>
-            <button class="btn" style="background: #007aff; margin-top: 20px;" onclick="closeTutorial()">Погнали! 🚀</button>
-        </div>
-    </div>
-
-    <div id="levels-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Путь Фокуса</h2><button class="close-btn" onclick="closeModal('levels-modal')">✖</button></div>
-            <div id="levels-list" class="levels-list"></div>
-        </div>
-    </div>
-
-    <div id="daily-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Бонус</h2></div>
-            <div id="daily-grid" class="daily-grid"></div>
-            <button id="claim-btn" class="btn" style="background: #34c759; margin-top: 15px;" onclick="claimDaily()">Забрать</button>
-        </div>
-    </div>
-
-    <div id="settings-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Настройки</h2><button class="close-btn" onclick="closeModal('settings-modal')">✖</button></div>
-            <div class="settings-list">
-                <div class="setting-item"><span>Вибрация</span><label class="switch"><input type="checkbox" id="vibration-toggle" checked><span class="slider round"></span></label></div>
-                <div class="setting-item"><span>Звук</span><label class="switch"><input type="checkbox" id="sound-toggle"><span class="slider round"></span></label></div>
-                <button class="btn" style="background: #5856d6; margin-top: 15px; font-size: 14px; padding: 10px;" onclick="openPromo()">🎁 Промокод</button>
-                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
-                <button class="btn stop" style="font-size:14px; padding:10px;" onclick="hardReset()">Полный сброс</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="shop-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Магазин</h2><button class="close-btn" onclick="closeModal('shop-modal')">✖</button></div>
-            <div class="shop-tabs">
-                <button class="tab-btn active" onclick="switchShopTab('themes')">Фоны</button>
-                <button class="tab-btn" onclick="switchShopTab('eggs')">Яйца</button>
-                <button class="tab-btn" onclick="switchShopTab('boosters')">Бустеры</button>
-            </div>
-            <div id="shop-items" class="shop-grid"></div>
-        </div>
-    </div>
-
-    <div id="achievements-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Награды</h2><button class="close-btn" onclick="closeModal('achievements-modal')">✖</button></div>
-            <div class="shop-tabs">
-                <button class="tab-btn active" onclick="switchAchTab('achievements')">Ачивки</button>
-                <button class="tab-btn" onclick="switchAchTab('quests')">Квесты</button>
-            </div>
-            <div id="achievements-list" class="shop-grid" style="display: flex; flex-direction: column; gap: 10px;"></div>
-        </div>
-    </div>
-
-    <div id="pet-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Питомец</h2><button class="close-btn" onclick="closeModal('pet-modal')">✖</button></div>
-            <div id="pet-detail-view"></div>
-        </div>
-    </div>
-
     <div class="container">
         
         <div class="top-bar">
@@ -166,6 +143,9 @@
                 <button class="icon-btn" onclick="openAch()">
                     <img src="assets/ui/icon-trophy.png" class="header-icon-img">
                     <div id="ach-badge" class="red-dot" style="display: none;"></div>
+                </button>
+                <button class="icon-btn" style="background: rgba(52, 199, 89, 0.2); border: 1px solid #34c759;" onclick="openPartyModal()">
+                    <div style="font-size: 24px;">🤝</div>
                 </button>
             </div>
             <button class="icon-btn" onclick="openSettings()">
@@ -233,6 +213,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=48"></script>
+    <script src="script.js?v=50"></script>
 </body>
 </html>
