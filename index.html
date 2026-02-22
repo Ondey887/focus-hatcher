@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=47">
+    <link rel="stylesheet" href="style.css?v=48">
 </head>
 <body>
 
@@ -22,7 +22,33 @@
     <div id="inventory-modal" class="modal" style="display: none;">
         <div class="modal-content" style="max-height: 90vh;">
             <div class="modal-header"><h2>Моя Коллекция</h2><button class="close-btn" onclick="closeModal('inventory-modal')">✖</button></div>
+            <button class="btn" style="background: #5856d6; margin-bottom: 15px; padding: 12px; font-size: 16px;" onclick="openCraft()">🧪 Лаборатория (Синтез)</button>
             <div id="collection-container" class="collection-grid"></div>
+        </div>
+    </div>
+
+    <div id="craft-modal" class="modal" style="display: none; z-index: 3001;">
+        <div class="modal-content" style="max-height: 85vh;">
+            <div class="modal-header"><h2>Синтез</h2><button class="close-btn" onclick="closeModal('craft-modal')">✖</button></div>
+            <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Соедини 5 одинаковых петов, чтобы получить более редкого!</p>
+            <div id="craft-list" class="collection-grid"></div>
+        </div>
+    </div>
+
+    <div id="custom-egg-modal" class="modal" style="display: none; z-index: 3001;">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Конфиг Яйца</h2><button class="close-btn" onclick="closeModal('custom-egg-modal')">✖</button></div>
+            <p style="font-size: 14px; margin-bottom: 10px;">Какую редкость выращиваем?</p>
+            <select id="custom-rarity-select" class="promo-input" onchange="updateCustomEggTimes()">
+                <option value="all">Все редкости</option>
+                <option value="common">Только Обычные</option>
+                <option value="rare">Только Редкие</option>
+                <option value="legendary">Только Легенды</option>
+            </select>
+            <div id="custom-egg-times" style="margin-top: 15px; font-size: 14px; color: #8e8e93; font-weight: bold;">
+                Онлайн: 1 ч | Оффлайн: 5 ч
+            </div>
+            <button class="btn" style="background: #34c759; margin-top: 15px;" onclick="saveCustomEgg()">Применить</button>
         </div>
     </div>
 
@@ -59,15 +85,11 @@
             <div class="modal-header" style="justify-content: center;"><h2>🎓 Как играть?</h2></div>
             <div class="tutorial-step">
                 <div class="tut-icon-wrapper"><img src="assets/ui/booster-speed.png" class="tut-icon-img"></div>
-                <div class="tut-text"><div class="tut-title">Таймер</div><div class="tut-desc">Выбери время. Чем дольше — тем круче пет.</div></div>
-            </div>
-            <div class="tutorial-step">
-                <div class="tut-icon-wrapper"><img src="assets/ui/booster-afk.png" class="tut-icon-img"></div>
-                <div class="tut-text"><div class="tut-title">Фокус</div><div class="tut-desc">Не сворачивай игру (или купи Авто-Фокус).</div></div>
+                <div class="tut-text"><div class="tut-title">Фокус vs Инкубатор</div><div class="tut-desc">Фокус быстрее, но нельзя закрывать игру. Оффлайн дольше, но спи спокойно.</div></div>
             </div>
             <div class="tutorial-step">
                 <div class="tut-icon-wrapper"><img src="assets/ui/icon-trophy.png" class="tut-icon-img"></div>
-                <div class="tut-text"><div class="tut-title">Коллекция</div><div class="tut-desc">Собирай уникальных петов!</div></div>
+                <div class="tut-text"><div class="tut-title">Лаборатория</div><div class="tut-desc">Скрещивай 5 одинаковых петов для улучшения редкости!</div></div>
             </div>
             <button class="btn" style="background: #007aff; margin-top: 20px;" onclick="closeTutorial()">Погнали! 🚀</button>
         </div>
@@ -181,11 +203,26 @@
         </div>
 
         <div class="bottom-controls">
-            <div id="mode-info"><h2 id="mode-title">25 минут</h2><p id="mode-subtitle">Обычный шанс</p></div>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <div id="mode-info">
+                    <h2 id="mode-title">25 минут</h2>
+                    <p id="mode-subtitle">Обычный шанс</p>
+                </div>
+                <button id="custom-egg-btn" class="icon-btn" style="display: none; width: 36px; height: 36px; background: rgba(0, 122, 255, 0.3);" onclick="openCustomEggModal()">
+                    ⚙️
+                </button>
+            </div>
+
             <div id="boosters-panel" class="boosters-container"></div>
             <div id="timer">25:00</div>
+            <div id="offline-warning" style="display: none; color: #ff3b30; font-size: 12px; margin-bottom: 5px; font-weight: bold;">Не закрывай приложение!</div>
             
-            <button id="main-btn" class="btn" onclick="toggleTimer()">Начать фокус</button>
+            <div id="start-buttons-container" style="display: flex; gap: 10px; margin-bottom: 5px;">
+                <button class="btn" style="background-color: #ff3b30; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('online')">Фокус<br><span style="font-size: 10px; font-weight: normal;">(Быстро)</span></button>
+                <button class="btn" style="background-color: #007aff; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('offline')">Инкубатор<br><span style="font-size: 10px; font-weight: normal;">(Оффлайн)</span></button>
+            </div>
+
+            <button id="main-btn" class="btn stop" style="display: none;" onclick="stopTimer()">Сдаться</button>
             <button id="share-btn" class="btn share-btn" style="display: none;" onclick="handleShare()">Похвастаться 📢</button>
             
             <button class="inventory-btn-main" onclick="openInventory()">
@@ -196,6 +233,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=47"></script>
+    <script src="script.js?v=48"></script>
 </body>
 </html>
