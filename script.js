@@ -911,20 +911,26 @@ function applyEggSkin() {
 
 function updateLevelUI() { const max=userLevel*200; let p=(userXP/max)*100; if(p>100)p=100; getEl('xp-bar').style.width=`${p}%`; getEl('level-number').textContent=`Lvl ${userLevel}`; let r=Math.floor(userLevel/5); getEl('rank-name').textContent=RANKS[Math.min(r,RANKS.length-1)] || "Создатель"; }
 
-
 // =============================================================
-// МУЛЬТИПЛЕЕР И API (ФАЗА 2)
+// МУЛЬТИПЛЕЕР И API (БОЕВОЙ БЭКЕНД)
 // =============================================================
 
-const API_URL = "https://your-python-bot-backend.com/api"; 
+// ТВОЯ ССЫЛКА НА БОЕВОЙ СЕРВЕР:
+const API_URL = "https://focushatcher-ondey.amvera.io/api"; 
 let currentPartyCode = null;
 let partyPollingInterval = null;
 
-function getTgAuthData() {
-    if (window.Telegram && window.Telegram.WebApp) {
-        return window.Telegram.WebApp.initData || "debug_mode";
+// Получаем безопасные данные от Telegram
+function getTgUser() {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+        return {
+            id: String(window.Telegram.WebApp.initDataUnsafe.user.id),
+            name: window.Telegram.WebApp.initDataUnsafe.user.first_name
+        };
     }
-    return "debug_mode";
+    // Если открыли в браузере (не в ТГ), генерируем случайный ID для теста
+    if(!localStorage.getItem('fake_uid')) localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random()*10000));
+    return { id: localStorage.getItem('fake_uid'), name: "Игрок" };
 }
 
 function openPartyModal() {
@@ -940,59 +946,93 @@ function openPartyModal() {
     }
 }
 
+// СОЗДАНИЕ ПАТИ
 async function apiCreateParty() {
     playSound('click');
-    getEl('party-setup-view').innerHTML = "Создаем сервер...";
+    const btn = event.target; 
+    btn.textContent = "Создаем сервер...";
+    const user = getTgUser();
     
     try {
-        setTimeout(() => {
-            currentPartyCode = Math.floor(1000 + Math.random() * 9000).toString(); 
-            getEl('current-party-code').textContent = currentPartyCode;
-            getEl('party-setup-view').style.display = 'none';
-            getEl('party-active-view').style.display = 'block';
-            renderPartyPlayers([{ name: "Ты", avatar: selectedAvatar }]); 
-            showToast("Пати создано! Код: " + currentPartyCode, "🎮");
-        }, 1000);
+        const res = await fetch(`${API_URL}/party/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar })
+        });
+        const data = await res.json();
+        
+        currentPartyCode = data.partyCode;
+        getEl('current-party-code').textContent = currentPartyCode;
+        getEl('party-setup-view').style.display = 'none';
+        getEl('party-active-view').style.display = 'block';
+        showToast("Пати создано! Код: " + currentPartyCode, "🎮");
+        startPartyPolling();
     } catch (e) {
         showToast("Ошибка сервера", "❌");
-        closeModal('party-modal');
     }
+    btn.textContent = "Создать Пати";
 }
 
+// ВХОД В ПАТИ ПО КОДУ
 async function apiJoinParty() {
     playSound('click');
     const code = getEl('party-code-input').value.trim();
     if(code.length < 4) return showToast("Неверный код", "❌");
 
+    const user = getTgUser();
     try {
-        currentPartyCode = code;
-        getEl('current-party-code').textContent = currentPartyCode;
-        getEl('party-setup-view').style.display = 'none';
-        getEl('party-active-view').style.display = 'block';
-        renderPartyPlayers([{ name: "Ты", avatar: selectedAvatar }, { name: "Друг", avatar: "fox" }]);
-        showToast("Успешный вход!", "✅");
+        const res = await fetch(`${API_URL}/party/join`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code, user_id: user.id, name: user.name, avatar: selectedAvatar })
+        });
+        
+        if(res.ok) {
+            currentPartyCode = code;
+            getEl('current-party-code').textContent = currentPartyCode;
+            getEl('party-setup-view').style.display = 'none';
+            getEl('party-active-view').style.display = 'block';
+            showToast("Успешный вход!", "✅");
+            startPartyPolling();
+        } else {
+            showToast("Пати не найдено", "❌");
+        }
     } catch(e) {
-        showToast("Пати не найдено", "❌");
+        showToast("Ошибка соединения", "❌");
     }
 }
 
-function apiLeaveParty() {
+// ВЫХОД ИЗ ПАТИ
+async function apiLeaveParty() {
     playSound('click');
+    const user = getTgUser();
+    try {
+        await fetch(`${API_URL}/party/leave`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar })
+        });
+    } catch(e) {
+        console.log("Ошибка выхода", e);
+    }
+    
     currentPartyCode = null;
     clearInterval(partyPollingInterval);
     getEl('party-setup-view').style.display = 'block';
     getEl('party-active-view').style.display = 'none';
-    getEl('party-setup-view').innerHTML = `
-        <button class="btn" style="background: #007aff; padding: 12px; font-size: 16px; margin-bottom: 10px;" onclick="apiCreateParty()">Создать Пати</button>
-        <div style="margin: 10px 0; color: #8e8e93;">ИЛИ</div>
-        <input type="text" id="party-code-input" class="promo-input" placeholder="КОД ПАТИ">
-        <button class="btn" style="background: #34c759; margin-top: 10px; padding: 12px; font-size: 16px;" onclick="apiJoinParty()">Войти</button>
-    `;
 }
 
+// ОТРИСОВКА ИГРОКОВ В ЛОББИ
 function renderPartyPlayers(players) {
     const container = getEl('party-players-list');
     container.innerHTML = '';
+    
+    // Обновляем счетчик игроков
+    const header = document.querySelector('#party-active-view h3');
+    if (header && players.length) {
+        header.textContent = `Игроки (${players.length}/4)`;
+    }
+
     players.forEach(p => {
         container.innerHTML += `
             <div class="player-slot">
@@ -1003,67 +1043,109 @@ function renderPartyPlayers(players) {
     });
 }
 
+// ПОСТОЯННЫЙ ЗАПРОС К СЕРВЕРУ (Каждые 2 секунды)
 function startPartyPolling() {
+    if(partyPollingInterval) clearInterval(partyPollingInterval);
+    partyPollingInterval = setInterval(async () => {
+        if(!currentPartyCode) return;
+        try {
+            const res = await fetch(`${API_URL}/party/status/${currentPartyCode}`);
+            const data = await res.json();
+            renderPartyPlayers(data.players);
+            
+            // Синхронизация ХП босса, если окно открыто
+            if(getEl('tap-boss-modal').style.display === 'flex') {
+                bossHp = data.boss_hp;
+                bossMaxHp = data.boss_max_hp;
+                updateBossUI();
+                if(bossHp <= 0) handleBossDefeat();
+            }
+        } catch(e) {
+            console.log("Сервер не отвечает");
+        }
+    }, 2000);
 }
 
+// =============================================================
+// МИНИ-ИГРА: ТАП-БИТВА (БОСС)
+// =============================================================
 let bossHp = 10000;
 let bossMaxHp = 10000;
 let bossTimerInterval = null;
 let bossTimeLeft = 60;
+let bossIsDead = false;
 
 function startMiniGame(gameType) {
     playSound('click');
     if (gameType === 'tap_boss') {
         closeModal('party-modal');
         getEl('tap-boss-modal').style.display = 'flex';
-        
-        bossHp = 10000;
         bossTimeLeft = 60;
-        updateBossUI();
+        bossIsDead = false;
+        
+        // Первый запрос ХП сразу при открытии
+        fetch(`${API_URL}/party/status/${currentPartyCode}`)
+            .then(r => r.json())
+            .then(data => { bossHp = data.boss_hp; bossMaxHp = data.boss_max_hp; updateBossUI(); })
+            .catch(e => console.log(e));
         
         bossTimerInterval = setInterval(() => {
             bossTimeLeft -= 0.1;
             getEl('boss-timer').textContent = bossTimeLeft.toFixed(1);
-            if (bossTimeLeft <= 0) {
+            if (bossTimeLeft <= 0 && !bossIsDead) {
                 clearInterval(bossTimerInterval);
                 showToast("Время вышло! Босс победил...", "💀");
                 setTimeout(() => closeModal('tap-boss-modal'), 2000);
             }
         }, 100);
-        
     } else {
-        showToast("Режим в разработке (Нужен Сервер)", "🛠️");
+        showToast("Режим в разработке", "🛠️");
     }
 }
 
-function tapBoss() {
-    if (bossTimeLeft <= 0 || bossHp <= 0) return;
+async function tapBoss() {
+    if (bossTimeLeft <= 0 || bossHp <= 0 || bossIsDead) return;
     playSound('click');
     
+    // Урон зависит от редкости выбранного аватара
     let damage = 1;
     const r = getPetRarity(selectedAvatar);
     if(r === 'rare') damage = 5;
     if(r === 'legendary') damage = 20;
     
-    bossHp -= damage;
-    if (bossHp < 0) bossHp = 0;
-    
+    // Анимация удара
     const img = getEl('boss-egg-img');
     img.classList.remove('boss-hit-anim');
     void img.offsetWidth; 
     img.classList.add('boss-hit-anim');
     
+    // Оптимизация: визуально отнимаем сразу для плавности
+    bossHp -= damage;
+    if(bossHp < 0) bossHp = 0;
     updateBossUI();
     
-    if (bossHp === 0) {
-        clearInterval(bossTimerInterval);
-        playSound('win');
-        fireConfetti();
-        showToast("БОСС ПОВЕРЖЕН! +5000 монет", "🏆");
-        walletBalance += 5000;
-        saveData(); updateBalanceUI();
-        setTimeout(() => closeModal('tap-boss-modal'), 3000);
-    }
+    // Отправляем урон на сервер
+    try {
+        await fetch(`${API_URL}/party/damage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: currentPartyCode, damage: damage })
+        });
+    } catch(e) {}
+    
+    if (bossHp <= 0) handleBossDefeat();
+}
+
+function handleBossDefeat() {
+    if(bossIsDead) return;
+    bossIsDead = true;
+    clearInterval(bossTimerInterval);
+    playSound('win');
+    fireConfetti();
+    showToast("БОСС ПОВЕРЖЕН! +5000 монет", "🏆");
+    walletBalance += 5000;
+    saveData(); updateBalanceUI();
+    setTimeout(() => closeModal('tap-boss-modal'), 3000);
 }
 
 function updateBossUI() {
