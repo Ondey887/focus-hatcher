@@ -208,7 +208,6 @@ function openLevels() {
         const div = document.createElement('div'); div.className = `level-item ${isReached ? 'active' : 'locked'}`;
         
         let rewardText = info.reward || "Нет";
-        // ФИКС ОШИБКИ: ПРОВЕРКА НА NULL
         if(rewardText && rewardText.includes("монет")) rewardText = rewardText.replace("монет", `<img src="assets/ui/coin.png" style="width:16px;vertical-align:middle">`);
         
         div.innerHTML = `<div class="rank-icon">${status}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${rewardText}</div></div>`;
@@ -242,7 +241,6 @@ function openAvatarSelector() {
             selectedAvatar = pet;
             saveData();
             getEl('profile-avatar').src = getPetImg(pet);
-            // ФИКС РАЗМЕРА АВАТАРКИ ПРИ ВЫБОРЕ
             getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar">`;
             closeModal('avatar-modal');
             showToast("Аватар изменен!");
@@ -298,7 +296,6 @@ function initGame() {
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
 
     updateLevelUI(); updateBalanceUI(); applyTheme(); applyEggSkin(); updateUI(); 
-    // ФИКС РАЗМЕРА АВАТАРКИ ПРИ ЗАГРУЗКЕ
     if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
     
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
@@ -344,7 +341,6 @@ function loadFromCloud() {
             if (values.usedCodes) usedCodes = JSON.parse(values.usedCodes);
             if (values.tutorialSeen) localStorage.setItem('tutorialSeen', 'true');
             
-            // ФИКС РАЗМЕРА АВАТАРКИ ПРИ ЗАГРУЗКЕ ИЗ ОБЛАКА
             if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
             updateBalanceUI(); updateLevelUI(); applyTheme(); applyEggSkin();
             saveData(); 
@@ -473,7 +469,6 @@ function updateUI() {
     let t = m.time;
     if(activeBoosters.speed) t = Math.floor(t/2);
     if(!isRunning) { 
-        // ФИКС ХРОНОЛОГИИ: СБРОС КЛАССА КАРТИНКИ
         const eggDisplay = getEl('egg-display');
         eggDisplay.className = 'egg-img'; 
         
@@ -523,8 +518,15 @@ function startTimer(isResuming = false) {
         
         const progress = 1 - (timeLeft / totalTime);
         const overlay = getEl('crack-overlay');
-        if (progress > 0.3 && progress < 0.6) overlay.className = 'crack-overlay crack-stage-1';
-        else if (progress >= 0.6) overlay.className = 'crack-overlay crack-stage-2';
+        
+        // НОВАЯ ЛОГИКА ТРЕЩИН: 3 СТАДИИ ВМЕСТО ДВУХ
+        if (progress > 0.25 && progress < 0.5) {
+            overlay.className = 'crack-overlay crack-stage-1';
+        } else if (progress >= 0.5 && progress < 0.75) {
+            overlay.className = 'crack-overlay crack-stage-2';
+        } else if (progress >= 0.75) {
+            overlay.className = 'crack-overlay crack-stage-3';
+        }
 
         if(timeLeft <= 0) finishTimer();
     }, 1000);
@@ -587,7 +589,6 @@ function finishTimer() {
     
     const eggDisplay = getEl('egg-display');
     eggDisplay.src = `assets/pets/pet-${dropped}.png`;
-    
     eggDisplay.className = 'hatched-img';
     
     fireConfetti();
@@ -602,7 +603,6 @@ function openInventory() {
     if(!container) return;
     container.innerHTML = ''; 
     
-    // РЕНДЕР КОЛЛЕКЦИИ (ВОССТАНОВЛЕНА ЛОГИКА)
     ALL_PETS_FLAT.forEach(pet => {
         const count = collection.filter(p => p === pet).length;
         const r = getPetRarity(pet);
@@ -637,7 +637,6 @@ function openPetModal(pet, owned) {
     selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r]; playSound('click');
     getEl('pet-modal').style.display='flex';
     
-    // ДОБАВЛЕН СЛОВАРЬ ИМЕН
     const petName = PET_NAMES[pet] || "Питомец";
     
     getEl('pet-detail-view').innerHTML = owned ? 
