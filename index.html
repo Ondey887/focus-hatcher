@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=51">
+    <link rel="stylesheet" href="style.css?v=52">
 </head>
 <body>
 
@@ -67,10 +67,8 @@
                 <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; margin-bottom: 15px;">
                     Код Пати: <span id="current-party-code" style="color: #ffd700; font-weight: bold; letter-spacing: 2px;">XXXX</span>
                 </div>
-                
                 <h3 style="margin: 10px 0;">Игроки (1/4)</h3>
-                <div id="party-players-list" class="party-players-grid">
-                    </div>
+                <div id="party-players-list" class="party-players-grid"></div>
 
                 <h3 style="margin: 20px 0 10px 0;">Мини-игры</h3>
                 <div class="party-games-grid">
@@ -90,7 +88,6 @@
                         <div class="game-desc">Отправь петов в поход</div>
                     </div>
                 </div>
-                
                 <button class="btn" style="background: #ff3b30; padding: 10px; font-size: 14px; margin-top: 20px;" onclick="apiLeaveParty()">Выйти из пати</button>
             </div>
         </div>
@@ -98,17 +95,42 @@
 
     <div id="tap-boss-modal" class="modal" style="display: none; z-index: 3005;">
         <div class="modal-content" style="background: #1c1c1e;">
-            <div class="modal-header"><h2>Битва!</h2></div>
+            <div class="modal-header"><h2>Битва!</h2><button class="close-btn" onclick="closeModal('tap-boss-modal')">✖</button></div>
             <div style="font-size: 30px; font-weight: bold; color: #ff3b30;" id="boss-timer">60.0</div>
             <div class="progress-bar-bg" style="height: 20px; margin: 15px 0;"><div id="boss-hp-bar" class="progress-bar-fill" style="background: #ff3b30; width: 100%;"></div></div>
             <p>HP: <span id="boss-hp-text">10000/10000</span></p>
-            
             <img id="boss-egg-img" src="assets/eggs/egg-glitch.png" style="width: 200px; height: 200px; object-fit: contain; margin: 20px auto; display: block;" onclick="tapBoss()">
-            
             <p style="font-size: 12px; color: #888;">Тапай изо всех сил! Урон зависит от редкости твоего аватара.</p>
         </div>
     </div>
 
+    <div id="mega-egg-modal" class="modal" style="display: none; z-index: 3005;">
+        <div class="modal-content" style="background: #1c1c1e;">
+            <div class="modal-header"><h2>Мега-Яйцо</h2><button class="close-btn" onclick="closeModal('mega-egg-modal')">✖</button></div>
+            <img src="assets/eggs/egg-gold.png" style="width: 150px; height: 150px; object-fit: contain; margin: 10px auto; display: block; filter: drop-shadow(0 0 20px #ffd700);">
+            <p style="font-size: 14px; color: #d1d1d6; margin-bottom: 10px;">Любой онлайн-фокус участников Пати заполняет шкалу!</p>
+            <div class="progress-bar-bg" style="height: 25px; margin: 15px 0; border: 1px solid #ffd700;"><div id="mega-egg-bar" class="progress-bar-fill" style="background: linear-gradient(90deg, #ffcc00, #ff9500); width: 0%;"></div></div>
+            <p style="font-weight: bold; color: #ffd700; font-size: 18px;" id="mega-egg-text">0 / 10 Часов</p>
+            <button id="mega-egg-claim-btn" class="btn" style="background: #34c759; margin-top: 15px; display: none;" onclick="claimMegaEgg()">Расколоть! 🎁</button>
+        </div>
+    </div>
+
+    <div id="expedition-modal" class="modal" style="display: none; z-index: 3005;">
+        <div class="modal-content" style="background: #1c1c1e;">
+            <div class="modal-header"><h2>Экспедиция</h2><button class="close-btn" onclick="closeModal('expedition-modal')">✖</button></div>
+            <p style="font-size: 13px; color: #888; margin-bottom: 15px;">Отправьте ваших аватаров в поход. Чем они реже, тем больше золота!</p>
+            
+            <div id="expedition-info-view">
+                <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Начать (4 Часа)</button>
+            </div>
+
+            <div id="expedition-active-view" style="display: none;">
+                <div style="font-size: 40px; font-weight: bold; color: #34c759; margin: 20px 0; font-variant-numeric: tabular-nums;" id="expedition-timer">04:00:00</div>
+                <p style="color: #ffd700; font-weight: bold;">Множитель лута: x<span id="expedition-multiplier">1</span></p>
+                <button id="expedition-claim-btn" class="btn" style="background: #ffd700; color: black; margin-top: 15px; display: none;" onclick="claimExpedition()">Собрать Лут!</button>
+            </div>
+        </div>
+    </div>
 
     <div id="profile-modal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -212,7 +234,6 @@
     </div>
 
     <div class="container">
-        
         <div class="top-bar">
             <div class="left-buttons">
                 <button id="header-profile-btn" class="icon-btn" onclick="openProfile()">
@@ -269,9 +290,7 @@
                     <h2 id="mode-title">25 минут</h2>
                     <p id="mode-subtitle">Обычный шанс</p>
                 </div>
-                <button id="custom-egg-btn" class="icon-btn" style="display: none; width: 36px; height: 36px; background: rgba(0, 122, 255, 0.3);" onclick="openCustomEggModal()">
-                    ⚙️
-                </button>
+                <button id="custom-egg-btn" class="icon-btn" style="display: none; width: 36px; height: 36px; background: rgba(0, 122, 255, 0.3);" onclick="openCustomEggModal()">⚙️</button>
             </div>
 
             <div id="boosters-panel" class="boosters-container"></div>
@@ -286,14 +305,12 @@
             <button id="main-btn" class="btn stop" style="display: none;" onclick="stopTimer()">Сдаться</button>
             <button id="share-btn" class="btn share-btn" style="display: none;" onclick="handleShare()">Похвастаться 📢</button>
             
-            <button class="inventory-btn-main" onclick="openInventory()">
-                Моя коллекция ▼
-            </button>
+            <button class="inventory-btn-main" onclick="openInventory()">Моя коллекция ▼</button>
         </div>
     </div>
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=51"></script>
+    <script src="script.js?v=52"></script>
 </body>
 </html>
