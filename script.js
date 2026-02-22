@@ -78,7 +78,7 @@ function fireConfetti() {
 }
 
 // =============================================================
-// 4. КОНСТАНТЫ
+// 4. КОНСТАНТЫ И СЛОВАРИ
 // =============================================================
 const MODES = [
     { id: 'short', time: 10, xpReward: 250, egg: 'default', title: '25 минут', sub: 'Шанс Легендарки: 1%', style: '' },
@@ -96,12 +96,15 @@ const PET_NAMES = {
     "fireball": "Огонек", "god": "Бог Фокуса"
 };
 
+// ОБНОВЛЕННЫЕ НАГРАДЫ ДО 100 УРОВНЯ
 const LEVEL_REWARDS = {
     1: { title: "Новичок", reward: null },
     5: { title: "Искатель", reward: "1000 монет" },
-    10: { title: "Укротитель", reward: "Уникальный: <img src='assets/pets/pet-god.png' style='width:24px;vertical-align:middle'> God" },
-    20: { title: "Мастер", reward: "5000 монет" },
-    50: { title: "Бог Фокуса", reward: "???" }
+    10: { title: "Укротитель", reward: "5000 монет" },
+    20: { title: "Мастер", reward: "10000 монет" },
+    50: { title: "Легенда", reward: "Уникальный: <img src='assets/pets/pet-god.png' style='width:24px;vertical-align:middle'> God" },
+    75: { title: "Мифик", reward: "Уникальный: Пегас" },
+    100: { title: "Создатель", reward: "Уникальный: Властелин Времени" }
 };
 
 const petDatabase = {
@@ -201,7 +204,7 @@ function hardReset() { if(confirm("Сбросить все?")) { localStorage.cl
 function openLevels() {
     playSound('click');
     const list = getEl('levels-list'); list.innerHTML = '';
-    for (let lvl = 1; lvl <= 50; lvl++) {
+    for (let lvl = 1; lvl <= 100; lvl++) {
         if (!LEVEL_REWARDS[lvl]) continue;
         const info = LEVEL_REWARDS[lvl]; const isReached = userLevel >= lvl;
         const status = isReached ? `<img src="assets/ui/icon-check.png" style="width:20px">` : `<img src="assets/ui/icon-lock.png" style="width:20px">`;
@@ -218,12 +221,20 @@ function openLevels() {
 
 function openProfile() {
     playSound('click');
-    getEl('profile-rank').textContent = RANKS[Math.floor(userLevel / 5)] || "Бог Фокуса";
+    getEl('profile-rank').textContent = RANKS[Math.floor(userLevel / 5)] || "Создатель";
     getEl('profile-level').textContent = `Уровень ${userLevel}`;
     getEl('stat-hatched').textContent = userStats.hatched || 0;
-    getEl('stat-earned').textContent = userStats.earned || 0;
-    getEl('stat-invites').textContent = userStats.invites || 0;
     getEl('stat-unique').textContent = new Set(collection).size;
+    getEl('stat-invites').textContent = userStats.invites || 0;
+    
+    // СИСТЕМА ФОРБС (РАСЧЕТ КАПИТАЛА)
+    let netWorth = walletBalance;
+    collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
+    ownedItems.themes.forEach(t => { const item = SHOP_DATA.themes.find(x=>x.id===t); if(item) netWorth += item.price; });
+    ownedItems.eggs.forEach(e => { const item = SHOP_DATA.eggs.find(x=>x.id===e); if(item) netWorth += item.price; });
+    
+    getEl('stat-earned').textContent = netWorth; 
+
     getEl('profile-avatar').src = getPetImg(selectedAvatar);
     getEl('profile-modal').style.display = 'flex';
 }
@@ -301,6 +312,7 @@ function initGame() {
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     
+    // ЖЕСТКАЯ СИНХРОНИЗАЦИЯ С ОБЛАКОМ
     loadFromCloud();
 }
 
@@ -478,6 +490,9 @@ function updateUI() {
              applyEggSkin();
         }
         getEl('timer').textContent = formatTime(t); 
+        
+        // Скрываем инфо о пете при смене режима
+        getEl('hatched-info').style.display = 'none';
     }
     getEl('mode-title').textContent = m.title;
     getEl('mode-subtitle').textContent = m.sub;
@@ -501,6 +516,9 @@ function startTimer(isResuming = false) {
     getEl('main-btn').textContent = "Сдаться"; getEl('main-btn').className = "btn stop";
     getEl('share-btn').style.display = 'none'; getEl('prev-btn').style.visibility = 'hidden'; getEl('next-btn').style.visibility = 'hidden';
     
+    // Скрываем инфо о пете
+    getEl('hatched-info').style.display = 'none';
+    
     if (!isResuming) {
         if (m.egg === 'diamond') getEl('egg-display').src = 'assets/eggs/egg-diamond.png';
         else applyEggSkin();
@@ -519,6 +537,7 @@ function startTimer(isResuming = false) {
         const progress = 1 - (timeLeft / totalTime);
         const overlay = getEl('crack-overlay');
         
+        // 3 СТАДИИ ТРЕЩИН
         if (progress > 0.25 && progress < 0.5) {
             overlay.className = 'crack-overlay crack-stage-1';
         } else if (progress >= 0.5 && progress < 0.75) {
@@ -544,6 +563,7 @@ function stopTimer() {
     eggDisplay.classList.remove('shaking'); 
     
     getEl('crack-overlay').className = 'crack-overlay';
+    getEl('hatched-info').style.display = 'none';
     updateUI(); 
     renderBoostersPanel();
     showToast("Фокус прерван", "⚠️");
@@ -564,7 +584,7 @@ function finishTimer() {
     if(userXP >= userLevel * 200) { 
         userXP -= userLevel * 200; userLevel++; 
         showToast(`Lvl UP: ${userLevel}`, "🎉"); playSound('win'); 
-        if (userLevel === 10) { collection.push("god"); showToast("Получен: 🐲 God", "🎁"); }
+        if (userLevel === 50) { collection.push("god"); showToast("Получен: 🐲 God", "🎁"); }
     }
     
     localStorage.setItem('userXP', userXP); localStorage.setItem('userLevel', userLevel); updateLevelUI();
@@ -588,7 +608,17 @@ function finishTimer() {
     
     const eggDisplay = getEl('egg-display');
     eggDisplay.src = `assets/pets/pet-${dropped}.png`;
-    eggDisplay.className = 'hatched-img';
+    
+    // ДОБАВЛЕН КЛАСС РЕДКОСТИ ДЛЯ СВЕЧЕНИЯ
+    eggDisplay.className = `hatched-img ${getPetRarity(dropped)}`;
+    
+    // ПОКАЗЫВАЕМ ИНФО О ПЕТЕ
+    const infoBox = getEl('hatched-info');
+    getEl('hatched-name').textContent = PET_NAMES[dropped] || "Питомец";
+    const rarityElem = getEl('hatched-rarity');
+    rarityElem.textContent = getPetRarity(dropped);
+    rarityElem.className = getPetRarity(dropped);
+    infoBox.style.display = 'block';
     
     fireConfetti();
     showToast(`Получено!`, "🐣");
