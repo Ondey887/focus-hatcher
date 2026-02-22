@@ -1,5 +1,5 @@
 // =============================================================
-// 1. ЛОВУШКА ОШИБОК И ЗВУК
+// 1. ЛОВУШКА ОШИБОК
 // =============================================================
 const debugConsole = document.getElementById('debug-console');
 window.onerror = function(msg, source, lineno) {
@@ -8,6 +8,9 @@ window.onerror = function(msg, source, lineno) {
     return false;
 };
 
+// =============================================================
+// 2. АУДИО ДВИЖОК
+// =============================================================
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx = new AudioContext();
 
@@ -16,7 +19,8 @@ function playSound(type) {
     if (audioCtx.state === 'suspended') audioCtx.resume(); 
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
-    osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
     const now = audioCtx.currentTime;
 
     if (type === 'click') {
@@ -44,7 +48,7 @@ function playNote(freq, time, duration) {
 }
 
 // =============================================================
-// КОНФЕТТИ
+// 3. КОНФЕТТИ
 // =============================================================
 function fireConfetti() {
     const canvas = document.getElementById('confetti-canvas');
@@ -74,9 +78,8 @@ function fireConfetti() {
 }
 
 // =============================================================
-// КОНСТАНТЫ
+// 4. КОНСТАНТЫ И СЛОВАРИ
 // =============================================================
-// Добавлен 3 мод - Кастомное яйцо
 const MODES = [
     { id: 'short', timeOnline: 25 * 60, timeOffline: 6 * 3600, xpReward: 250, egg: 'default', title: '25 минут', sub: 'Шанс Легендарки: 1%' },
     { id: 'long', timeOnline: 60 * 60, timeOffline: 12 * 3600, xpReward: 1000, egg: 'diamond', title: '60 минут', sub: 'Шанс Легендарки: 5% 🔥' },
@@ -115,7 +118,6 @@ const petDatabase = {
 const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, "god"];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
 
-// НОВЫЕ АЧИВКИ (Пункт 7)
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
     { id: 'rich_kid', title: 'Богач', desc: 'Заработай 1000', goal: 1000, type: 'money', reward: 500 },
@@ -132,7 +134,6 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
-// УБРАН БУСТЕР AFK
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
@@ -176,7 +177,7 @@ let isVibrationOn = true, isSoundOn = false;
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
 let activeBoosters = { luck: false, speed: false };
-let currentHatchMode = 'none'; // online or offline
+let currentHatchMode = 'none'; 
 let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 
 // =============================================================
@@ -327,7 +328,6 @@ function openProfile() {
     getEl('stat-unique').textContent = new Set(collection).size;
     getEl('stat-invites').textContent = userStats.invites || 0;
     
-    // СИСТЕМА ФОРБС (Капитал)
     let netWorth = walletBalance;
     collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
     ownedItems.themes.forEach(t => { const item = SHOP_DATA.themes.find(x=>x.id===t); if(item) netWorth += item.price; });
@@ -356,24 +356,92 @@ function checkAchievements() {
     getEl('ach-badge').style.display = has ? 'block' : 'none';
 }
 
-// ... (остальной код ачивок, промо, туториала и т.д. без изменений)
-function openAvatarSelector() { /* как было */ }
-function openPromo() { /* как было */ }
-function activatePromo() { /* как было */ }
-function checkTutorial() { /* как было */ }
-window.closeTutorial = function() { /* как было */ }
-function checkDailyReward() { /* как было */ }
-function renderDailyModal(curr) { /* как было */ }
-window.claimDaily = function() { /* как было */ }
+function openAvatarSelector() {
+    playSound('click');
+    const list = getEl('avatar-list'); list.innerHTML = '';
+    const uniquePets = [...new Set(collection)];
+    if (uniquePets.length === 0) { list.innerHTML = "<p style='color:#888; grid-column:span 4;'>Сначала выбей питомца!</p>"; }
+    uniquePets.forEach(pet => {
+        const div = document.createElement('div');
+        div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
+        div.innerHTML = `<img src="assets/pets/pet-${pet}.png">`;
+        div.onclick = () => {
+            selectedAvatar = pet;
+            saveData();
+            getEl('profile-avatar').src = getPetImg(pet);
+            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar">`;
+            closeModal('avatar-modal');
+            showToast("Аватар изменен!");
+        };
+        list.appendChild(div);
+    });
+    getEl('avatar-modal').style.display = 'flex';
+}
+
+function openPromo() { playSound('click'); getEl('settings-modal').style.display = 'none'; getEl('promo-modal').style.display = 'flex'; }
+function activatePromo() {
+    const input = getEl('promo-input'); const code = input.value.toUpperCase().trim();
+    if (usedCodes.includes(code)) { showToast("Уже активирован!", "🚫"); return; }
+    if (PROMO_CODES[code]) {
+        const reward = PROMO_CODES[code];
+        if (reward.type === 'money') { walletBalance += reward.val; showToast(`+${reward.val}`, 'img'); } 
+        else if (reward.type === 'booster') { if (!myBoosters[reward.id]) myBoosters[reward.id] = 0; myBoosters[reward.id] += reward.val; showToast(`+${reward.val} буст`, 'img'); }
+        usedCodes.push(code); saveData(); updateBalanceUI(); playSound('win'); closeModal('promo-modal'); input.value = "";
+    } else { showToast("Неверный код", "❌"); }
+}
+
+function checkTutorial() { if (!localStorage.getItem('tutorialSeen')) getEl('tutorial-modal').style.display = 'flex'; }
+window.closeTutorial = function() { playSound('click'); localStorage.setItem('tutorialSeen', 'true'); getEl('tutorial-modal').style.display = 'none'; checkDailyReward(); }
+
+function checkDailyReward() {
+    const today = new Date().toDateString();
+    const lastLogin = localStorage.getItem('lastLoginDate');
+    let streak = parseInt(localStorage.getItem('dailyStreak')) || 0;
+    if (lastLogin === today) return; 
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    if (lastLogin !== yesterday.toDateString()) streak = 0;
+    renderDailyModal(streak);
+    getEl('daily-modal').style.display = 'flex';
+    playSound('win'); 
+}
+function renderDailyModal(curr) {
+    const g = getEl('daily-grid'); g.innerHTML = '';
+    DAILY_REWARDS.forEach((r, i) => {
+        const d = document.createElement('div');
+        let st = ''; if(i<curr) st='claimed'; if(i===curr) st='active';
+        d.className = `daily-item ${st}`;
+        
+        let iconHTML = '';
+        if (r.type === 'money') iconHTML = `<img src="assets/ui/coin.png" class="daily-icon-img">`;
+        else if (r.type === 'booster' && r.id === 'speed') iconHTML = `<img src="assets/ui/booster-speed.png" class="daily-icon-img">`;
+        else if (r.type === 'mixed') iconHTML = `<img src="assets/ui/icon-trophy.png" class="daily-icon-img">`; 
+        
+        let v = (r.type==='money'||r.type==='mixed') ? `+${r.money||r.val}` : '+1 Буст';
+        d.innerHTML = `<div class="daily-day">День ${r.day}</div>${iconHTML}<div class="daily-val">${v}</div>`;
+        g.appendChild(d);
+    });
+}
+window.claimDaily = function() {
+    let s = parseInt(localStorage.getItem('dailyStreak')) || 0;
+    const t = new Date().toDateString();
+    const l = localStorage.getItem('lastLoginDate');
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    if (l && l !== y.toDateString()) s = 0;
+    const r = DAILY_REWARDS[s];
+    if (r.type === 'money') walletBalance += r.val;
+    else if (r.type === 'booster') { if (!myBoosters[r.id]) myBoosters[r.id] = 0; myBoosters[r.id]++; } 
+    else if (r.type === 'mixed') { walletBalance += r.money; if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; myBoosters[r.booster]++; }
+    s++; if (s >= 7) s = 0;
+    localStorage.setItem('dailyStreak', s); localStorage.setItem('lastLoginDate', t);
+    saveData(); updateBalanceUI(); showToast("Награда получена!", "📅"); getEl('daily-modal').style.display = 'none'; playSound('money');
+}
 
 // =============================================================
-// ТАЙМЕР И ФОКУС (ОНЛАЙН / ОФФЛАЙН)
+// ТАЙМЕР И ФОКУС
 // =============================================================
-
-// ПРЕРЫВАНИЕ ФОКУСА ПРИ СВОРАЧИВАНИИ
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isRunning && currentHatchMode === 'online') {
-        stopTimer(true); // true = failed focus
+        stopTimer(true); 
     }
 });
 
@@ -407,7 +475,6 @@ function createBoosterBtn(type, img, count, isActive) {
 function prevMode() { if(!isRunning) { currentModeIndex--; if(currentModeIndex<0) currentModeIndex=MODES.length-1; updateUI(); playSound('click'); }}
 function nextMode() { if(!isRunning) { currentModeIndex++; if(currentModeIndex>=MODES.length) currentModeIndex=0; updateUI(); playSound('click'); }}
 
-// КАСТОМНОЕ ЯЙЦО
 function openCustomEggModal() { getEl('custom-egg-modal').style.display='flex'; updateCustomEggTimes(); }
 function updateCustomEggTimes() {
     const r = getEl('custom-rarity-select').value;
@@ -427,11 +494,10 @@ function updateUI() {
     const m = MODES[currentModeIndex];
     let t = currentModeIndex === 2 ? customEggConfig.timeOnline : m.timeOnline;
     
-    // ПРЕДПРОСМОТР ВРЕМЕНИ ОНЛАЙН С УЧЕТОМ БУСТЕРА
     if(activeBoosters.speed) {
-        if (currentModeIndex === 0) t = 20 * 60; // 20 мин
-        else if (currentModeIndex === 1) t = 45 * 60; // 45 мин
-        else t = Math.floor(t * 0.7); // -30% для кастомного
+        if (currentModeIndex === 0) t = 20 * 60; 
+        else if (currentModeIndex === 1) t = 45 * 60; 
+        else t = Math.floor(t * 0.7); 
     }
 
     if(!isRunning) { 
@@ -443,8 +509,6 @@ function updateUI() {
         
         getEl('timer').textContent = formatTime(t); 
         getEl('hatched-info').style.display = 'none';
-        
-        // Показываем шестеренку только для кастомного
         getEl('custom-egg-btn').style.display = currentModeIndex === 2 ? 'block' : 'none';
     }
     
@@ -464,7 +528,7 @@ function checkBackgroundHatch() {
         const now = Date.now();
         if (now >= hatchEndTime) {
             timeLeft = 0;
-            finishTimer(true); // true = из инкубатора
+            finishTimer(true); 
             localStorage.removeItem('hatchEndTime');
             showToast("Яйцо из инкубатора готово!", "🤖");
         } else {
@@ -480,14 +544,12 @@ function startTimer(mode, isResuming = false) {
     let baseTime = 0;
     
     if (!isResuming) {
-        // Устанавливаем время
         if (currentModeIndex === 2) {
             baseTime = mode === 'online' ? customEggConfig.timeOnline : customEggConfig.timeOffline;
         } else {
             baseTime = mode === 'online' ? m.timeOnline : m.timeOffline;
         }
 
-        // Применяем бустер скорости
         if (activeBoosters.speed) {
             if (currentModeIndex === 0 && mode === 'online') baseTime = 20 * 60; 
             else if (currentModeIndex === 1 && mode === 'online') baseTime = 45 * 60;
@@ -499,7 +561,6 @@ function startTimer(mode, isResuming = false) {
         
         timeLeft = baseTime;
         
-        // Сохраняем ТОЛЬКО ДЛЯ ОФФЛАЙН режима
         if (mode === 'offline') {
             localStorage.setItem('hatchEndTime', Date.now() + timeLeft * 1000);
             localStorage.setItem('hatchEggType', currentModeIndex);
@@ -566,7 +627,7 @@ function stopTimer(failed = false) {
     renderBoostersPanel();
     if (failed) {
         showToast("Фокус прерван! Яйцо разбито...", "❌");
-        playSound('click'); // можно добавить звук ошибки
+        playSound('click'); 
     } else {
         showToast("Выращивание отменено", "⚠️");
     }
@@ -589,7 +650,6 @@ function finishTimer(fromOffline = false) {
         userXP -= userLevel * 200; userLevel++; 
         showToast(`Lvl UP: ${userLevel}`, "🎉"); playSound('win'); 
         if (LEVEL_REWARDS[userLevel] && LEVEL_REWARDS[userLevel].reward && LEVEL_REWARDS[userLevel].reward.includes('Уникальный')) {
-            // выдаем уникального
             if(userLevel===50) { collection.push("god"); showToast("Получен: 🐲 God", "🎁"); }
         }
     }
@@ -599,11 +659,9 @@ function finishTimer(fromOffline = false) {
     
     let pool;
     if (currentModeIndex === 2 && customEggConfig.target !== 'all') {
-        // КАСТОМНОЕ ЯЙЦО - ЖЕСТКАЯ РЕДКОСТЬ
         pool = petDatabase[customEggConfig.target];
         playSound(customEggConfig.target === 'legendary' ? 'legendary' : 'win');
     } else {
-        // ОБЫЧНАЯ ЛОГИКА
         let leg = m.id==='short'?1:5; let rare=m.id==='short'?15:30;
         if(activeBoosters.luck) { leg*=5; myBoosters.luck--; activeBoosters.luck=false; }
         
@@ -635,7 +693,7 @@ function finishTimer(fromOffline = false) {
 }
 
 // =============================================================
-// ЛАБОРАТОРИЯ (КРАФТ) - Пункт 6
+// ЛАБОРАТОРИЯ (КРАФТ) - ТОЛЬКО ОБЫЧНЫЕ (ОБНОВЛЕНО)
 // =============================================================
 function openCraft() {
     closeModal('inventory-modal');
@@ -643,7 +701,8 @@ function openCraft() {
     const c = getEl('craft-list'); c.innerHTML = '';
     let canCraft = false;
     
-    [...petDatabase.common, ...petDatabase.rare].forEach(pet => {
+    // ИЗМЕНЕНИЕ: ТЕПЕРЬ МОЖНО КРАФТИТЬ ТОЛЬКО ОБЫЧНЫХ (COMMON) ПЕТОВ
+    [...petDatabase.common].forEach(pet => {
         const count = collection.filter(p => p === pet).length;
         if(count >= 5) {
             canCraft = true;
@@ -655,7 +714,7 @@ function openCraft() {
             c.appendChild(d);
         }
     });
-    if(!canCraft) c.innerHTML = '<p style="grid-column: span 4; color: #888;">Собери 5 одинаковых петов, чтобы скрафтить!</p>';
+    if(!canCraft) c.innerHTML = '<p style="grid-column: span 4; color: #888;">Собери 5 одинаковых обычных петов, чтобы скрафтить редкого!</p>';
 }
 
 function craftPet(basePet) {
@@ -669,24 +728,10 @@ function craftPet(basePet) {
         let newPet = '';
         if (petDatabase.common.includes(basePet)) {
             newPet = petDatabase.rare[Math.floor(Math.random() * petDatabase.rare.length)];
-            showToast(`Успех! Получен Редкий`, '🧪');
+            showToast(`Успех! Получен Редкий петомец`, '🧪');
             playSound('win');
-        } else if (petDatabase.rare.includes(basePet)) {
-            // Шанс 1% на уникального God
-            if (Math.random() < 0.01) {
-                newPet = 'god'; 
-                showToast(`КРИТИЧЕСКИЙ УСПЕХ!`, '🔥');
-                playSound('legendary');
-                if (!claimedAchievements.includes('craft_unique')) {
-                    claimedAchievements.push('craft_unique');
-                    walletBalance += 5000;
-                }
-            } else {
-                newPet = petDatabase.legendary[Math.floor(Math.random() * petDatabase.legendary.length)];
-                showToast(`Успех! Получена Легенда`, '🧪');
-                playSound('legendary');
-            }
-        }
+        } 
+        // Крафт редких петов полностью вырезан отсюда!
         
         collection.push(newPet);
         if(!userStats.crafts) userStats.crafts = 0;
@@ -728,6 +773,10 @@ function openInventory() {
     });
 
     document.getElementById('inventory-modal').style.display = 'flex';
+}
+
+function toggleInventory() {
+    openInventory(); 
 }
 
 function openPetModal(pet, owned) {
