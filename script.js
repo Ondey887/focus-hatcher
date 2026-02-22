@@ -519,7 +519,6 @@ function startTimer(isResuming = false) {
         const progress = 1 - (timeLeft / totalTime);
         const overlay = getEl('crack-overlay');
         
-        // НОВАЯ ЛОГИКА ТРЕЩИН: 3 СТАДИИ ВМЕСТО ДВУХ
         if (progress > 0.25 && progress < 0.5) {
             overlay.className = 'crack-overlay crack-stage-1';
         } else if (progress >= 0.5 && progress < 0.75) {
