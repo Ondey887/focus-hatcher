@@ -382,3 +382,30 @@ input:checked + .slider:before { transform: translateX(24px); }
 .expedition-scene.space-bg {
     background-image: url('assets/bg/bg-space.jpg');
 }
+/* === НОВЫЕ ФОНЫ ЭКСПЕДИЦИИ === */
+.expedition-scene.forest-bg {
+    background-image: url('assets/bg/bg-forest.jpg');
+}
+.expedition-scene.mountains-bg {
+    background-image: url('assets/bg/bg-space.jpg'); /* Пока нет картинки гор, используем космос */
+    background: linear-gradient(180deg, #87CEEB, #ffffff);
+}
+.expedition-scene.space-bg {
+    background-image: url('assets/bg/bg-space.jpg');
+}
+
+/* === АНИМАЦИИ ВОЛКА И БОНУСОВ === */
+@keyframes flyBonus {
+    0% { transform: translateX(450px) translateY(0px); opacity: 1; }
+    50% { transform: translateX(200px) translateY(-20px); }
+    100% { transform: translateX(-50px) translateY(0px); opacity: 0; }
+}
+.flying-bonus {
+    position: absolute; font-size: 30px; z-index: 5;
+    animation: flyBonus 4s linear forwards; cursor: pointer;
+    text-shadow: 0 0 10px rgba(255,215,0,0.8);
+}
+.wolf-hit { 
+    transform: scale(0.8) rotate(-10deg) !important; 
+    filter: drop-shadow(0 0 15px red); 
+}

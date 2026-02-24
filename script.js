@@ -71,9 +71,6 @@ function closeModal(id) {
     }
 }
 
-// =============================================================
-// 3. КОНФЕТТИ И УТИЛИТЫ
-// =============================================================
 function fireConfetti() {
     const canvas = document.getElementById('confetti-canvas'); if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -216,8 +213,6 @@ let userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0 };
 let myBoosters = { luck: 0, speed: 0 };
 let claimedAchievements = [], claimedQuests = [], usedCodes = [];
 let isVibrationOn = true, isSoundOn = false;
-
-// ПЕГАС
 let pegasusShards = 0;
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
@@ -225,9 +220,7 @@ let activeBoosters = { luck: false, speed: false };
 let currentHatchMode = 'none'; 
 let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 
-// =============================================================
-// МУЛЬТИПЛЕЕР: ПЕРЕМЕННЫЕ
-// =============================================================
+// МУЛЬТИПЛЕЕР
 let currentPartyCode = null;
 let partyPollingInterval = null;
 let isPartyLeader = false;
@@ -235,15 +228,11 @@ let currentActiveGame = 'none';
 let currentPartyPlayersData = [];
 let invitesPollingInterval = null;
 let currentPendingInviteId = null;
-
 let currentExpeditionLocation = 'forest'; 
 
 function getTgUser() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-        return {
-            id: String(window.Telegram.WebApp.initDataUnsafe.user.id),
-            name: window.Telegram.WebApp.initDataUnsafe.user.first_name
-        };
+        return { id: String(window.Telegram.WebApp.initDataUnsafe.user.id), name: window.Telegram.WebApp.initDataUnsafe.user.first_name };
     }
     if(!localStorage.getItem('fake_uid')) localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random()*10000));
     return { id: localStorage.getItem('fake_uid'), name: "Игрок" };
@@ -912,98 +901,6 @@ function finishTimer(fromOffline = false) {
 }
 
 // =============================================================
-// ЛАБОРАТОРИЯ (СИНТЕЗ И ПЕГАС)
-// =============================================================
-function openCraft() {
-    getEl('pegasus-shards-count').textContent = pegasusShards;
-    if(pegasusShards >= 10) {
-        getEl('craft-pegasus-btn').className = "btn";
-        getEl('craft-pegasus-btn').style.background = "#ffd700";
-        getEl('craft-pegasus-btn').style.color = "black";
-    } else {
-        getEl('craft-pegasus-btn').className = "btn locked";
-    }
-
-    const c = getEl('craft-list'); c.innerHTML = ''; let canCraft = false;
-    [...petDatabase.common].forEach(pet => {
-        const count = collection.filter(p => p === pet).length;
-        if(count >= 5) {
-            canCraft = true; const r = getPetRarity(pet); const d = document.createElement('div'); d.className = `pet-slot ${r}`;
-            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot"><div class="slot-count" style="background:#ff3b30">${count}/5</div>`;
-            d.onclick = () => craftPet(pet); c.appendChild(d);
-        }
-    });
-    if(!canCraft) c.innerHTML = '<p style="grid-column: span 4; color: #888;">Собери 5 одинаковых обычных петов!</p>';
-    openModal('craft-modal');
-}
-
-function craftPegasus() {
-    if(pegasusShards >= 10) {
-        pegasusShards -= 10;
-        collection.push("pegasus");
-        saveData(); updateBalanceUI();
-        playSound('win'); fireConfetti();
-        showToast("МИФИК СОЗДАН: Пегас! 🦄", "🌟");
-        openCraft();
-    } else {
-        showToast("Не хватает осколков!", "❌");
-    }
-}
-
-function craftPet(basePet) {
-    if(confirm(`Соединить 5x ${PET_NAMES[basePet]}?`)) {
-        let removed = 0;
-        collection = collection.filter(p => {
-            if(p === basePet && removed < 5) { removed++; return false; }
-            return true;
-        });
-        let newPet = petDatabase.rare[Math.floor(Math.random() * petDatabase.rare.length)];
-        showToast(`Успех! Получен Редкий петомец`, '🧪'); playSound('win');
-        collection.push(newPet); if(!userStats.crafts) userStats.crafts = 0; userStats.crafts++;
-        saveData(); updateBalanceUI(); 
-        openInventory(); openCraft();
-    }
-}
-
-function openInventory() {
-    const container = document.getElementById('collection-container'); 
-    if(!container) return; container.innerHTML = ''; 
-    ALL_PETS_FLAT.forEach(pet => {
-        const count = collection.filter(p => p === pet).length;
-        const r = getPetRarity(pet); const d = document.createElement('div');
-        if(count > 0) {
-            d.className = `pet-slot ${r}`; d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot">`;
-            if(count > 1) { const b = document.createElement('div'); b.className = 'slot-count'; b.textContent = `x${count}`; d.appendChild(b); }
-            d.onclick = () => openPetModal(pet, true);
-        } else {
-            d.className = `pet-slot locked`; d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot">`;
-            d.onclick = () => openPetModal(pet, false);
-        }
-        container.appendChild(d);
-    });
-    openModal('inventory-modal');
-}
-function openPetModal(pet, owned) {
-    selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r];
-    const petName = PET_NAMES[pet] || "Питомец";
-    getEl('pet-detail-view').innerHTML = owned ? 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big">
-         <h3 class="pet-name">${petName}</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
-         <button class="btn sell-action" onclick="sellPet()">Продать ${p}</button>` : 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)">
-         <h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
-    openModal('pet-modal');
-}
-function sellPet() {
-    if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
-    const p=PRICES[getPetRarity(selectedPet)]; walletBalance+=p; userStats.earned+=p;
-    collection.splice(idx,1); saveData(); updateBalanceUI(); 
-    closeModal('pet-modal'); showToast(`Продано +${p}`, 'img'); playSound('money'); openInventory(); 
-}
-function toggleInventory() { openInventory(); }
-
-
-// =============================================================
 // МУЛЬТИПЛЕЕР (РОУТЕР + ПАТИ)
 // =============================================================
 
@@ -1021,7 +918,7 @@ function openPartyModal() {
 
 async function apiCreateParty() {
     playSound('click');
-    const btn = event.target; btn.textContent = "Создаем сервер...";
+    const btn = event.target; btn.textContent = "Создаем...";
     const user = getTgUser();
     try {
         const res = await fetch(`${API_URL}/party/create`, {
@@ -1057,7 +954,7 @@ async function apiJoinParty(prefilledCode = null) {
             showToast("Успешный вход!", "✅");
             startPartyPolling();
         } else showToast("Пати не найдено", "❌");
-    } catch(e) { showToast("Ошибка соединения", "❌"); }
+    } catch(e) { showToast("Ошибка", "❌"); }
 }
 
 async function apiLeaveParty() {
@@ -1113,7 +1010,10 @@ function startPartyPolling() {
             }
 
             if(modalStack.includes('mega-egg-modal')) updateMegaEggUI(data.mega_progress, data.mega_target);
-            if(modalStack.includes('expedition-modal')) updateExpeditionUI(data.expedition_end, data.expedition_score, data.expedition_location);
+            
+            if(modalStack.includes('expedition-modal')) {
+                updateExpeditionUI(data.expedition_end, data.expedition_score, data.expedition_location, data.wolf_hp, data.wolf_max_hp);
+            }
             
         } catch(e) {}
     }, 2000);
@@ -1172,7 +1072,7 @@ async function requestStartMiniGame(gameType) {
         if (res.ok) {
             currentActiveGame = gameType; forceOpenMiniGame(gameType); updatePartyUI();
         }
-    } catch(e) { showToast("Ошибка сервера", "❌"); }
+    } catch(e) { showToast("Ошибка", "❌"); }
 }
 
 async function requestStopMiniGame() {
@@ -1221,89 +1121,16 @@ function forceOpenMiniGame(gameType) {
 function forceCloseMiniGame(gameType) {
     let modalId = getModalIdForGame(gameType);
     if(bossTimerInterval) clearInterval(bossTimerInterval);
+    if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
     if (modalId && modalStack.includes(modalId)) {
         closeModal(modalId); showToast("Лидер завершил игру", "ℹ️");
     }
 }
 
-// === ГОНКА ЯИЦ ===
-let bossTimerInterval = null; let bossTimeLeft = 60; let bossIsDead = false;
-function renderTapBattle(players) {
-    const grid = getEl('tap-battle-grid'); const myId = getTgUser().id; grid.innerHTML = '';
-    players.forEach(p => {
-        const isMe = p.user_id === myId; const hpPercent = (p.boss_hp / 10000) * 100;
-        let eggSkin = p.egg_skin || 'default'; const item = SHOP_DATA.eggs.find(x => x.id === eggSkin);
-        const eggImg = item ? item.img : 'assets/eggs/egg-default.png';
-        grid.innerHTML += `
-            <div class="tap-cell ${isMe ? 'me' : ''}" id="cell-${p.user_id}">
-                <div class="tap-cell-name">${p.name} ${isMe ? '(Ты)' : ''}</div>
-                <div class="tap-cell-hp-bg"><div class="tap-cell-hp-fill" id="hp-fill-${p.user_id}" style="width: ${hpPercent}%"></div></div>
-                <div class="tap-cell-hp-text" id="hp-text-${p.user_id}">${p.boss_hp}/10000</div>
-                <img src="${eggImg}" class="tap-cell-egg" id="egg-img-${p.user_id}" ${isMe ? 'onclick="tapMyEgg()"' : ''}>
-            </div>
-        `;
-    });
-}
-function updateTapBattleUI(players) {
-    if(!getEl('tap-battle-grid').innerHTML) renderTapBattle(players);
-    else {
-        players.forEach(p => {
-            const hpText = getEl(`hp-text-${p.user_id}`); const hpFill = getEl(`hp-fill-${p.user_id}`);
-            if(hpText && hpFill) { hpText.textContent = `${p.boss_hp}/10000`; hpFill.style.width = `${(p.boss_hp / 10000) * 100}%`; }
-        });
-    }
-}
-async function tapMyEgg() {
-    if (bossTimeLeft <= 0 || bossIsDead) return; playSound('click');
-    let damage = 1; const r = getPetRarity(selectedAvatar); if(r === 'rare') damage = 5; if(r === 'legendary') damage = 20;
-    const myId = getTgUser().id; const img = getEl(`egg-img-${myId}`);
-    if(img) { img.classList.remove('boss-hit-anim'); void img.offsetWidth; img.classList.add('boss-hit-anim'); }
-    const hpText = getEl(`hp-text-${myId}`); const hpFill = getEl(`hp-fill-${myId}`);
-    if(hpText && hpFill) {
-        let currentHp = parseInt(hpText.textContent.split('/')[0]); currentHp -= damage; if(currentHp < 0) currentHp = 0;
-        hpText.textContent = `${currentHp}/10000`; hpFill.style.width = `${(currentHp / 10000) * 100}%`;
-    }
-    try { await fetch(`${API_URL}/party/damage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, user_id: myId, damage: damage }) }); } catch(e) {}
-}
-function handleTapBattleEnd(winner, players) {
-    if(bossIsDead) return; bossIsDead = true; clearInterval(bossTimerInterval); playSound('win');
-    const myId = getTgUser().id; const me = players.find(p => p.user_id === myId);
-    if (winner.user_id === myId) { fireConfetti(); showToast("ТЫ ПОБЕДИЛ В ГОНКЕ! +5000 монет", "🏆"); walletBalance += 5000; } 
-    else { const damageDealt = 10000 - (me ? me.boss_hp : 10000); const reward = Math.floor(damageDealt * 0.1); showToast(`${winner.name} победил! Твой приз: +${reward} монет`, "💰"); walletBalance += reward; }
-    saveData(); updateBalanceUI();
-    if(isPartyLeader) setTimeout(() => requestStopMiniGame(), 3000);
-}
-
-// === МЕГА-ЯЙЦО ===
-async function apiAddMegaEggTime(seconds) {
-    try { await fetch(`${API_URL}/party/mega_egg/add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, seconds: seconds }) }); } catch(e) {}
-}
-function updateMegaEggUI(progress, target) {
-    let p = (progress / target) * 100; if(p>100) p=100;
-    getEl('mega-egg-bar').style.width = `${p}%`;
-    getEl('mega-egg-text').textContent = `${Math.floor(progress/3600)} / ${Math.floor(target/3600)} Часов`;
-    getEl('mega-egg-claim-btn').style.display = (progress >= target) ? 'block' : 'none';
-    const eggImg = getEl('mega-egg-img-display');
-    if (eggImg) {
-        if(p > 0 && p < 50) eggImg.className = 'mega-egg-img pulse-slow';
-        else if(p >= 50 && p < 100) eggImg.className = 'mega-egg-img pulse-fast';
-        else if(p >= 100) eggImg.className = 'mega-egg-img shake-crazy';
-        else eggImg.className = 'mega-egg-img';
-    }
-}
-async function claimMegaEgg() {
-    playSound('win'); fireConfetti();
-    collection.push(petDatabase.legendary[Math.floor(Math.random() * petDatabase.legendary.length)]);
-    walletBalance += 10000; saveData(); updateBalanceUI();
-    showToast("МЕГА-ЯЙЦО РАСКОЛОТО! +10k Монет и Легендарка", "🌟");
-    try { await fetch(`${API_URL}/party/mega_egg/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
-    closeModal('mega-egg-modal');
-}
-
-
-// =============================================================
-// МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 (С ЛОКАЦИЯМИ И СИНЕРГИЕЙ)
-// =============================================================
+// === ЭКСПЕДИЦИЯ 2.0 (ЛОКАЦИИ, КЛИКЕР, ВОЛК) ===
+let expeditionInterval = null;
+let bonusSpawningInterval = null;
+let currentWolfHp = 0;
 
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
@@ -1347,25 +1174,48 @@ async function startExpedition() {
     } catch(e) {}
 }
 
-function updateExpeditionUI(endTime, score, loc) {
+function updateExpeditionUI(endTime, score, loc, wolfHp, wolfMaxHp) {
     const now = Math.floor(Date.now() / 1000);
     const scene = getEl('expedition-scene');
     const petsContainer = getEl('expedition-pets-container');
+    currentWolfHp = wolfHp;
     
-    if(loc && !scene.classList.contains(`${loc}-bg`)) {
-        scene.className = `expedition-scene ${loc}-bg`;
+    // Синхронизация фона
+    if (endTime > now || (endTime > 0 && endTime <= now)) {
+        if(loc && !scene.classList.contains(`${loc}-bg`)) {
+            scene.className = `expedition-scene ${loc}-bg`;
+        }
+    } else {
+        if(!scene.classList.contains(`${currentExpeditionLocation}-bg`)) {
+            scene.className = `expedition-scene ${currentExpeditionLocation}-bg`;
+        }
     }
 
+    // Волк
+    const wolfOverlay = getEl('wolf-overlay');
+    if (wolfHp > 0) {
+        wolfOverlay.style.display = 'flex';
+        let pct = (wolfHp / wolfMaxHp) * 100;
+        getEl('wolf-hp-bar').style.width = `${pct}%`;
+        getEl('expedition-claim-btn').style.display = 'none'; 
+        getEl('expedition-timer').style.color = '#ff3b30'; 
+        if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
+    } else {
+        wolfOverlay.style.display = 'none';
+        getEl('expedition-timer').style.color = '#34c759';
+    }
+
+    // Петы
     if(currentPartyPlayersData && petsContainer) {
         petsContainer.innerHTML = '';
         currentPartyPlayersData.forEach(p => {
-            let isWalking = (endTime > now) ? 'walking-pet' : '';
+            let isWalking = (endTime > now && wolfHp === 0) ? 'walking-pet' : '';
             petsContainer.innerHTML += `<img src="assets/pets/pet-${p.avatar}.png" class="expedition-pet ${isWalking}">`;
         });
     }
 
     if (endTime > now) {
-        scene.classList.add('scrolling-bg'); 
+        if(wolfHp === 0) scene.classList.add('scrolling-bg'); else scene.classList.remove('scrolling-bg');
         getEl('change-expedition-pet-btn').style.display = 'none'; 
         if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
         getEl('expedition-info-view').style.display = 'none';
@@ -1373,13 +1223,18 @@ function updateExpeditionUI(endTime, score, loc) {
         getEl('expedition-multiplier').textContent = score;
         getEl('expedition-claim-btn').style.display = 'none';
         
+        // Спавн бонусов если нет волка
+        if(!bonusSpawningInterval && wolfHp === 0) {
+            bonusSpawningInterval = setInterval(spawnFlyingBonus, 8000);
+        }
+
         if(expeditionInterval) clearInterval(expeditionInterval);
         expeditionInterval = setInterval(() => {
             const t = Math.floor(Date.now() / 1000);
             if (endTime <= t) {
                 clearInterval(expeditionInterval);
                 getEl('expedition-timer').textContent = "00:00:00";
-                getEl('expedition-claim-btn').style.display = 'block';
+                if(currentWolfHp === 0) getEl('expedition-claim-btn').style.display = 'block';
                 scene.classList.remove('scrolling-bg');
             } else {
                 let diff = endTime - t;
@@ -1397,8 +1252,10 @@ function updateExpeditionUI(endTime, score, loc) {
         getEl('expedition-active-view').style.display = 'block';
         getEl('expedition-timer').textContent = "00:00:00";
         getEl('expedition-multiplier').textContent = score;
-        getEl('expedition-claim-btn').style.display = 'block';
+        if(wolfHp === 0) getEl('expedition-claim-btn').style.display = 'block';
+        
         if(expeditionInterval) clearInterval(expeditionInterval);
+        if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
     } else {
         scene.classList.remove('scrolling-bg'); 
         getEl('change-expedition-pet-btn').style.display = 'inline-block';
@@ -1417,7 +1274,39 @@ function updateExpeditionUI(endTime, score, loc) {
         
         calculatePreStartSynergy(); 
         if(expeditionInterval) clearInterval(expeditionInterval);
+        if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
     }
+}
+
+// Урон по волку
+async function tapWolf() {
+    playSound('click');
+    const img = getEl('wolf-img');
+    img.classList.remove('wolf-hit'); void img.offsetWidth; img.classList.add('wolf-hit');
+    try {
+        await fetch(`${API_URL}/party/expedition/wolf_damage`, { 
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, damage: 1 }) 
+        });
+    } catch(e) {}
+}
+
+// Спавн летящих бонусов
+function spawnFlyingBonus() {
+    const scene = getEl('expedition-scene');
+    if(!scene || !scene.classList.contains('scrolling-bg')) return;
+    const b = document.createElement('div');
+    b.className = 'flying-bonus';
+    b.textContent = Math.random() > 0.5 ? '🦋' : '💰';
+    b.style.bottom = (20 + Math.random() * 60) + 'px';
+    b.onclick = () => {
+        playSound('money');
+        walletBalance += 50; saveData(); updateBalanceUI();
+        showToast('+50 монет!', 'img');
+        b.remove();
+    };
+    scene.appendChild(b);
+    setTimeout(() => { if(b.parentNode) b.remove(); }, 4000);
 }
 
 async function claimExpedition() {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=57">
+    <link rel="stylesheet" href="style.css?v=58">
 </head>
 <body>
 
@@ -30,12 +30,10 @@
             <img id="fp-avatar" src="assets/ui/icon-profile.png" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ffd700; margin: 0 auto 10px auto; display: block;">
             <h3 id="fp-name" style="margin-bottom: 5px; font-size: 24px;">Имя</h3>
             <div id="fp-level" style="color: #8e8e93; font-size: 14px; margin-bottom: 20px;">Lvl 1</div>
-            
             <div class="stats-grid" style="margin-bottom: 20px;">
                 <div class="stat-box"><div class="stat-val" id="fp-hatched">0</div><div class="stat-label">Вылупил</div></div>
                 <div class="stat-box"><div class="stat-val" id="fp-earned">0</div><div class="stat-label">Капитал</div></div>
             </div>
-
             <button id="fp-invite-btn" class="btn" style="background: #007aff; display: none;" onclick="sendInviteToFriend()">Позвать в свою Пати 🎮</button>
             <p id="fp-invite-hint" style="font-size: 12px; color: #8e8e93; display: none;">Сначала создай свою Пати, чтобы звать друзей!</p>
         </div>
@@ -59,14 +57,12 @@
     <div id="craft-modal" class="modal" style="display: none;">
         <div class="modal-content" style="max-height: 85vh;">
             <div class="modal-header"><h2>Синтез</h2><button class="close-btn" onclick="closeModal('craft-modal')">✖</button></div>
-            
             <div style="margin-bottom: 20px; padding: 15px; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; border-radius: 15px;">
                 <h3 style="color: #ffd700; margin-bottom: 5px;">Призыв Пегаса 🦄</h3>
                 <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Собери 10 Осколков в Космосе, чтобы получить Мифического Пета!</p>
                 <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"><span id="pegasus-shards-count" style="color: #34c759;">0</span> / 10 Осколков</div>
                 <button id="craft-pegasus-btn" class="btn locked" onclick="craftPegasus()">Создать Мифика</button>
             </div>
-            
             <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Соедини 5 одинаковых обычных петов для редкого:</p>
             <div id="craft-list" class="collection-grid"></div>
         </div>
@@ -168,6 +164,11 @@
             
             <div id="expedition-scene" class="expedition-scene forest-bg">
                 <div id="expedition-pets-container" class="expedition-pets-container"></div>
+                <div id="wolf-overlay" style="display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 10; flex-direction: column; align-items: center; justify-content: center;">
+                    <h3 style="color: #ff3b30; text-shadow: 0 2px 4px #000; margin: 0; font-size: 14px;">ВОЛК НАПАЛ!</h3>
+                    <div class="progress-bar-bg" style="width: 80%; height: 10px; margin: 5px 0;"><div id="wolf-hp-bar" class="progress-bar-fill" style="background: #ff3b30; width: 100%;"></div></div>
+                    <div id="wolf-img" style="font-size: 60px; cursor: pointer; user-select: none; transition: transform 0.1s;" onclick="tapWolf()">🐺</div>
+                </div>
             </div>
             
             <div id="synergy-display" style="font-size: 12px; color: #ffd700; margin: 5px 0; font-weight: bold; min-height: 15px;"></div>
@@ -387,6 +388,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=57"></script>
+    <script src="script.js?v=58"></script>
 </body>
 </html>
