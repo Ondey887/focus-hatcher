@@ -371,3 +371,14 @@ input:checked + .slider:before { transform: translateX(24px); }
 .walking-pet { 
     animation: walkAnim 0.6s infinite; 
 }
+/* === НОВЫЕ ФОНЫ ЭКСПЕДИЦИИ === */
+.expedition-scene.forest-bg {
+    background-image: url('assets/bg/bg-forest.jpg');
+}
+.expedition-scene.mountains-bg {
+    background-image: url('assets/bg/bg-space.jpg'); /* Пока нет картинки гор, используем космос или заливку */
+    background: linear-gradient(180deg, #87CEEB, #ffffff);
+}
+.expedition-scene.space-bg {
+    background-image: url('assets/bg/bg-space.jpg');
+}

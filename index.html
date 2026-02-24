@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=56">
+    <link rel="stylesheet" href="style.css?v=57">
 </head>
 <body>
 
@@ -59,7 +59,15 @@
     <div id="craft-modal" class="modal" style="display: none;">
         <div class="modal-content" style="max-height: 85vh;">
             <div class="modal-header"><h2>Синтез</h2><button class="close-btn" onclick="closeModal('craft-modal')">✖</button></div>
-            <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Соедини 5 одинаковых обычных петов, чтобы получить редкого!</p>
+            
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; border-radius: 15px;">
+                <h3 style="color: #ffd700; margin-bottom: 5px;">Призыв Пегаса 🦄</h3>
+                <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Собери 10 Осколков в Космосе, чтобы получить Мифического Пета!</p>
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"><span id="pegasus-shards-count" style="color: #34c759;">0</span> / 10 Осколков</div>
+                <button id="craft-pegasus-btn" class="btn locked" onclick="craftPegasus()">Создать Мифика</button>
+            </div>
+            
+            <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Соедини 5 одинаковых обычных петов для редкого:</p>
             <div id="craft-list" class="collection-grid"></div>
         </div>
     </div>
@@ -115,7 +123,7 @@
                         <div class="party-game-card" onclick="requestStartMiniGame('expedition')">
                             <div class="game-icon">🗺️</div>
                             <div class="game-title">Экспедиция</div>
-                            <div class="game-desc">Отправь петов в поход</div>
+                            <div class="game-desc">Отправь петов за лутом</div>
                         </div>
                     </div>
                 </div>
@@ -157,19 +165,33 @@
     <div id="expedition-modal" class="modal" style="display: none;">
         <div class="modal-content" style="background: #1c1c1e; width: 95%; max-width: 400px;">
             <div class="modal-header"><h2>Экспедиция</h2><button class="close-btn" onclick="closeModal('expedition-modal')">✖</button></div>
-            <div id="expedition-scene" class="expedition-scene">
+            
+            <div id="expedition-scene" class="expedition-scene forest-bg">
                 <div id="expedition-pets-container" class="expedition-pets-container"></div>
             </div>
-            <p style="font-size: 12px; color: #888; margin: 10px 0;">Отряд формируется из текущих Аватаров. Чем реже пет — тем больше лут!</p>
+            
+            <div id="synergy-display" style="font-size: 12px; color: #ffd700; margin: 5px 0; font-weight: bold; min-height: 15px;"></div>
+
             <button id="change-expedition-pet-btn" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 8px; font-size: 14px; margin-bottom: 15px;" onclick="openAvatarSelector()">Выбрать своего бойца 🔄</button>
+            
             <div id="expedition-info-view">
-                <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px; font-size: 18px;">Множитель отряда: x<span id="expedition-pre-score">1</span></p>
-                <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Отправить в поход (4ч)</button>
+                <div id="leader-location-selector" style="display: none; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                    <p style="font-size: 13px; color: #aaa;">Выберите локацию:</p>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="tab-btn active" id="loc-btn-forest" onclick="selectExpeditionLocation('forest')">🌳 Лес (25м)</button>
+                        <button class="tab-btn" id="loc-btn-mountains" onclick="selectExpeditionLocation('mountains')">❄️ Горы (1ч)</button>
+                        <button class="tab-btn" id="loc-btn-space" onclick="selectExpeditionLocation('space')">🌌 Космос (2ч)</button>
+                    </div>
+                </div>
+
+                <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px; font-size: 18px;">Базовый множитель: x<span id="expedition-pre-score">1</span></p>
+                <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Отправить отряд</button>
                 <div id="expedition-waiting-msg" style="display:none; color: #8e8e93; font-weight: bold; padding: 15px;">⏳ Ожидание приказа Лидера...</div>
             </div>
+
             <div id="expedition-active-view" style="display: none;">
                 <div style="font-size: 40px; font-weight: bold; color: #34c759; margin: 10px 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(52,199,89,0.3);" id="expedition-timer">04:00:00</div>
-                <p style="color: #ffd700; font-weight: bold; font-size: 18px;">Множитель лута: x<span id="expedition-multiplier">1</span></p>
+                <p style="color: #ffd700; font-weight: bold; font-size: 18px;">Итоговый множитель: x<span id="expedition-multiplier">1</span></p>
                 <button id="expedition-claim-btn" class="btn" style="background: linear-gradient(45deg, #ffd700, #ffa500); color: black; margin-top: 15px; display: none;" onclick="claimExpedition()">Вернуть отряд с Лутом! 💰</button>
             </div>
         </div>
@@ -209,17 +231,13 @@
                         <button class="btn" style="width: auto; padding: 10px; font-size: 14px; margin: 0;" onclick="copyMyCode()">📋</button>
                     </div>
                 </div>
-
                 <div style="display: flex; gap: 5px; margin-bottom: 15px;">
                     <input type="text" id="add-friend-input" class="promo-input" style="margin: 0; flex: 1; font-size: 14px;" placeholder="ВВЕДИ ID ДРУГА">
                     <button class="btn" style="width: auto; padding: 10px; font-size: 14px; margin: 0; background: #34c759;" onclick="apiAddFriend()">Добавить</button>
                 </div>
-
                 <h3 style="margin-bottom: 10px; font-size: 16px;">Список Друзей:</h3>
-                <div id="friends-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;">
-                    </div>
+                <div id="friends-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;"></div>
             </div>
-
         </div>
     </div>
 
@@ -230,29 +248,20 @@
             <button class="btn" style="background: #007aff; margin-top: 15px;" onclick="activatePromo()">Активировать ✨</button>
         </div>
     </div>
-
     <div id="tutorial-modal" class="modal" style="display: none; z-index: 3000;">
         <div class="modal-content" style="text-align: left;">
             <div class="modal-header" style="justify-content: center;"><h2>🎓 Как играть?</h2></div>
-            <div class="tutorial-step">
-                <div class="tut-icon-wrapper"><img src="assets/ui/booster-speed.png" class="tut-icon-img"></div>
-                <div class="tut-text"><div class="tut-title">Фокус vs Инкубатор</div><div class="tut-desc">Фокус быстрее, но нельзя закрывать игру. Оффлайн дольше, но спи спокойно.</div></div>
-            </div>
-            <div class="tutorial-step">
-                <div class="tut-icon-wrapper"><img src="assets/ui/icon-trophy.png" class="tut-icon-img"></div>
-                <div class="tut-text"><div class="tut-title">Лаборатория</div><div class="tut-desc">Скрещивай 5 одинаковых петов для улучшения редкости!</div></div>
-            </div>
+            <div class="tutorial-step"><div class="tut-icon-wrapper"><img src="assets/ui/booster-speed.png" class="tut-icon-img"></div><div class="tut-text"><div class="tut-title">Фокус vs Инкубатор</div><div class="tut-desc">Фокус быстрее, но нельзя закрывать игру. Оффлайн дольше, но спи спокойно.</div></div></div>
+            <div class="tutorial-step"><div class="tut-icon-wrapper"><img src="assets/ui/icon-trophy.png" class="tut-icon-img"></div><div class="tut-text"><div class="tut-title">Лаборатория</div><div class="tut-desc">Скрещивай 5 одинаковых петов для улучшения редкости!</div></div></div>
             <button class="btn" style="background: #007aff; margin-top: 20px;" onclick="closeTutorial()">Погнали! 🚀</button>
         </div>
     </div>
-
     <div id="levels-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Путь Фокуса</h2><button class="close-btn" onclick="closeModal('levels-modal')">✖</button></div>
             <div id="levels-list" class="levels-list"></div>
         </div>
     </div>
-
     <div id="daily-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Бонус</h2></div>
@@ -260,7 +269,6 @@
             <button id="claim-btn" class="btn" style="background: #34c759; margin-top: 15px;" onclick="claimDaily()">Забрать</button>
         </div>
     </div>
-
     <div id="settings-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Настройки</h2><button class="close-btn" onclick="closeModal('settings-modal')">✖</button></div>
@@ -273,7 +281,6 @@
             </div>
         </div>
     </div>
-
     <div id="shop-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Магазин</h2><button class="close-btn" onclick="closeModal('shop-modal')">✖</button></div>
@@ -285,7 +292,6 @@
             <div id="shop-items" class="shop-grid"></div>
         </div>
     </div>
-
     <div id="achievements-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Награды</h2><button class="close-btn" onclick="closeModal('achievements-modal')">✖</button></div>
@@ -296,7 +302,6 @@
             <div id="achievements-list" class="shop-grid" style="display: flex; flex-direction: column; gap: 10px;"></div>
         </div>
     </div>
-
     <div id="pet-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Питомец</h2><button class="close-btn" onclick="closeModal('pet-modal')">✖</button></div>
@@ -382,6 +387,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=56"></script>
+    <script src="script.js?v=57"></script>
 </body>
 </html>
