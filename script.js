@@ -51,15 +51,11 @@ let modalStack = [];
 
 function openModal(id) {
     playSound('click');
-    // Если модалка уже открыта и она последняя - ничего не делаем
     if(modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
-    
-    // Прячем предыдущую модалку (чтобы не было каши на экране)
     if (modalStack.length > 0) {
         const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
         if(prevEl) prevEl.style.display = 'none';
     }
-    
     const el = document.getElementById(id);
     if(el) {
         el.style.display = 'flex';
@@ -71,11 +67,7 @@ function closeModal(id) {
     playSound('click');
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
-    
-    // Удаляем из стека
     modalStack = modalStack.filter(m => m !== id);
-    
-    // Если в стеке еще что-то есть, показываем предыдущую (возврат назад)
     if (modalStack.length > 0) {
         const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
         if(prevEl) prevEl.style.display = 'flex';
@@ -329,7 +321,7 @@ function saveData() {
 }
 
 // =============================================================
-// ПРОФИЛЬ И МАГАЗИН (С НОВЫМ СТЕКОМ)
+// ПРОФИЛЬ И МАГАЗИН (СТЕК ОКОН)
 // =============================================================
 function openLevels() {
     const list = getEl('levels-list'); list.innerHTML = '';
@@ -352,7 +344,6 @@ function openProfile() {
     getEl('stat-hatched').textContent = userStats.hatched || 0;
     getEl('stat-unique').textContent = new Set(collection).size;
     getEl('stat-invites').textContent = userStats.invites || 0;
-    
     let netWorth = walletBalance;
     collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
     ownedItems.themes.forEach(t => { const item = SHOP_DATA.themes.find(x=>x.id===t); if(item) netWorth += item.price; });
@@ -363,8 +354,7 @@ function openProfile() {
 }
 
 function checkAchievements() {
-    let has = false;
-    let u = new Set(collection).size;
+    let has = false; let u = new Set(collection).size;
     ACHIEVEMENTS_DATA.forEach(a => { 
         if(!claimedAchievements.includes(a.id)) { 
             if(a.type==='money' && walletBalance >= a.goal) has = true;
@@ -388,12 +378,10 @@ function openAvatarSelector() {
         div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
         div.innerHTML = `<img src="assets/pets/pet-${pet}.png">`;
         div.onclick = () => {
-            selectedAvatar = pet;
-            saveData();
+            selectedAvatar = pet; saveData();
             getEl('profile-avatar').src = getPetImg(pet);
             getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar">`;
-            closeModal('avatar-modal');
-            showToast("Аватар изменен!");
+            closeModal('avatar-modal'); showToast("Аватар изменен!");
         };
         list.appendChild(div);
     });
@@ -422,9 +410,7 @@ function checkDailyReward() {
     if (lastLogin === today) return; 
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
     if (lastLogin !== yesterday.toDateString()) streak = 0;
-    renderDailyModal(streak);
-    openModal('daily-modal');
-    playSound('win'); 
+    renderDailyModal(streak); openModal('daily-modal'); playSound('win'); 
 }
 function renderDailyModal(curr) {
     const g = getEl('daily-grid'); g.innerHTML = '';
@@ -554,9 +540,7 @@ function checkBackgroundHatch() {
 }
 
 function startTimer(mode, isResuming = false) {
-    currentHatchMode = mode;
-    const m = MODES[currentModeIndex];
-    let baseTime = 0;
+    currentHatchMode = mode; const m = MODES[currentModeIndex]; let baseTime = 0;
     
     if (!isResuming) {
         if (currentModeIndex === 2) baseTime = mode === 'online' ? customEggConfig.timeOnline : customEggConfig.timeOffline;
@@ -672,8 +656,7 @@ function finishTimer(fromOffline = false) {
 // ЛАБОРАТОРИЯ И ИНВЕНТАРЬ
 // =============================================================
 function openCraft() {
-    const c = getEl('craft-list'); c.innerHTML = '';
-    let canCraft = false;
+    const c = getEl('craft-list'); c.innerHTML = ''; let canCraft = false;
     [...petDatabase.common].forEach(pet => {
         const count = collection.filter(p => p === pet).length;
         if(count >= 5) {
@@ -685,7 +668,6 @@ function openCraft() {
     if(!canCraft) c.innerHTML = '<p style="grid-column: span 4; color: #888;">Собери 5 одинаковых обычных петов, чтобы скрафтить редкого!</p>';
     openModal('craft-modal');
 }
-
 function craftPet(basePet) {
     if(confirm(`Соединить 5x ${PET_NAMES[basePet]}?`)) {
         let removed = 0;
@@ -697,13 +679,9 @@ function craftPet(basePet) {
         showToast(`Успех! Получен Редкий петомец`, '🧪'); playSound('win');
         collection.push(newPet); if(!userStats.crafts) userStats.crafts = 0; userStats.crafts++;
         saveData(); updateBalanceUI(); 
-        
-        // Обновляем окна без их закрытия
-        openInventory(); 
-        openCraft();
+        openInventory(); openCraft();
     }
 }
-
 function openInventory() {
     const container = document.getElementById('collection-container'); 
     if(!container) return; container.innerHTML = ''; 
@@ -722,7 +700,6 @@ function openInventory() {
     });
     openModal('inventory-modal');
 }
-
 function openPetModal(pet, owned) {
     selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r];
     const petName = PET_NAMES[pet] || "Питомец";
@@ -738,8 +715,7 @@ function sellPet() {
     if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
     const p=PRICES[getPetRarity(selectedPet)]; walletBalance+=p; userStats.earned+=p;
     collection.splice(idx,1); saveData(); updateBalanceUI(); 
-    closeModal('pet-modal'); showToast(`Продано +${p}`, 'img'); playSound('money');
-    openInventory(); 
+    closeModal('pet-modal'); showToast(`Продано +${p}`, 'img'); playSound('money'); openInventory(); 
 }
 
 function switchShopTab(t) { currentShopTab=t; document.querySelectorAll('#shop-modal .tab-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); renderShop(); playSound('click'); }
@@ -826,15 +802,15 @@ function applyEggSkin() {
 function updateLevelUI() { const max=userLevel*200; let p=(userXP/max)*100; if(p>100)p=100; getEl('xp-bar').style.width=`${p}%`; getEl('level-number').textContent=`Lvl ${userLevel}`; let r=Math.floor(userLevel/5); getEl('rank-name').textContent=RANKS[Math.min(r,RANKS.length-1)] || "Создатель"; }
 
 // =============================================================
-// МУЛЬТИПЛЕЕР: СИНХРОНИЗАЦИЯ С ЛИДЕРОМ (ФАЗА 1)
+// МУЛЬТИПЛЕЕР И СИНХРОНИЗАЦИЯ
 // =============================================================
 
 const API_URL = "https://focushatcher-ondey.amvera.io/api"; 
 let currentPartyCode = null;
 let partyPollingInterval = null;
-
 let isPartyLeader = false;
 let currentActiveGame = 'none';
+let currentPartyPlayersData = [];
 
 function getTgUser() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
@@ -866,7 +842,7 @@ async function apiCreateParty() {
     try {
         const res = await fetch(`${API_URL}/party/create`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar })
+            body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar, egg_skin: activeEggSkin })
         });
         const data = await res.json();
         currentPartyCode = data.partyCode;
@@ -887,7 +863,7 @@ async function apiJoinParty() {
     try {
         const res = await fetch(`${API_URL}/party/join`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: code, user_id: user.id, name: user.name, avatar: selectedAvatar })
+            body: JSON.stringify({ code: code, user_id: user.id, name: user.name, avatar: selectedAvatar, egg_skin: activeEggSkin })
         });
         if(res.ok) {
             currentPartyCode = code;
@@ -906,7 +882,7 @@ async function apiLeaveParty() {
     try {
         await fetch(`${API_URL}/party/leave`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar })
+            body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar, egg_skin: activeEggSkin })
         });
     } catch(e) {}
     currentPartyCode = null; clearInterval(partyPollingInterval);
@@ -932,10 +908,10 @@ function startPartyPolling() {
             const data = await res.json();
             
             isPartyLeader = (getTgUser().id === data.leader_id);
+            currentPartyPlayersData = data.players; // Сохраняем для победы
             renderPartyPlayers(data.players);
             updatePartyUI();
 
-            // Обработка автоматического открытия/закрытия игр у всех
             if (data.active_game !== 'none' && currentActiveGame === 'none') {
                 currentActiveGame = data.active_game;
                 forceOpenMiniGame(currentActiveGame);
@@ -946,11 +922,15 @@ function startPartyPolling() {
                 currentActiveGame = data.active_game;
             }
             
-            // Синхронизация данных активных окон
+            // Синхронизация ГОНКИ ЯИЦ
             if(modalStack.includes('tap-boss-modal')) {
-                bossHp = data.boss_hp; bossMaxHp = data.boss_max_hp;
-                updateBossUI(); if(bossHp <= 0) handleBossDefeat();
+                updateTapBattleUI(data.players);
+                let winner = data.players.find(p => p.boss_hp <= 0);
+                if(winner && !bossIsDead) {
+                    handleTapBattleEnd(winner, data.players);
+                }
             }
+
             if(modalStack.includes('mega-egg-modal')) updateMegaEggUI(data.mega_progress, data.mega_target);
             if(modalStack.includes('expedition-modal')) updateExpeditionUI(data.expedition_end, data.expedition_score);
             
@@ -984,7 +964,6 @@ function updatePartyUI() {
         }
     }
     
-    // Кнопка возврата в игру, если кто-то случайно закрыл окно крестиком
     if (currentActiveGame !== 'none' && !modalStack.includes(getModalIdForGame(currentActiveGame))) {
         getEl('return-game-btn').style.display = 'block';
     } else {
@@ -993,7 +972,7 @@ function updatePartyUI() {
 }
 
 function getGameName(type) {
-    if(type === 'tap_boss') return "Тап-Битва";
+    if(type === 'tap_boss') return "Гонка Яиц";
     if(type === 'mega_egg') return "Мега-Яйцо";
     if(type === 'expedition') return "Экспедиция";
     return "Неизвестно";
@@ -1006,7 +985,6 @@ function getModalIdForGame(type) {
     return '';
 }
 
-// Запрос от Лидера на запуск
 async function requestStartMiniGame(gameType) {
     if(!isPartyLeader) return;
     playSound('click');
@@ -1023,7 +1001,6 @@ async function requestStartMiniGame(gameType) {
     } catch(e) { showToast("Ошибка сервера", "❌"); }
 }
 
-// Запрос от Лидера на остановку
 async function requestStopMiniGame() {
     if(!isPartyLeader) return;
     playSound('click');
@@ -1040,7 +1017,27 @@ async function requestStopMiniGame() {
 
 function forceOpenMiniGame(gameType) {
     let modalId = getModalIdForGame(gameType);
-    if(gameType === 'tap_boss') { bossTimeLeft = 60; bossIsDead = false; }
+    if(gameType === 'tap_boss') { 
+        bossTimeLeft = 60; bossIsDead = false; 
+        getEl('tap-battle-grid').innerHTML = ''; // Сброс сетки для перерисовки
+        
+        if(bossTimerInterval) clearInterval(bossTimerInterval);
+        bossTimerInterval = setInterval(() => {
+            bossTimeLeft -= 0.1; 
+            const timerEl = getEl('boss-timer');
+            if(timerEl) timerEl.textContent = bossTimeLeft.toFixed(1);
+            
+            if (bossTimeLeft <= 0 && !bossIsDead) {
+                clearInterval(bossTimerInterval);
+                if(currentPartyPlayersData && currentPartyPlayersData.length > 0) {
+                    let winner = currentPartyPlayersData.reduce((prev, curr) => prev.boss_hp < curr.boss_hp ? prev : curr);
+                    handleTapBattleEnd(winner, currentPartyPlayersData);
+                } else {
+                    closeModal('tap-boss-modal');
+                }
+            }
+        }, 100);
+    }
     
     if (modalId && !modalStack.includes(modalId)) {
         openModal(modalId);
@@ -1049,31 +1046,124 @@ function forceOpenMiniGame(gameType) {
 
 function forceCloseMiniGame(gameType) {
     let modalId = getModalIdForGame(gameType);
+    if(bossTimerInterval) clearInterval(bossTimerInterval);
     if (modalId && modalStack.includes(modalId)) {
         closeModal(modalId);
         showToast("Лидер завершил игру", "ℹ️");
     }
 }
 
-// === БОСС ===
-let bossHp = 10000, bossMaxHp = 10000, bossTimerInterval = null, bossTimeLeft = 60, bossIsDead = false;
-async function tapBoss() {
-    if (bossTimeLeft <= 0 || bossHp <= 0 || bossIsDead) return; playSound('click');
-    let damage = 1; const r = getPetRarity(selectedAvatar);
-    if(r === 'rare') damage = 5; if(r === 'legendary') damage = 20;
-    const img = getEl('boss-egg-img'); img.classList.remove('boss-hit-anim'); void img.offsetWidth; img.classList.add('boss-hit-anim');
-    bossHp -= damage; if(bossHp < 0) bossHp = 0; updateBossUI();
-    try { await fetch(`${API_URL}/party/damage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, damage: damage }) }); } catch(e) {}
-    if (bossHp <= 0) handleBossDefeat();
-}
-function handleBossDefeat() {
-    if(bossIsDead) return; bossIsDead = true; clearInterval(bossTimerInterval); playSound('win'); fireConfetti();
-    showToast("БОСС ПОВЕРЖЕН! +5000 монет", "🏆"); walletBalance += 5000; saveData(); updateBalanceUI();
-    setTimeout(() => closeModal('tap-boss-modal'), 3000);
-}
-function updateBossUI() { getEl('boss-hp-text').textContent = `${bossHp}/${bossMaxHp}`; getEl('boss-hp-bar').style.width = `${(bossHp / bossMaxHp) * 100}%`; }
+// =============================================================
+// МИНИ-ИГРА: ГОНКА ЯИЦ (ТАП-БИТВА 2.0)
+// =============================================================
+let bossTimerInterval = null;
+let bossTimeLeft = 60;
+let bossIsDead = false;
 
-// === МЕГА-ЯЙЦО ===
+function renderTapBattle(players) {
+    const grid = getEl('tap-battle-grid');
+    const myId = getTgUser().id;
+    grid.innerHTML = '';
+
+    players.forEach(p => {
+        const isMe = p.user_id === myId;
+        const hpPercent = (p.boss_hp / 10000) * 100;
+        
+        let eggSkin = p.egg_skin || 'default';
+        const item = SHOP_DATA.eggs.find(x => x.id === eggSkin);
+        const eggImg = item ? item.img : 'assets/eggs/egg-default.png';
+
+        grid.innerHTML += `
+            <div class="tap-cell ${isMe ? 'me' : ''}" id="cell-${p.user_id}">
+                <div class="tap-cell-name">${p.name} ${isMe ? '(Ты)' : ''}</div>
+                <div class="tap-cell-hp-bg"><div class="tap-cell-hp-fill" id="hp-fill-${p.user_id}" style="width: ${hpPercent}%"></div></div>
+                <div class="tap-cell-hp-text" id="hp-text-${p.user_id}">${p.boss_hp}/10000</div>
+                <img src="${eggImg}" class="tap-cell-egg" id="egg-img-${p.user_id}" ${isMe ? 'onclick="tapMyEgg()"' : ''}>
+            </div>
+        `;
+    });
+}
+
+function updateTapBattleUI(players) {
+    if(!getEl('tap-battle-grid').innerHTML) {
+        renderTapBattle(players);
+    } else {
+        players.forEach(p => {
+            const hpText = getEl(`hp-text-${p.user_id}`);
+            const hpFill = getEl(`hp-fill-${p.user_id}`);
+            if(hpText && hpFill) {
+                hpText.textContent = `${p.boss_hp}/10000`;
+                hpFill.style.width = `${(p.boss_hp / 10000) * 100}%`;
+            }
+        });
+    }
+}
+
+async function tapMyEgg() {
+    if (bossTimeLeft <= 0 || bossIsDead) return;
+    playSound('click');
+    let damage = 1;
+    const r = getPetRarity(selectedAvatar);
+    if(r === 'rare') damage = 5;
+    if(r === 'legendary') damage = 20;
+
+    const myId = getTgUser().id;
+    const img = getEl(`egg-img-${myId}`);
+    if(img) {
+        img.classList.remove('boss-hit-anim'); void img.offsetWidth; img.classList.add('boss-hit-anim');
+    }
+
+    // Визуальное (локальное) отнятие ХП для плавности
+    const hpText = getEl(`hp-text-${myId}`);
+    const hpFill = getEl(`hp-fill-${myId}`);
+    if(hpText && hpFill) {
+        let currentHp = parseInt(hpText.textContent.split('/')[0]);
+        currentHp -= damage;
+        if(currentHp < 0) currentHp = 0;
+        hpText.textContent = `${currentHp}/10000`;
+        hpFill.style.width = `${(currentHp / 10000) * 100}%`;
+    }
+
+    // Отправка на сервер
+    try { 
+        await fetch(`${API_URL}/party/damage`, { 
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ code: currentPartyCode, user_id: myId, damage: damage }) 
+        }); 
+    } catch(e) {}
+}
+
+function handleTapBattleEnd(winner, players) {
+    if(bossIsDead) return;
+    bossIsDead = true;
+    clearInterval(bossTimerInterval);
+    playSound('win');
+    
+    const myId = getTgUser().id;
+    const me = players.find(p => p.user_id === myId);
+    
+    if (winner.user_id === myId) {
+        fireConfetti();
+        showToast("ТЫ ПОБЕДИЛ В ГОНКЕ! +5000 монет", "🏆");
+        walletBalance += 5000;
+    } else {
+        // Утешительный приз: 0.1 монеты за каждое снесенное ХП
+        const damageDealt = 10000 - (me ? me.boss_hp : 10000);
+        const reward = Math.floor(damageDealt * 0.1);
+        showToast(`${winner.name} победил! Твой приз: +${reward} монет`, "💰");
+        walletBalance += reward;
+    }
+    
+    saveData(); updateBalanceUI();
+    
+    // Лидер останавливает игру на сервере
+    if(isPartyLeader) {
+        setTimeout(() => requestStopMiniGame(), 3000);
+    }
+}
+
+
+// === МЕГА-ЯЙЦО И ЭКСПЕДИЦИЯ (БЕЗ ИЗМЕНЕНИЙ) ===
 async function apiAddMegaEggTime(seconds) {
     try { await fetch(`${API_URL}/party/mega_egg/add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, seconds: seconds }) }); } catch(e) {}
 }
@@ -1092,7 +1182,6 @@ async function claimMegaEgg() {
     closeModal('mega-egg-modal');
 }
 
-// === ЭКСПЕДИЦИЯ ===
 let expeditionInterval = null;
 async function startExpedition() {
     playSound('click');

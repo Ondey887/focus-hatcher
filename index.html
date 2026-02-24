@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=53">
+    <link rel="stylesheet" href="style.css?v=54">
 </head>
 <body>
 
@@ -81,8 +81,8 @@
                         </div>
                         <div class="party-game-card" onclick="requestStartMiniGame('tap_boss')">
                             <div class="game-icon">⚔️</div>
-                            <div class="game-title">Тап-Битва</div>
-                            <div class="game-desc">Разбей босса за 60 сек</div>
+                            <div class="game-title">Гонка Яиц</div>
+                            <div class="game-desc">Разбей своё яйцо первым!</div>
                         </div>
                         <div class="party-game-card" onclick="requestStartMiniGame('expedition')">
                             <div class="game-icon">🗺️</div>
@@ -105,13 +105,13 @@
     </div>
 
     <div id="tap-boss-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="background: #1c1c1e;">
-            <div class="modal-header"><h2>Битва!</h2><button class="close-btn" onclick="closeModal('tap-boss-modal')">✖</button></div>
+        <div class="modal-content" style="background: #1c1c1e; width: 95%; max-width: 400px;">
+            <div class="modal-header"><h2>Гонка Яиц!</h2><button class="close-btn" onclick="closeModal('tap-boss-modal')">✖</button></div>
             <div style="font-size: 30px; font-weight: bold; color: #ff3b30;" id="boss-timer">60.0</div>
-            <div class="progress-bar-bg" style="height: 20px; margin: 15px 0;"><div id="boss-hp-bar" class="progress-bar-fill" style="background: #ff3b30; width: 100%;"></div></div>
-            <p>HP: <span id="boss-hp-text">10000/10000</span></p>
-            <img id="boss-egg-img" src="assets/eggs/egg-glitch.png" style="width: 200px; height: 200px; object-fit: contain; margin: 20px auto; display: block;" onclick="tapBoss()">
-            <p style="font-size: 12px; color: #888;">Тапай изо всех сил! Урон зависит от редкости твоего аватара.</p>
+            <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Тапай по СВОЕМУ яйцу! Кто первый разобьет — заберет 5000 монет!</p>
+            
+            <div id="tap-battle-grid" class="tap-grid">
+                </div>
         </div>
     </div>
 
@@ -323,6 +323,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=53"></script>
+    <script src="script.js?v=54"></script>
 </body>
 </html>
