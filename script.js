@@ -45,7 +45,7 @@ function playNote(freq, time, duration) {
 }
 
 // =============================================================
-// 2. ИДЕАЛЬНАЯ СИСТЕМА МОДАЛЬНЫХ ОКОН (СТЕК)
+// 2. СТЕК МОДАЛЬНЫХ ОКОН
 // =============================================================
 let modalStack = [];
 
@@ -321,7 +321,7 @@ function saveData() {
 }
 
 // =============================================================
-// ПРОФИЛЬ И МАГАЗИН (СТЕК ОКОН)
+// ПРОФИЛЬ И МАГАЗИН
 // =============================================================
 function openLevels() {
     const list = getEl('levels-list'); list.innerHTML = '';
@@ -381,11 +381,27 @@ function openAvatarSelector() {
             selectedAvatar = pet; saveData();
             getEl('profile-avatar').src = getPetImg(pet);
             getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar">`;
+            
+            // Если в пати, обновляем аватар и для экспедиции
+            if(currentPartyCode) {
+                apiUpdatePlayerAvatar();
+            }
+
             closeModal('avatar-modal'); showToast("Аватар изменен!");
         };
         list.appendChild(div);
     });
     openModal('avatar-modal');
+}
+
+// Служебная функция для обновления аватара в Пати-БД
+async function apiUpdatePlayerAvatar() {
+    try {
+        await fetch(`${API_URL}/party/join`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, name: getTgUser().name, avatar: selectedAvatar, egg_skin: activeEggSkin })
+        });
+    } catch(e) {}
 }
 
 function openPromo() { openModal('promo-modal'); }
@@ -908,7 +924,7 @@ function startPartyPolling() {
             const data = await res.json();
             
             isPartyLeader = (getTgUser().id === data.leader_id);
-            currentPartyPlayersData = data.players; // Сохраняем для победы
+            currentPartyPlayersData = data.players; 
             renderPartyPlayers(data.players);
             updatePartyUI();
 
@@ -922,13 +938,10 @@ function startPartyPolling() {
                 currentActiveGame = data.active_game;
             }
             
-            // Синхронизация ГОНКИ ЯИЦ
             if(modalStack.includes('tap-boss-modal')) {
                 updateTapBattleUI(data.players);
                 let winner = data.players.find(p => p.boss_hp <= 0);
-                if(winner && !bossIsDead) {
-                    handleTapBattleEnd(winner, data.players);
-                }
+                if(winner && !bossIsDead) handleTapBattleEnd(winner, data.players);
             }
 
             if(modalStack.includes('mega-egg-modal')) updateMegaEggUI(data.mega_progress, data.mega_target);
@@ -942,7 +955,6 @@ function updatePartyUI() {
     if (isPartyLeader) {
         getEl('party-leader-controls').style.display = 'block';
         getEl('party-member-controls').style.display = 'none';
-        
         if (currentActiveGame !== 'none') {
             getEl('cancel-game-btn').style.display = 'block';
             getEl('party-leader-controls').style.opacity = '0.5';
@@ -956,12 +968,8 @@ function updatePartyUI() {
         getEl('party-leader-controls').style.display = 'none';
         getEl('cancel-game-btn').style.display = 'none';
         getEl('party-member-controls').style.display = 'block';
-        
-        if (currentActiveGame !== 'none') {
-            getEl('party-member-controls').innerHTML = `Игра "<b>${getGameName(currentActiveGame)}</b>" запущена!`;
-        } else {
-            getEl('party-member-controls').innerHTML = "⏳ Ожидание лидера...";
-        }
+        if (currentActiveGame !== 'none') getEl('party-member-controls').innerHTML = `Игра "<b>${getGameName(currentActiveGame)}</b>" запущена!`;
+        else getEl('party-member-controls').innerHTML = "⏳ Ожидание лидера...";
     }
     
     if (currentActiveGame !== 'none' && !modalStack.includes(getModalIdForGame(currentActiveGame))) {
@@ -994,9 +1002,7 @@ async function requestStartMiniGame(gameType) {
             body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, game_name: gameType })
         });
         if (res.ok) {
-            currentActiveGame = gameType;
-            forceOpenMiniGame(gameType);
-            updatePartyUI();
+            currentActiveGame = gameType; forceOpenMiniGame(gameType); updatePartyUI();
         }
     } catch(e) { showToast("Ошибка сервера", "❌"); }
 }
@@ -1009,9 +1015,7 @@ async function requestStopMiniGame() {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, game_name: 'none' })
         });
-        forceCloseMiniGame(currentActiveGame);
-        currentActiveGame = 'none';
-        updatePartyUI();
+        forceCloseMiniGame(currentActiveGame); currentActiveGame = 'none'; updatePartyUI();
     } catch(e) {}
 }
 
@@ -1019,60 +1023,41 @@ function forceOpenMiniGame(gameType) {
     let modalId = getModalIdForGame(gameType);
     if(gameType === 'tap_boss') { 
         bossTimeLeft = 60; bossIsDead = false; 
-        getEl('tap-battle-grid').innerHTML = ''; // Сброс сетки для перерисовки
-        
+        getEl('tap-battle-grid').innerHTML = ''; 
         if(bossTimerInterval) clearInterval(bossTimerInterval);
         bossTimerInterval = setInterval(() => {
-            bossTimeLeft -= 0.1; 
-            const timerEl = getEl('boss-timer');
-            if(timerEl) timerEl.textContent = bossTimeLeft.toFixed(1);
-            
+            bossTimeLeft -= 0.1; const timerEl = getEl('boss-timer'); if(timerEl) timerEl.textContent = bossTimeLeft.toFixed(1);
             if (bossTimeLeft <= 0 && !bossIsDead) {
                 clearInterval(bossTimerInterval);
                 if(currentPartyPlayersData && currentPartyPlayersData.length > 0) {
                     let winner = currentPartyPlayersData.reduce((prev, curr) => prev.boss_hp < curr.boss_hp ? prev : curr);
                     handleTapBattleEnd(winner, currentPartyPlayersData);
-                } else {
-                    closeModal('tap-boss-modal');
-                }
+                } else { closeModal('tap-boss-modal'); }
             }
         }, 100);
     }
-    
-    if (modalId && !modalStack.includes(modalId)) {
-        openModal(modalId);
-    }
+    if (modalId && !modalStack.includes(modalId)) openModal(modalId);
 }
 
 function forceCloseMiniGame(gameType) {
     let modalId = getModalIdForGame(gameType);
     if(bossTimerInterval) clearInterval(bossTimerInterval);
     if (modalId && modalStack.includes(modalId)) {
-        closeModal(modalId);
-        showToast("Лидер завершил игру", "ℹ️");
+        closeModal(modalId); showToast("Лидер завершил игру", "ℹ️");
     }
 }
 
 // =============================================================
-// МИНИ-ИГРА: ГОНКА ЯИЦ (ТАП-БИТВА 2.0)
+// МИНИ-ИГРА: ГОНКА ЯИЦ
 // =============================================================
-let bossTimerInterval = null;
-let bossTimeLeft = 60;
-let bossIsDead = false;
+let bossTimerInterval = null; let bossTimeLeft = 60; let bossIsDead = false;
 
 function renderTapBattle(players) {
-    const grid = getEl('tap-battle-grid');
-    const myId = getTgUser().id;
-    grid.innerHTML = '';
-
+    const grid = getEl('tap-battle-grid'); const myId = getTgUser().id; grid.innerHTML = '';
     players.forEach(p => {
-        const isMe = p.user_id === myId;
-        const hpPercent = (p.boss_hp / 10000) * 100;
-        
-        let eggSkin = p.egg_skin || 'default';
-        const item = SHOP_DATA.eggs.find(x => x.id === eggSkin);
+        const isMe = p.user_id === myId; const hpPercent = (p.boss_hp / 10000) * 100;
+        let eggSkin = p.egg_skin || 'default'; const item = SHOP_DATA.eggs.find(x => x.id === eggSkin);
         const eggImg = item ? item.img : 'assets/eggs/egg-default.png';
-
         grid.innerHTML += `
             <div class="tap-cell ${isMe ? 'me' : ''}" id="cell-${p.user_id}">
                 <div class="tap-cell-name">${p.name} ${isMe ? '(Ты)' : ''}</div>
@@ -1083,116 +1068,102 @@ function renderTapBattle(players) {
         `;
     });
 }
-
 function updateTapBattleUI(players) {
-    if(!getEl('tap-battle-grid').innerHTML) {
-        renderTapBattle(players);
-    } else {
+    if(!getEl('tap-battle-grid').innerHTML) renderTapBattle(players);
+    else {
         players.forEach(p => {
-            const hpText = getEl(`hp-text-${p.user_id}`);
-            const hpFill = getEl(`hp-fill-${p.user_id}`);
-            if(hpText && hpFill) {
-                hpText.textContent = `${p.boss_hp}/10000`;
-                hpFill.style.width = `${(p.boss_hp / 10000) * 100}%`;
-            }
+            const hpText = getEl(`hp-text-${p.user_id}`); const hpFill = getEl(`hp-fill-${p.user_id}`);
+            if(hpText && hpFill) { hpText.textContent = `${p.boss_hp}/10000`; hpFill.style.width = `${(p.boss_hp / 10000) * 100}%`; }
         });
     }
 }
-
 async function tapMyEgg() {
-    if (bossTimeLeft <= 0 || bossIsDead) return;
-    playSound('click');
-    let damage = 1;
-    const r = getPetRarity(selectedAvatar);
-    if(r === 'rare') damage = 5;
-    if(r === 'legendary') damage = 20;
-
-    const myId = getTgUser().id;
-    const img = getEl(`egg-img-${myId}`);
-    if(img) {
-        img.classList.remove('boss-hit-anim'); void img.offsetWidth; img.classList.add('boss-hit-anim');
-    }
-
-    // Визуальное (локальное) отнятие ХП для плавности
-    const hpText = getEl(`hp-text-${myId}`);
-    const hpFill = getEl(`hp-fill-${myId}`);
+    if (bossTimeLeft <= 0 || bossIsDead) return; playSound('click');
+    let damage = 1; const r = getPetRarity(selectedAvatar); if(r === 'rare') damage = 5; if(r === 'legendary') damage = 20;
+    const myId = getTgUser().id; const img = getEl(`egg-img-${myId}`);
+    if(img) { img.classList.remove('boss-hit-anim'); void img.offsetWidth; img.classList.add('boss-hit-anim'); }
+    const hpText = getEl(`hp-text-${myId}`); const hpFill = getEl(`hp-fill-${myId}`);
     if(hpText && hpFill) {
-        let currentHp = parseInt(hpText.textContent.split('/')[0]);
-        currentHp -= damage;
-        if(currentHp < 0) currentHp = 0;
-        hpText.textContent = `${currentHp}/10000`;
-        hpFill.style.width = `${(currentHp / 10000) * 100}%`;
+        let currentHp = parseInt(hpText.textContent.split('/')[0]); currentHp -= damage; if(currentHp < 0) currentHp = 0;
+        hpText.textContent = `${currentHp}/10000`; hpFill.style.width = `${(currentHp / 10000) * 100}%`;
     }
-
-    // Отправка на сервер
-    try { 
-        await fetch(`${API_URL}/party/damage`, { 
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code: currentPartyCode, user_id: myId, damage: damage }) 
-        }); 
-    } catch(e) {}
+    try { await fetch(`${API_URL}/party/damage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, user_id: myId, damage: damage }) }); } catch(e) {}
 }
-
 function handleTapBattleEnd(winner, players) {
-    if(bossIsDead) return;
-    bossIsDead = true;
-    clearInterval(bossTimerInterval);
-    playSound('win');
-    
-    const myId = getTgUser().id;
-    const me = players.find(p => p.user_id === myId);
-    
-    if (winner.user_id === myId) {
-        fireConfetti();
-        showToast("ТЫ ПОБЕДИЛ В ГОНКЕ! +5000 монет", "🏆");
-        walletBalance += 5000;
-    } else {
-        // Утешительный приз: 0.1 монеты за каждое снесенное ХП
-        const damageDealt = 10000 - (me ? me.boss_hp : 10000);
-        const reward = Math.floor(damageDealt * 0.1);
-        showToast(`${winner.name} победил! Твой приз: +${reward} монет`, "💰");
-        walletBalance += reward;
-    }
-    
+    if(bossIsDead) return; bossIsDead = true; clearInterval(bossTimerInterval); playSound('win');
+    const myId = getTgUser().id; const me = players.find(p => p.user_id === myId);
+    if (winner.user_id === myId) { fireConfetti(); showToast("ТЫ ПОБЕДИЛ В ГОНКЕ! +5000 монет", "🏆"); walletBalance += 5000; } 
+    else { const damageDealt = 10000 - (me ? me.boss_hp : 10000); const reward = Math.floor(damageDealt * 0.1); showToast(`${winner.name} победил! Твой приз: +${reward} монет`, "💰"); walletBalance += reward; }
     saveData(); updateBalanceUI();
-    
-    // Лидер останавливает игру на сервере
-    if(isPartyLeader) {
-        setTimeout(() => requestStopMiniGame(), 3000);
-    }
+    if(isPartyLeader) setTimeout(() => requestStopMiniGame(), 3000);
 }
 
 
-// === МЕГА-ЯЙЦО И ЭКСПЕДИЦИЯ (БЕЗ ИЗМЕНЕНИЙ) ===
+// =============================================================
+// МИНИ-ИГРА: МЕГА-ЯЙЦО (ПРОКАЧАННОЕ)
+// =============================================================
 async function apiAddMegaEggTime(seconds) {
     try { await fetch(`${API_URL}/party/mega_egg/add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, seconds: seconds }) }); } catch(e) {}
 }
+
 function updateMegaEggUI(progress, target) {
     let p = (progress / target) * 100; if(p>100) p=100;
     getEl('mega-egg-bar').style.width = `${p}%`;
     getEl('mega-egg-text').textContent = `${Math.floor(progress/3600)} / ${Math.floor(target/3600)} Часов`;
     getEl('mega-egg-claim-btn').style.display = (progress >= target) ? 'block' : 'none';
+
+    // Анимации Мега-яйца в зависимости от прогресса
+    const eggImg = getEl('mega-egg-img-display');
+    if (eggImg) {
+        if(p > 0 && p < 50) eggImg.className = 'mega-egg-img pulse-slow';
+        else if(p >= 50 && p < 100) eggImg.className = 'mega-egg-img pulse-fast';
+        else if(p >= 100) eggImg.className = 'mega-egg-img shake-crazy';
+        else eggImg.className = 'mega-egg-img';
+    }
 }
+
 async function claimMegaEgg() {
     playSound('win'); fireConfetti();
     collection.push(petDatabase.legendary[Math.floor(Math.random() * petDatabase.legendary.length)]);
     walletBalance += 10000; saveData(); updateBalanceUI();
-    showToast("МЕГА-ЯЙЦО! +10k Монет и Легендарка", "🌟");
+    showToast("МЕГА-ЯЙЦО РАСКОЛОТО! +10k Монет и Легендарка", "🌟");
     try { await fetch(`${API_URL}/party/mega_egg/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
     closeModal('mega-egg-modal');
 }
 
+
+// =============================================================
+// МИНИ-ИГРА: ЭКСПЕДИЦИЯ (С ЛЕСОМ)
+// =============================================================
 let expeditionInterval = null;
+
 async function startExpedition() {
     playSound('click');
     try {
         await fetch(`${API_URL}/party/expedition/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) });
-        showToast("Экспедиция началась!", "🗺️");
+        showToast("Отряд выдвинулся в путь!", "🗺️");
     } catch(e) {}
 }
+
 function updateExpeditionUI(endTime, score) {
     const now = Math.floor(Date.now() / 1000);
+    const scene = getEl('expedition-scene');
+    const petsContainer = getEl('expedition-pets-container');
+    
+    // Отрисовываем отряд (текущие аватары)
+    if(currentPartyPlayersData && petsContainer) {
+        petsContainer.innerHTML = '';
+        currentPartyPlayersData.forEach(p => {
+            // Если идем в поход - добавляем класс анимации ходьбы
+            let isWalking = (endTime > now) ? 'walking-pet' : '';
+            petsContainer.innerHTML += `<img src="assets/pets/pet-${p.avatar}.png" class="expedition-pet ${isWalking}">`;
+        });
+    }
+
     if (endTime > now) {
+        // ЭКСПЕДИЦИЯ В ПРОЦЕССЕ
+        scene.classList.add('scrolling-bg'); // Лес движется
+        getEl('change-expedition-pet-btn').style.display = 'none'; // Нельзя менять пета в пути
         getEl('expedition-info-view').style.display = 'none';
         getEl('expedition-active-view').style.display = 'block';
         getEl('expedition-multiplier').textContent = score;
@@ -1205,6 +1176,7 @@ function updateExpeditionUI(endTime, score) {
                 clearInterval(expeditionInterval);
                 getEl('expedition-timer').textContent = "00:00:00";
                 getEl('expedition-claim-btn').style.display = 'block';
+                scene.classList.remove('scrolling-bg');
             } else {
                 let diff = endTime - t;
                 let h = Math.floor(diff / 3600).toString().padStart(2, '0');
@@ -1214,6 +1186,9 @@ function updateExpeditionUI(endTime, score) {
             }
         }, 1000);
     } else if (endTime > 0 && endTime <= now) {
+        // ЭКСПЕДИЦИЯ ЗАВЕРШЕНА (ЖДЕТ СБОРА ЛУТА)
+        scene.classList.remove('scrolling-bg'); // Лес остановился
+        getEl('change-expedition-pet-btn').style.display = 'none';
         getEl('expedition-info-view').style.display = 'none';
         getEl('expedition-active-view').style.display = 'block';
         getEl('expedition-timer').textContent = "00:00:00";
@@ -1221,12 +1196,25 @@ function updateExpeditionUI(endTime, score) {
         getEl('expedition-claim-btn').style.display = 'block';
         if(expeditionInterval) clearInterval(expeditionInterval);
     } else {
+        // ЭКСПЕДИЦИЯ ЕЩЕ НЕ НАЧАТА (ЛОББИ)
+        scene.classList.remove('scrolling-bg'); 
+        getEl('change-expedition-pet-btn').style.display = 'inline-block';
         getEl('expedition-info-view').style.display = 'block';
         getEl('expedition-active-view').style.display = 'none';
         getEl('expedition-pre-score').textContent = score || 1; 
+        
+        if(isPartyLeader) {
+            getEl('expedition-start-btn').style.display = 'inline-block';
+            getEl('expedition-waiting-msg').style.display = 'none';
+        } else {
+            getEl('expedition-start-btn').style.display = 'none';
+            getEl('expedition-waiting-msg').style.display = 'block';
+        }
+
         if(expeditionInterval) clearInterval(expeditionInterval);
     }
 }
+
 async function claimExpedition() {
     playSound('money');
     const score = parseInt(getEl('expedition-multiplier').textContent);
@@ -1235,6 +1223,7 @@ async function claimExpedition() {
     showToast(`Лут собран: +${reward} монет!`, "💰");
     try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
     closeModal('expedition-modal');
+    if(isPartyLeader) requestStopMiniGame(); // Закрываем у всех
 }
 
 window.onload = initGame;

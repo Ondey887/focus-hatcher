@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=54">
+    <link rel="stylesheet" href="style.css?v=55">
 </head>
 <body>
 
@@ -109,37 +109,47 @@
             <div class="modal-header"><h2>Гонка Яиц!</h2><button class="close-btn" onclick="closeModal('tap-boss-modal')">✖</button></div>
             <div style="font-size: 30px; font-weight: bold; color: #ff3b30;" id="boss-timer">60.0</div>
             <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Тапай по СВОЕМУ яйцу! Кто первый разобьет — заберет 5000 монет!</p>
-            
-            <div id="tap-battle-grid" class="tap-grid">
-                </div>
+            <div id="tap-battle-grid" class="tap-grid"></div>
         </div>
     </div>
 
     <div id="mega-egg-modal" class="modal" style="display: none;">
         <div class="modal-content" style="background: #1c1c1e;">
             <div class="modal-header"><h2>Мега-Яйцо</h2><button class="close-btn" onclick="closeModal('mega-egg-modal')">✖</button></div>
-            <img src="assets/eggs/egg-gold.png" style="width: 150px; height: 150px; object-fit: contain; margin: 10px auto; display: block; filter: drop-shadow(0 0 20px #ffd700);">
-            <p style="font-size: 14px; color: #d1d1d6; margin-bottom: 10px;">Любой онлайн-фокус участников Пати заполняет шкалу!</p>
+            
+            <div style="height: 220px; display: flex; align-items: center; justify-content: center; margin: 10px 0;">
+                <img id="mega-egg-img-display" src="assets/eggs/egg-gold.png" class="mega-egg-img">
+            </div>
+
+            <p style="font-size: 14px; color: #d1d1d6; margin-bottom: 10px;">Любой успешный онлайн-фокус участников Пати заполняет шкалу!</p>
             <div class="progress-bar-bg" style="height: 25px; margin: 15px 0; border: 1px solid #ffd700;"><div id="mega-egg-bar" class="progress-bar-fill" style="background: linear-gradient(90deg, #ffcc00, #ff9500); width: 0%;"></div></div>
-            <p style="font-weight: bold; color: #ffd700; font-size: 18px;" id="mega-egg-text">0 / 10 Часов</p>
-            <button id="mega-egg-claim-btn" class="btn" style="background: #34c759; margin-top: 15px; display: none;" onclick="claimMegaEgg()">Расколоть! 🎁</button>
+            <p style="font-weight: bold; color: #ffd700; font-size: 22px;" id="mega-egg-text">0 / 10 Часов</p>
+            <button id="mega-egg-claim-btn" class="btn" style="background: #34c759; margin-top: 15px; display: none; font-size: 20px;" onclick="claimMegaEgg()">РАСКОЛОТЬ! 🎁</button>
         </div>
     </div>
 
     <div id="expedition-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="background: #1c1c1e;">
+        <div class="modal-content" style="background: #1c1c1e; width: 95%; max-width: 400px;">
             <div class="modal-header"><h2>Экспедиция</h2><button class="close-btn" onclick="closeModal('expedition-modal')">✖</button></div>
-            <p style="font-size: 13px; color: #888; margin-bottom: 15px;">Отправьте ваших аватаров в поход. Чем они реже, тем больше золота!</p>
             
+            <div id="expedition-scene" class="expedition-scene">
+                <div id="expedition-pets-container" class="expedition-pets-container"></div>
+            </div>
+
+            <p style="font-size: 12px; color: #888; margin: 10px 0;">Отряд формируется из текущих Аватаров. Чем реже пет — тем больше лут!</p>
+            
+            <button id="change-expedition-pet-btn" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 8px; font-size: 14px; margin-bottom: 15px;" onclick="openAvatarSelector()">Выбрать своего бойца 🔄</button>
+
             <div id="expedition-info-view">
-                <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px;">Множитель команды: x<span id="expedition-pre-score">1</span></p>
-                <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Начать (4 Часа)</button>
+                <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px; font-size: 18px;">Множитель отряда: x<span id="expedition-pre-score">1</span></p>
+                <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Отправить в поход (4ч)</button>
+                <div id="expedition-waiting-msg" style="display:none; color: #8e8e93; font-weight: bold; padding: 15px;">⏳ Ожидание приказа Лидера...</div>
             </div>
 
             <div id="expedition-active-view" style="display: none;">
-                <div style="font-size: 40px; font-weight: bold; color: #34c759; margin: 20px 0; font-variant-numeric: tabular-nums;" id="expedition-timer">04:00:00</div>
-                <p style="color: #ffd700; font-weight: bold;">Множитель лута: x<span id="expedition-multiplier">1</span></p>
-                <button id="expedition-claim-btn" class="btn" style="background: #ffd700; color: black; margin-top: 15px; display: none;" onclick="claimExpedition()">Собрать Лут!</button>
+                <div style="font-size: 40px; font-weight: bold; color: #34c759; margin: 10px 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(52,199,89,0.3);" id="expedition-timer">04:00:00</div>
+                <p style="color: #ffd700; font-weight: bold; font-size: 18px;">Множитель лута: x<span id="expedition-multiplier">1</span></p>
+                <button id="expedition-claim-btn" class="btn" style="background: linear-gradient(45deg, #ffd700, #ffa500); color: black; margin-top: 15px; display: none;" onclick="claimExpedition()">Вернуть отряд с Лутом! 💰</button>
             </div>
         </div>
     </div>
@@ -323,6 +333,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=54"></script>
+    <script src="script.js?v=55"></script>
 </body>
 </html>
