@@ -1252,7 +1252,7 @@ function calculatePreStartSynergy() {
     currentPartyPlayersData.forEach(p => {
         let av = p.avatar;
         if (["unicorn", "dragon", "alien", "robot", "dino", "fireball", "god"].includes(av)) score += 10;
-        elif (["fox", "panda", "tiger", "lion", "cow", "pig", "monkey", "owl"].includes(av)) score += 3;
+        else if (["fox", "panda", "tiger", "lion", "cow", "pig", "monkey", "owl"].includes(av)) score += 3;
         else score += 1;
         
         if (["cow", "pig", "duck"].includes(av)) farm_count++;
