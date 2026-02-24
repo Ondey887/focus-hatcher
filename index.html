@@ -5,12 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=55">
+    <link rel="stylesheet" href="style.css?v=56">
 </head>
 <body>
 
     <div id="toast-container"></div>
     <div id="debug-console" style="display:none; color:red; position:absolute; top:0; z-index:9999;"></div>
+
+    <div id="incoming-invite-modal" class="modal" style="display: none; z-index: 4000;">
+        <div class="modal-content" style="background: linear-gradient(180deg, #1c1c1e, #2c2c2e); border: 2px solid #007aff;">
+            <h2 style="color: #ffd700; margin-bottom: 10px;">Вам приглашение! 💌</h2>
+            <img id="invite-sender-avatar" src="assets/ui/icon-profile.png" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #007aff; margin: 10px auto; display: block;">
+            <p style="font-size: 16px;"><b id="invite-sender-name">Игрок</b> зовет вас в Пати!</p>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn stop" style="flex: 1; padding: 12px; font-size: 14px;" onclick="declineInvite()">Отклонить</button>
+                <button class="btn" style="background: #34c759; flex: 1; padding: 12px; font-size: 14px;" onclick="acceptInvite()">Войти 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="friend-profile-modal" class="modal" style="display: none; z-index: 3500;">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Профиль Друга</h2><button class="close-btn" onclick="closeModal('friend-profile-modal')">✖</button></div>
+            <img id="fp-avatar" src="assets/ui/icon-profile.png" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ffd700; margin: 0 auto 10px auto; display: block;">
+            <h3 id="fp-name" style="margin-bottom: 5px; font-size: 24px;">Имя</h3>
+            <div id="fp-level" style="color: #8e8e93; font-size: 14px; margin-bottom: 20px;">Lvl 1</div>
+            
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-box"><div class="stat-val" id="fp-hatched">0</div><div class="stat-label">Вылупил</div></div>
+                <div class="stat-box"><div class="stat-val" id="fp-earned">0</div><div class="stat-label">Капитал</div></div>
+            </div>
+
+            <button id="fp-invite-btn" class="btn" style="background: #007aff; display: none;" onclick="sendInviteToFriend()">Позвать в свою Пати 🎮</button>
+            <p id="fp-invite-hint" style="font-size: 12px; color: #8e8e93; display: none;">Сначала создай свою Пати, чтобы звать друзей!</p>
+        </div>
+    </div>
 
     <div id="avatar-modal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -71,7 +100,6 @@
                 <div id="party-players-list" class="party-players-grid"></div>
 
                 <h3 style="margin: 20px 0 10px 0;">Мини-игры</h3>
-                
                 <div id="party-leader-controls">
                     <div class="party-games-grid">
                         <div class="party-game-card" onclick="requestStartMiniGame('mega_egg')">
@@ -116,11 +144,9 @@
     <div id="mega-egg-modal" class="modal" style="display: none;">
         <div class="modal-content" style="background: #1c1c1e;">
             <div class="modal-header"><h2>Мега-Яйцо</h2><button class="close-btn" onclick="closeModal('mega-egg-modal')">✖</button></div>
-            
             <div style="height: 220px; display: flex; align-items: center; justify-content: center; margin: 10px 0;">
                 <img id="mega-egg-img-display" src="assets/eggs/egg-gold.png" class="mega-egg-img">
             </div>
-
             <p style="font-size: 14px; color: #d1d1d6; margin-bottom: 10px;">Любой успешный онлайн-фокус участников Пати заполняет шкалу!</p>
             <div class="progress-bar-bg" style="height: 25px; margin: 15px 0; border: 1px solid #ffd700;"><div id="mega-egg-bar" class="progress-bar-fill" style="background: linear-gradient(90deg, #ffcc00, #ff9500); width: 0%;"></div></div>
             <p style="font-weight: bold; color: #ffd700; font-size: 22px;" id="mega-egg-text">0 / 10 Часов</p>
@@ -131,21 +157,16 @@
     <div id="expedition-modal" class="modal" style="display: none;">
         <div class="modal-content" style="background: #1c1c1e; width: 95%; max-width: 400px;">
             <div class="modal-header"><h2>Экспедиция</h2><button class="close-btn" onclick="closeModal('expedition-modal')">✖</button></div>
-            
             <div id="expedition-scene" class="expedition-scene">
                 <div id="expedition-pets-container" class="expedition-pets-container"></div>
             </div>
-
             <p style="font-size: 12px; color: #888; margin: 10px 0;">Отряд формируется из текущих Аватаров. Чем реже пет — тем больше лут!</p>
-            
             <button id="change-expedition-pet-btn" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 8px; font-size: 14px; margin-bottom: 15px;" onclick="openAvatarSelector()">Выбрать своего бойца 🔄</button>
-
             <div id="expedition-info-view">
                 <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px; font-size: 18px;">Множитель отряда: x<span id="expedition-pre-score">1</span></p>
                 <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Отправить в поход (4ч)</button>
                 <div id="expedition-waiting-msg" style="display:none; color: #8e8e93; font-weight: bold; padding: 15px;">⏳ Ожидание приказа Лидера...</div>
             </div>
-
             <div id="expedition-active-view" style="display: none;">
                 <div style="font-size: 40px; font-weight: bold; color: #34c759; margin: 10px 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(52,199,89,0.3);" id="expedition-timer">04:00:00</div>
                 <p style="color: #ffd700; font-weight: bold; font-size: 18px;">Множитель лута: x<span id="expedition-multiplier">1</span></p>
@@ -155,22 +176,50 @@
     </div>
 
     <div id="profile-modal" class="modal" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height: 90vh;">
             <div class="modal-header"><h2>Досье</h2><button class="close-btn" onclick="closeModal('profile-modal')">✖</button></div>
-            <div class="profile-header-block">
-                <div class="profile-avatar-container" onclick="openAvatarSelector()">
-                    <img id="profile-avatar" src="assets/ui/icon-profile.png" class="profile-avatar-img">
-                    <div class="edit-badge"><img src="assets/ui/icon-edit.png"></div>
+            
+            <div class="shop-tabs">
+                <button class="tab-btn active" onclick="switchProfileTab('stats')">Моя Стата</button>
+                <button class="tab-btn" onclick="switchProfileTab('friends')">Друзья 🤝</button>
+            </div>
+
+            <div id="profile-stats-view">
+                <div class="profile-header-block">
+                    <div class="profile-avatar-container" onclick="openAvatarSelector()">
+                        <img id="profile-avatar" src="assets/ui/icon-profile.png" class="profile-avatar-img">
+                        <div class="edit-badge"><img src="assets/ui/icon-edit.png"></div>
+                    </div>
+                    <h3 id="profile-rank">Новичок</h3>
+                    <div id="profile-level" style="color: #8e8e93; font-size: 14px;">Lvl 1</div>
                 </div>
-                <h3 id="profile-rank">Новичок</h3>
-                <div id="profile-level" style="color: #8e8e93; font-size: 14px;">Lvl 1</div>
+                <div class="stats-grid">
+                    <div class="stat-box"><div class="stat-val" id="stat-hatched">0</div><div class="stat-label">Яиц</div></div>
+                    <div class="stat-box"><div class="stat-val" id="stat-unique">0</div><div class="stat-label">Видов</div></div>
+                    <div class="stat-box"><div class="stat-val" id="stat-earned">0</div><div class="stat-label">Капитал</div></div>
+                    <div class="stat-box"><div class="stat-val" id="stat-invites">0</div><div class="stat-label">Бонусы</div></div>
+                </div>
             </div>
-            <div class="stats-grid">
-                <div class="stat-box"><div class="stat-val" id="stat-hatched">0</div><div class="stat-label">Яиц</div></div>
-                <div class="stat-box"><div class="stat-val" id="stat-unique">0</div><div class="stat-label">Видов</div></div>
-                <div class="stat-box"><div class="stat-val" id="stat-earned">0</div><div class="stat-label">Капитал</div></div>
-                <div class="stat-box"><div class="stat-val" id="stat-invites">0</div><div class="stat-label">Друзей</div></div>
+
+            <div id="profile-friends-view" style="display: none; text-align: left;">
+                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 15px; text-align: center;">
+                    <p style="font-size: 12px; color: #888; margin-bottom: 5px;">Твой Код Друга (Telegram ID):</p>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="my-friend-code" readonly style="flex:1; background: transparent; border: 1px solid #007aff; color: #ffd700; text-align: center; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                        <button class="btn" style="width: auto; padding: 10px; font-size: 14px; margin: 0;" onclick="copyMyCode()">📋</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+                    <input type="text" id="add-friend-input" class="promo-input" style="margin: 0; flex: 1; font-size: 14px;" placeholder="ВВЕДИ ID ДРУГА">
+                    <button class="btn" style="width: auto; padding: 10px; font-size: 14px; margin: 0; background: #34c759;" onclick="apiAddFriend()">Добавить</button>
+                </div>
+
+                <h3 style="margin-bottom: 10px; font-size: 16px;">Список Друзей:</h3>
+                <div id="friends-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;">
+                    </div>
             </div>
+
         </div>
     </div>
 
@@ -333,6 +382,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=55"></script>
+    <script src="script.js?v=56"></script>
 </body>
 </html>
