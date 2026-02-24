@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=52">
+    <link rel="stylesheet" href="style.css?v=53">
 </head>
 <body>
 
@@ -27,7 +27,7 @@
         </div>
     </div>
 
-    <div id="craft-modal" class="modal" style="display: none; z-index: 3001;">
+    <div id="craft-modal" class="modal" style="display: none;">
         <div class="modal-content" style="max-height: 85vh;">
             <div class="modal-header"><h2>Синтез</h2><button class="close-btn" onclick="closeModal('craft-modal')">✖</button></div>
             <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Соедини 5 одинаковых обычных петов, чтобы получить редкого!</p>
@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <div id="custom-egg-modal" class="modal" style="display: none; z-index: 3001;">
+    <div id="custom-egg-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Конфиг Яйца</h2><button class="close-btn" onclick="closeModal('custom-egg-modal')">✖</button></div>
             <p style="font-size: 14px; margin-bottom: 10px;">Какую редкость выращиваем?</p>
@@ -67,33 +67,44 @@
                 <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; margin-bottom: 15px;">
                     Код Пати: <span id="current-party-code" style="color: #ffd700; font-weight: bold; letter-spacing: 2px;">XXXX</span>
                 </div>
-                <h3 style="margin: 10px 0;">Игроки (1/4)</h3>
+                <h3 style="margin: 10px 0;">Игроки <span id="leader-badge" style="color: #ffd700; font-size: 12px; display: none;">(Вы Лидер 👑)</span></h3>
                 <div id="party-players-list" class="party-players-grid"></div>
 
                 <h3 style="margin: 20px 0 10px 0;">Мини-игры</h3>
-                <div class="party-games-grid">
-                    <div class="party-game-card" onclick="startMiniGame('mega_egg')">
-                        <div class="game-icon">🥚</div>
-                        <div class="game-title">Мега-Яйцо</div>
-                        <div class="game-desc">Кооп-фокус на 10 часов</div>
-                    </div>
-                    <div class="party-game-card" onclick="startMiniGame('tap_boss')">
-                        <div class="game-icon">⚔️</div>
-                        <div class="game-title">Тап-Битва</div>
-                        <div class="game-desc">Разбей босса за 60 сек</div>
-                    </div>
-                    <div class="party-game-card" onclick="startMiniGame('expedition')">
-                        <div class="game-icon">🗺️</div>
-                        <div class="game-title">Экспедиция</div>
-                        <div class="game-desc">Отправь петов в поход</div>
+                
+                <div id="party-leader-controls">
+                    <div class="party-games-grid">
+                        <div class="party-game-card" onclick="requestStartMiniGame('mega_egg')">
+                            <div class="game-icon">🥚</div>
+                            <div class="game-title">Мега-Яйцо</div>
+                            <div class="game-desc">Кооп-фокус на 10 часов</div>
+                        </div>
+                        <div class="party-game-card" onclick="requestStartMiniGame('tap_boss')">
+                            <div class="game-icon">⚔️</div>
+                            <div class="game-title">Тап-Битва</div>
+                            <div class="game-desc">Разбей босса за 60 сек</div>
+                        </div>
+                        <div class="party-game-card" onclick="requestStartMiniGame('expedition')">
+                            <div class="game-icon">🗺️</div>
+                            <div class="game-title">Экспедиция</div>
+                            <div class="game-desc">Отправь петов в поход</div>
+                        </div>
                     </div>
                 </div>
+
+                <div id="party-member-controls" style="display:none; color: #8e8e93; text-align: center; margin: 20px 0; font-weight: bold;">
+                    ⏳ Ожидание лидера...
+                </div>
+                
+                <button id="return-game-btn" class="btn" style="display:none; padding: 10px; margin-top: 10px; background: #007aff;" onclick="forceOpenMiniGame(currentActiveGame)">Вернуться в игру 🎮</button>
+                <button id="cancel-game-btn" class="btn stop" style="display: none; padding: 10px; font-size: 14px; margin-top: 15px;" onclick="requestStopMiniGame()">Остановить игру 🛑</button>
+                
                 <button class="btn" style="background: #ff3b30; padding: 10px; font-size: 14px; margin-top: 20px;" onclick="apiLeaveParty()">Выйти из пати</button>
             </div>
         </div>
     </div>
 
-    <div id="tap-boss-modal" class="modal" style="display: none; z-index: 3005;">
+    <div id="tap-boss-modal" class="modal" style="display: none;">
         <div class="modal-content" style="background: #1c1c1e;">
             <div class="modal-header"><h2>Битва!</h2><button class="close-btn" onclick="closeModal('tap-boss-modal')">✖</button></div>
             <div style="font-size: 30px; font-weight: bold; color: #ff3b30;" id="boss-timer">60.0</div>
@@ -104,7 +115,7 @@
         </div>
     </div>
 
-    <div id="mega-egg-modal" class="modal" style="display: none; z-index: 3005;">
+    <div id="mega-egg-modal" class="modal" style="display: none;">
         <div class="modal-content" style="background: #1c1c1e;">
             <div class="modal-header"><h2>Мега-Яйцо</h2><button class="close-btn" onclick="closeModal('mega-egg-modal')">✖</button></div>
             <img src="assets/eggs/egg-gold.png" style="width: 150px; height: 150px; object-fit: contain; margin: 10px auto; display: block; filter: drop-shadow(0 0 20px #ffd700);">
@@ -115,12 +126,13 @@
         </div>
     </div>
 
-    <div id="expedition-modal" class="modal" style="display: none; z-index: 3005;">
+    <div id="expedition-modal" class="modal" style="display: none;">
         <div class="modal-content" style="background: #1c1c1e;">
             <div class="modal-header"><h2>Экспедиция</h2><button class="close-btn" onclick="closeModal('expedition-modal')">✖</button></div>
             <p style="font-size: 13px; color: #888; margin-bottom: 15px;">Отправьте ваших аватаров в поход. Чем они реже, тем больше золота!</p>
             
             <div id="expedition-info-view">
+                <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px;">Множитель команды: x<span id="expedition-pre-score">1</span></p>
                 <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Начать (4 Часа)</button>
             </div>
 
@@ -311,6 +323,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=52"></script>
+    <script src="script.js?v=53"></script>
 </body>
 </html>
