@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=58">
+    <link rel="stylesheet" href="style.css?v=61">
 </head>
 <body>
 
@@ -130,7 +130,6 @@
                 
                 <button id="return-game-btn" class="btn" style="display:none; padding: 10px; margin-top: 10px; background: #007aff;" onclick="forceOpenMiniGame(currentActiveGame)">Вернуться в игру 🎮</button>
                 <button id="cancel-game-btn" class="btn stop" style="display: none; padding: 10px; font-size: 14px; margin-top: 15px;" onclick="requestStopMiniGame()">Остановить игру 🛑</button>
-                
                 <button class="btn" style="background: #ff3b30; padding: 10px; font-size: 14px; margin-top: 20px;" onclick="apiLeaveParty()">Выйти из пати</button>
             </div>
         </div>
@@ -175,14 +174,15 @@
 
             <button id="change-expedition-pet-btn" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 8px; font-size: 14px; margin-bottom: 15px;" onclick="openAvatarSelector()">Выбрать своего бойца 🔄</button>
             
-   <div id="leader-location-selector" style="display: none; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-    <p style="font-size: 13px; color: #aaa;">Выберите локацию:</p>
-    <div style="display: flex; gap: 5px;">
-        <button class="tab-btn active" id="loc-btn-forest" onclick="selectExpeditionLocation('forest')">🌳 Лес (5м)</button>
-        <button class="tab-btn" id="loc-btn-mountains" onclick="selectExpeditionLocation('mountains')">❄️ Горы (15м)</button>
-        <button class="tab-btn" id="loc-btn-space" onclick="selectExpeditionLocation('space')">🌌 Космос (25м)</button>
-    </div>
-</div>
+            <div id="expedition-info-view">
+                <div id="leader-location-selector" style="display: none; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                    <p style="font-size: 13px; color: #aaa;">Выберите локацию:</p>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="tab-btn active" id="loc-btn-forest" onclick="selectExpeditionLocation('forest')">🌳 Лес (5м)</button>
+                        <button class="tab-btn" id="loc-btn-mountains" onclick="selectExpeditionLocation('mountains')">❄️ Горы (15м)</button>
+                        <button class="tab-btn" id="loc-btn-space" onclick="selectExpeditionLocation('space')">🌌 Космос (25м)</button>
+                    </div>
+                </div>
 
                 <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px; font-size: 18px;">Базовый множитель: x<span id="expedition-pre-score">1</span></p>
                 <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Отправить отряд</button>
@@ -190,7 +190,7 @@
             </div>
 
             <div id="expedition-active-view" style="display: none;">
-                <div style="font-size: 40px; font-weight: bold; color: #34c759; margin: 10px 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(52,199,89,0.3);" id="expedition-timer">04:00:00</div>
+                <div style="font-size: 40px; font-weight: bold; color: #34c759; margin: 10px 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(52,199,89,0.3);" id="expedition-timer">00:00:00</div>
                 <p style="color: #ffd700; font-weight: bold; font-size: 18px;">Итоговый множитель: x<span id="expedition-multiplier">1</span></p>
                 <button id="expedition-claim-btn" class="btn" style="background: linear-gradient(45deg, #ffd700, #ffa500); color: black; margin-top: 15px; display: none;" onclick="claimExpedition()">Вернуть отряд с Лутом! 💰</button>
             </div>
@@ -387,6 +387,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=58"></script>
+    <script src="script.js?v=61"></script>
 </body>
 </html>

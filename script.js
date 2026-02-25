@@ -74,7 +74,7 @@ let currentPartyPlayersData = [];
 let invitesPollingInterval = null;
 let currentPendingInviteId = null;
 
-let currentExpeditionLocation = ''; 
+let currentExpeditionLocation = 'forest'; 
 let currentExpeditionEndTime = 0; 
 let bossTimerInterval = null; 
 let bossTimeLeft = 60; 
@@ -1232,8 +1232,11 @@ function forceOpenMiniGame(gameType) {
     if(gameType === 'expedition') {
         calculatePreStartSynergy(); 
         if(isPartyLeader) {
-            if(!currentExpeditionLocation) selectExpeditionLocation('forest'); 
-        } 
+            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'flex';
+            selectExpeditionLocation('forest'); 
+        } else {
+            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
+        }
     }
 
     if (modalId && !modalStack.includes(modalId)) openModal(modalId);
@@ -1345,7 +1348,7 @@ function selectExpeditionLocation(loc) {
     if (btn) btn.classList.add('active');
     
     const scene = getEl('expedition-scene');
-    scene.className = `expedition-scene ${loc}-bg`;
+    if (scene) scene.className = `expedition-scene ${loc}-bg`;
 }
 
 function calculatePreStartSynergy() {
@@ -1366,8 +1369,10 @@ function calculatePreStartSynergy() {
     if(pred_count >= 2) { synergyText.push("🐾 Хищники (-15% времени)"); }
     if(magic_count >= 1) { synergyText.push("✨ Магия (Выше шанс Осколка)"); }
 
-    getEl('expedition-pre-score').textContent = score;
-    getEl('synergy-display').innerHTML = synergyText.length > 0 ? `Активные баффы: ${synergyText.join(', ')}` : 'Соберите синергию петов!';
+    let scoreEl = getEl('expedition-pre-score');
+    let synEl = getEl('synergy-display');
+    if (scoreEl) scoreEl.textContent = score;
+    if (synEl) synEl.innerHTML = synergyText.length > 0 ? `Активные баффы: ${synergyText.join(', ')}` : 'Соберите синергию петов!';
 }
 
 async function startExpedition() {
@@ -1375,7 +1380,6 @@ async function startExpedition() {
     const btn = getEl('expedition-start-btn');
     if (btn) { btn.disabled = true; btn.textContent = "Отправляем..."; }
     
-    // Если по какой-то причине локация не выбрана, ставим лес
     if (!currentExpeditionLocation) currentExpeditionLocation = 'forest';
 
     try {
@@ -1396,13 +1400,15 @@ async function startExpedition() {
 }
 
 function updateTimerVisuals(seconds) {
+    let timerEl = getEl('expedition-timer');
+    if (!timerEl) return;
     if (seconds <= 0) {
-        getEl('expedition-timer').textContent = "00:00:00";
+        timerEl.textContent = "00:00:00";
     } else {
         let h = Math.floor(seconds / 3600).toString().padStart(2, '0');
         let m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
         let s = (seconds % 60).toString().padStart(2, '0');
-        getEl('expedition-timer').textContent = `${h}:${m}:${s}`;
+        timerEl.textContent = `${h}:${m}:${s}`;
     }
 }
 
@@ -1416,33 +1422,29 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
     const timerEl = getEl('expedition-timer');
     const locSelector = getEl('leader-location-selector');
 
-    // 1. Data Safety
+    if(!infoView || !activeView || !timerEl) return; 
+
     const safeWolfHp = wolfHp || 0;
     const safeWolfMaxHp = wolfMaxHp || 1;
     currentWolfHp = safeWolfHp;
     
-    // 2. Logic Machine
-    const isLobby = !serverEndTime || serverEndTime === 0;
     const sTime = serverTime || Math.floor(Date.now() / 1000);
+    const isLobby = !serverEndTime || serverEndTime === 0;
+    
     let secondsLeft = 0;
-    if (!isLobby) {
-        secondsLeft = serverEndTime - sTime;
-    }
+    if (!isLobby) secondsLeft = serverEndTime - sTime;
+    
     const isFinished = !isLobby && secondsLeft <= 0;
     const isActive = !isLobby && secondsLeft > 0;
 
-    // 3. Scene Background
     let targetLoc = 'forest';
-    if (isLobby) {
-        targetLoc = currentExpeditionLocation || 'forest';
-    } else {
-        targetLoc = loc || 'forest';
-    }
-    if (!scene.classList.contains(`${targetLoc}-bg`)) {
+    if (isLobby) targetLoc = currentExpeditionLocation || 'forest';
+    else targetLoc = loc || 'forest';
+    
+    if (scene && !scene.classList.contains(`${targetLoc}-bg`)) {
         scene.className = `expedition-scene ${targetLoc}-bg`;
     }
 
-    // 4. Draw Pets
     if (currentPartyPlayersData && petsContainer) {
         petsContainer.innerHTML = '';
         currentPartyPlayersData.forEach(p => {
@@ -1451,24 +1453,29 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
         });
     }
 
-    // 5. State Handling
     if (isLobby) {
         currentExpeditionEndTime = 0;
-        scene.classList.remove('scrolling-bg');
-        wolfOverlay.style.display = 'none';
+        if(scene) scene.classList.remove('scrolling-bg');
+        if(wolfOverlay) wolfOverlay.style.display = 'none';
         
-        getEl('change-expedition-pet-btn').style.display = 'inline-block';
+        let changeBtn = getEl('change-expedition-pet-btn');
+        if(changeBtn) changeBtn.style.display = 'inline-block';
+        
         infoView.style.display = 'block';
         activeView.style.display = 'none';
         
         if (isPartyLeader) {
             if(locSelector) locSelector.style.display = 'flex';
-            getEl('expedition-start-btn').style.display = 'inline-block';
-            getEl('expedition-waiting-msg').style.display = 'none';
+            let startBtn = getEl('expedition-start-btn');
+            if(startBtn) startBtn.style.display = 'inline-block';
+            let waitMsg = getEl('expedition-waiting-msg');
+            if(waitMsg) waitMsg.style.display = 'none';
         } else {
             if(locSelector) locSelector.style.display = 'none';
-            getEl('expedition-start-btn').style.display = 'none';
-            getEl('expedition-waiting-msg').style.display = 'block';
+            let startBtn = getEl('expedition-start-btn');
+            if(startBtn) startBtn.style.display = 'none';
+            let waitMsg = getEl('expedition-waiting-msg');
+            if(waitMsg) waitMsg.style.display = 'block';
         }
         
         calculatePreStartSynergy();
@@ -1477,29 +1484,34 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
         if (bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
         
     } else if (isActive) {
-        getEl('change-expedition-pet-btn').style.display = 'none';
+        let changeBtn = getEl('change-expedition-pet-btn');
+        if(changeBtn) changeBtn.style.display = 'none';
+        
         if(locSelector) locSelector.style.display = 'none';
         infoView.style.display = 'none';
         activeView.style.display = 'block';
-        getEl('expedition-multiplier').textContent = score;
-        claimBtn.style.display = 'none';
+        
+        let multEl = getEl('expedition-multiplier');
+        if(multEl) multEl.textContent = score;
+        
+        if(claimBtn) claimBtn.style.display = 'none';
 
         if (safeWolfHp > 0) {
-            wolfOverlay.style.display = 'flex';
-            getEl('wolf-hp-bar').style.width = `${(safeWolfHp / safeWolfMaxHp) * 100}%`;
+            if(wolfOverlay) wolfOverlay.style.display = 'flex';
+            let wolfBar = getEl('wolf-hp-bar');
+            if(wolfBar) wolfBar.style.width = `${(safeWolfHp / safeWolfMaxHp) * 100}%`;
             timerEl.style.color = '#ff3b30';
-            scene.classList.remove('scrolling-bg');
+            if(scene) scene.classList.remove('scrolling-bg');
             if (bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
         } else {
-            wolfOverlay.style.display = 'none';
+            if(wolfOverlay) wolfOverlay.style.display = 'none';
             timerEl.style.color = '#34c759';
-            scene.classList.add('scrolling-bg');
+            if(scene) scene.classList.add('scrolling-bg');
             if (!bonusSpawningInterval) {
                 bonusSpawningInterval = setInterval(spawnFlyingBonus, 8000);
             }
         }
 
-        // Setup Timer
         if (currentExpeditionEndTime !== serverEndTime) {
             currentExpeditionEndTime = serverEndTime;
             let localTargetTime = Math.floor(Date.now() / 1000) + secondsLeft;
@@ -1515,8 +1527,8 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
                 if (diff <= 0) {
                     clearInterval(expeditionInterval); expeditionInterval = null;
                     timerEl.textContent = "00:00:00";
-                    if (currentWolfHp === 0) claimBtn.style.display = 'block';
-                    scene.classList.remove('scrolling-bg');
+                    if (currentWolfHp === 0 && claimBtn) claimBtn.style.display = 'block';
+                    if(scene) scene.classList.remove('scrolling-bg');
                     if (bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
                 } else {
                     updateTimerVisuals(diff);
@@ -1526,18 +1538,22 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
 
     } else if (isFinished) {
         currentExpeditionEndTime = 0;
-        scene.classList.remove('scrolling-bg');
-        wolfOverlay.style.display = 'none';
+        if(scene) scene.classList.remove('scrolling-bg');
+        if(wolfOverlay) wolfOverlay.style.display = 'none';
         
-        getEl('change-expedition-pet-btn').style.display = 'none';
+        let changeBtn = getEl('change-expedition-pet-btn');
+        if(changeBtn) changeBtn.style.display = 'none';
+        
         if(locSelector) locSelector.style.display = 'none';
         infoView.style.display = 'none';
         activeView.style.display = 'block';
+        
         timerEl.textContent = "00:00:00";
-        getEl('expedition-multiplier').textContent = score;
+        let multEl = getEl('expedition-multiplier');
+        if(multEl) multEl.textContent = score;
         timerEl.style.color = '#34c759';
         
-        if (safeWolfHp === 0) {
+        if (safeWolfHp === 0 && claimBtn) {
             claimBtn.style.display = 'block';
         }
 
@@ -1581,7 +1597,8 @@ function spawnFlyingBonus() {
 
 async function claimExpedition() {
     playSound('money');
-    const score = parseInt(getEl('expedition-multiplier').textContent);
+    let multEl = getEl('expedition-multiplier');
+    let score = multEl ? parseInt(multEl.textContent) : 1;
     
     let locMultiplier = 100; 
     if (currentExpeditionLocation === 'mountains') locMultiplier = 300; 
@@ -1592,7 +1609,7 @@ async function claimExpedition() {
     let magicCount = 0;
     currentPartyPlayersData.forEach(p => { if (["dragon", "unicorn", "alien"].includes(p.avatar)) magicCount++; });
     
-    const sceneClass = getEl('expedition-scene').className;
+    const sceneClass = getEl('expedition-scene') ? getEl('expedition-scene').className : '';
     let shardChance = 0;
     if(sceneClass.includes('space-bg')) shardChance += 25; 
     if(sceneClass.includes('mountains-bg')) shardChance += 5; 
