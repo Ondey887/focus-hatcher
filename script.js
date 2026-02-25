@@ -1134,7 +1134,6 @@ function startPartyPolling() {
             if(modalStack.includes('mega-egg-modal')) updateMegaEggUI(data.mega_progress, data.mega_target);
             
             if(modalStack.includes('expedition-modal')) {
-                // ПЕРЕДАЕМ SERVER_TIME ДЛЯ ФИКСА ЧАСОВЫХ ПОЯСОВ
                 updateExpeditionUI(data.expedition_end, data.expedition_score, data.expedition_location, data.wolf_hp, data.wolf_max_hp, data.server_time);
             }
             
@@ -1195,7 +1194,7 @@ async function requestStartMiniGame(gameType) {
         if (res.ok) {
             currentActiveGame = gameType; forceOpenMiniGame(gameType); updatePartyUI();
         }
-    } catch(e) { showToast("Ошибка", "❌"); }
+    } catch(e) { showToast("Ошибка сервера", "❌"); }
 }
 
 async function requestStopMiniGame() {
@@ -1233,10 +1232,10 @@ function forceOpenMiniGame(gameType) {
     if(gameType === 'expedition') {
         calculatePreStartSynergy(); 
         if(isPartyLeader) {
-            getEl('leader-location-selector').style.display = 'flex';
+            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'flex';
             selectExpeditionLocation('forest'); 
         } else {
-            getEl('leader-location-selector').style.display = 'none';
+            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
         }
     }
 
@@ -1339,7 +1338,7 @@ async function claimMegaEgg() {
 }
 
 // =============================================================
-// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 (С СЕРВЕРНЫМ ВРЕМЕНЕМ)
+// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 (ПЕРЕПИСАННАЯ И БЕЗОПАСНАЯ)
 // =============================================================
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
@@ -1374,6 +1373,8 @@ function calculatePreStartSynergy() {
 
 async function startExpedition() {
     playSound('click');
+    const btn = getEl('expedition-start-btn');
+    if (btn) { btn.disabled = true; btn.textContent = "Отправляем..."; }
     try {
         await fetch(`${API_URL}/party/expedition/start`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
@@ -1381,6 +1382,7 @@ async function startExpedition() {
         });
         showToast("Отряд выдвинулся в путь!", "🗺️");
     } catch(e) {}
+    if (btn) { btn.disabled = false; btn.textContent = "Отправить отряд"; }
 }
 
 function updateTimerVisuals(seconds) {
@@ -1397,134 +1399,132 @@ function updateTimerVisuals(seconds) {
 function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, serverTime) {
     const scene = getEl('expedition-scene');
     const petsContainer = getEl('expedition-pets-container');
-    
-    // БЕЗОПАСНАЯ ПРОВЕРКА НА СТАРЫЙ СЕРВЕР (ИЗБАВЛЯЕМ ОТ ОШИБОК)
+    const wolfOverlay = getEl('wolf-overlay');
+    const infoView = getEl('expedition-info-view'); 
+    const activeView = getEl('expedition-active-view'); 
+    const claimBtn = getEl('expedition-claim-btn');
+    const timerEl = getEl('expedition-timer');
+    const locSelector = getEl('leader-location-selector');
+
+    // 1. Обработка данных
     const safeWolfHp = wolfHp || 0;
     const safeWolfMaxHp = wolfMaxHp || 1;
     currentWolfHp = safeWolfHp;
-
-    // Считаем оставшееся время по серверу (решает проблему с часовыми поясами!)
     const sTime = serverTime || Math.floor(Date.now() / 1000);
-    let secondsLeft = serverEndTime > 0 ? (serverEndTime - sTime) : 0;
 
-    // ЕСЛИ ЭКСПЕДИЦИЯ ИДЕТ (ИЛИ ВОЛК)
-    if (serverEndTime > 0 && secondsLeft > 0) {
-        
-        if(loc && !scene.classList.contains(`${loc}-bg`)) {
-            scene.className = `expedition-scene ${loc}-bg`;
-        }
+    // 2. Определение текущего состояния
+    const isLobby = !serverEndTime || serverEndTime === 0;
+    let secondsLeft = 0;
+    if (!isLobby) {
+        secondsLeft = serverEndTime - sTime;
+    }
+    const isFinished = !isLobby && secondsLeft <= 0;
+    const isActive = !isLobby && secondsLeft > 0;
 
-        getEl('change-expedition-pet-btn').style.display = 'none';
-        if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
-        getEl('expedition-info-view').style.display = 'none';
-        getEl('expedition-active-view').style.display = 'block';
-        getEl('expedition-multiplier').textContent = score;
-        getEl('expedition-claim-btn').style.display = 'none';
+    // 3. Фон сцены
+    const targetLoc = loc || currentExpeditionLocation || 'forest';
+    if (!scene.classList.contains(`${targetLoc}-bg`)) {
+        scene.className = `expedition-scene ${targetLoc}-bg`;
+    }
 
-        const wolfOverlay = getEl('wolf-overlay');
-        if (safeWolfHp > 0) {
-            wolfOverlay.style.display = 'flex';
-            getEl('wolf-hp-bar').style.width = `${(safeWolfHp / safeWolfMaxHp) * 100}%`;
-            getEl('expedition-timer').style.color = '#ff3b30';
-            scene.classList.remove('scrolling-bg');
-            if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
-        } else {
-            wolfOverlay.style.display = 'none';
-            getEl('expedition-timer').style.color = '#34c759';
-            scene.classList.add('scrolling-bg');
-            if(!bonusSpawningInterval) bonusSpawningInterval = setInterval(spawnFlyingBonus, 8000);
-        }
+    // 4. Отрисовка Петов
+    if (currentPartyPlayersData && petsContainer) {
+        petsContainer.innerHTML = '';
+        currentPartyPlayersData.forEach(p => {
+            const isWalking = (isActive && safeWolfHp === 0) ? 'walking-pet' : '';
+            petsContainer.innerHTML += `<img src="assets/pets/pet-${p.avatar}.png" class="expedition-pet ${isWalking}">`;
+        });
+    }
 
-        if(currentPartyPlayersData && petsContainer) {
-            petsContainer.innerHTML = '';
-            currentPartyPlayersData.forEach(p => {
-                let isWalking = (safeWolfHp === 0) ? 'walking-pet' : '';
-                petsContainer.innerHTML += `<img src="assets/pets/pet-${p.avatar}.png" class="expedition-pet ${isWalking}">`;
-            });
-        }
+    // 5. Отрисовка Волка
+    if (safeWolfHp > 0 && !isLobby) {
+        wolfOverlay.style.display = 'flex';
+        getEl('wolf-hp-bar').style.width = `${(safeWolfHp / safeWolfMaxHp) * 100}%`;
+        timerEl.style.color = '#ff3b30';
+        scene.classList.remove('scrolling-bg');
+        if (bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
+    } else {
+        wolfOverlay.style.display = 'none';
+        timerEl.style.color = '#34c759';
+    }
 
-        updateTimerVisuals(secondsLeft);
-        
-        if (currentExpeditionEndTime !== serverEndTime) {
-            currentExpeditionEndTime = serverEndTime;
-            let localTargetTime = Math.floor(Date.now() / 1000) + secondsLeft;
-            
-            if(expeditionInterval) clearInterval(expeditionInterval);
-            expeditionInterval = setInterval(() => {
-                let nowLocal = Math.floor(Date.now() / 1000);
-                let diff = localTargetTime - nowLocal;
-                
-                if (diff <= 0) {
-                    clearInterval(expeditionInterval); expeditionInterval = null;
-                    getEl('expedition-timer').textContent = "00:00:00";
-                    if(currentWolfHp === 0) getEl('expedition-claim-btn').style.display = 'block';
-                    scene.classList.remove('scrolling-bg');
-                    if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
-                } else {
-                    updateTimerVisuals(diff);
-                }
-            }, 1000);
-        }
-    } 
-    // ЕСЛИ ЭКСПЕДИЦИЯ ЗАВЕРШИЛАСЬ
-    else if (serverEndTime > 0 && secondsLeft <= 0) {
+    // 6. Управление экранами по состояниям
+    if (isLobby) {
         currentExpeditionEndTime = 0;
         scene.classList.remove('scrolling-bg');
-        getEl('wolf-overlay').style.display = 'none';
-        getEl('change-expedition-pet-btn').style.display = 'none';
-        if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
-        getEl('expedition-info-view').style.display = 'none';
-        getEl('expedition-active-view').style.display = 'block';
-        getEl('expedition-timer').textContent = "00:00:00";
-        getEl('expedition-multiplier').textContent = score;
-        getEl('expedition-timer').style.color = '#34c759';
-        
-        if(safeWolfHp === 0) getEl('expedition-claim-btn').style.display = 'block';
-
-        if(expeditionInterval) { clearInterval(expeditionInterval); expeditionInterval = null; }
-        if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
-
-        if(currentPartyPlayersData && petsContainer) {
-            petsContainer.innerHTML = '';
-            currentPartyPlayersData.forEach(p => {
-                petsContainer.innerHTML += `<img src="assets/pets/pet-${p.avatar}.png" class="expedition-pet">`;
-            });
-        }
-    } 
-    // ЕСЛИ В ЛОББИ
-    else {
-        currentExpeditionEndTime = 0;
-        scene.classList.remove('scrolling-bg');
-        getEl('wolf-overlay').style.display = 'none';
-        if(!scene.classList.contains(`${currentExpeditionLocation}-bg`)) {
-            scene.className = `expedition-scene ${currentExpeditionLocation}-bg`;
-        }
-        
         getEl('change-expedition-pet-btn').style.display = 'inline-block';
-        getEl('expedition-info-view').style.display = 'block';
-        getEl('expedition-active-view').style.display = 'none';
+        infoView.style.display = 'block';
+        activeView.style.display = 'none';
         
-        if(isPartyLeader) {
-            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'flex';
+        if (isPartyLeader) {
+            if(locSelector) locSelector.style.display = 'flex';
             getEl('expedition-start-btn').style.display = 'inline-block';
             getEl('expedition-waiting-msg').style.display = 'none';
         } else {
-            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
+            if(locSelector) locSelector.style.display = 'none';
             getEl('expedition-start-btn').style.display = 'none';
             getEl('expedition-waiting-msg').style.display = 'block';
         }
         
         calculatePreStartSynergy();
         
-        if(currentPartyPlayersData && petsContainer) {
-            petsContainer.innerHTML = '';
-            currentPartyPlayersData.forEach(p => {
-                petsContainer.innerHTML += `<img src="assets/pets/pet-${p.avatar}.png" class="expedition-pet">`;
-            });
+        if (expeditionInterval) { clearInterval(expeditionInterval); expeditionInterval = null; }
+        if (bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
+        
+    } else if (isActive) {
+        getEl('change-expedition-pet-btn').style.display = 'none';
+        if(locSelector) locSelector.style.display = 'none';
+        infoView.style.display = 'none';
+        activeView.style.display = 'block';
+        getEl('expedition-multiplier').textContent = score;
+        claimBtn.style.display = 'none';
+
+        if (safeWolfHp === 0) {
+            scene.classList.add('scrolling-bg');
+            if (!bonusSpawningInterval) {
+                bonusSpawningInterval = setInterval(spawnFlyingBonus, 8000);
+            }
         }
 
-        if(expeditionInterval) { clearInterval(expeditionInterval); expeditionInterval = null; }
-        if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
+        // Таймер
+        if (currentExpeditionEndTime !== serverEndTime) {
+            currentExpeditionEndTime = serverEndTime;
+            let localTargetTime = Math.floor(Date.now() / 1000) + secondsLeft;
+            
+            if (expeditionInterval) clearInterval(expeditionInterval);
+            
+            updateTimerVisuals(secondsLeft);
+            
+            expeditionInterval = setInterval(() => {
+                let nowLocal = Math.floor(Date.now() / 1000);
+                let diff = localTargetTime - nowLocal;
+                
+                if (diff <= 0) {
+                    clearInterval(expeditionInterval); expeditionInterval = null;
+                    timerEl.textContent = "00:00:00";
+                    if (currentWolfHp === 0) claimBtn.style.display = 'block';
+                    scene.classList.remove('scrolling-bg');
+                    if (bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
+                } else {
+                    updateTimerVisuals(diff);
+                }
+            }, 1000);
+        }
+
+    } else if (isFinished) {
+        currentExpeditionEndTime = 0;
+        scene.classList.remove('scrolling-bg');
+        getEl('change-expedition-pet-btn').style.display = 'none';
+        if(locSelector) locSelector.style.display = 'none';
+        infoView.style.display = 'none';
+        activeView.style.display = 'block';
+        timerEl.textContent = "00:00:00";
+        getEl('expedition-multiplier').textContent = score;
+        
+        if (safeWolfHp === 0) claimBtn.style.display = 'block';
+
+        if (expeditionInterval) { clearInterval(expeditionInterval); expeditionInterval = null; }
+        if (bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
     }
 }
 
