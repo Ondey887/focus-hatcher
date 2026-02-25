@@ -66,7 +66,6 @@ let currentHatchMode = 'none';
 let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 let customEggConfig = { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 };
 
-// МУЛЬТИПЛЕЕР И ТАЙМЕРЫ
 let currentPartyCode = null;
 let partyPollingInterval = null;
 let isPartyLeader = false;
@@ -76,6 +75,7 @@ let invitesPollingInterval = null;
 let currentPendingInviteId = null;
 
 let currentExpeditionLocation = 'forest'; 
+let currentExpeditionEndTime = 0; 
 let bossTimerInterval = null; 
 let bossTimeLeft = 60; 
 let bossIsDead = false;
@@ -83,6 +83,9 @@ let expeditionInterval = null;
 let bonusSpawningInterval = null;
 let currentWolfHp = 0;
 
+// =============================================================
+// 3. УТИЛИТЫ И ОКНА
+// =============================================================
 function openModal(id) {
     playSound('click');
     if(modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
@@ -159,7 +162,7 @@ function getTgUser() {
 }
 
 // =============================================================
-// 3. БАЗЫ ДАННЫХ И КОНСТАНТЫ
+// 4. БАЗЫ ДАННЫХ И КОНСТАНТЫ
 // =============================================================
 const MODES = [
     { id: 'short', timeOnline: 25 * 60, timeOffline: 6 * 3600, xpReward: 250, egg: 'default', title: '25 минут', sub: 'Шанс Легендарки: 1%' },
@@ -243,10 +246,9 @@ const PROMO_CODES = {
     'SPEED': { type: 'booster', id: 'speed', val: 5 },
     'SECRET': { type: 'money', val: 5000 }
 };
-const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 // =============================================================
-// 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
+// 5. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
 // =============================================================
 function initGame() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -345,7 +347,7 @@ function saveData() {
 }
 
 // =============================================================
-// 5. ИНТЕРФЕЙС И БАЗОВЫЕ ОКНА
+// 6. ИНТЕРФЕЙС И БАЗОВЫЕ ОКНА
 // =============================================================
 function applyTheme() { 
     const t=SHOP_DATA.themes.find(x=>x.id===activeTheme); 
@@ -447,7 +449,7 @@ function claimQuest(id, r) { if(claimedQuests.includes(id))return; claimedQuests
 function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.invites++; saveData(); checkAchievements(); const t=`У меня ${new Set(collection).size} петов в Focus Hatcher!`; const u=`https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(t)}`; if(window.Telegram.WebApp)window.Telegram.WebApp.openTelegramLink(u); else window.open(u,'_blank'); }
 
 // =============================================================
-// 6. ПРОФИЛЬ И ДРУЗЬЯ
+// 7. ПРОФИЛЬ, ДРУЗЬЯ И ИНВАЙТЫ
 // =============================================================
 async function apiSyncGlobalProfile() {
     const user = getTgUser(); let netWorth = walletBalance; collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
@@ -582,7 +584,7 @@ async function sendInviteToFriend() {
 }
 
 // =============================================================
-// 7. ДОПОЛНИТЕЛЬНЫЕ ОКНА И НАГРАДЫ
+// 8. ДОПОЛНИТЕЛЬНЫЕ ОКНА И НАГРАДЫ
 // =============================================================
 function openLevels() {
     const list = getEl('levels-list'); list.innerHTML = '';
@@ -698,7 +700,7 @@ function openSettings() { openModal('settings-modal'); }
 function openAch() { switchAchTab('achievements'); openModal('achievements-modal'); }
 
 // =============================================================
-// 8. БАЗОВЫЙ ТАЙМЕР И ФОКУС
+// 9. БАЗОВЫЙ ТАЙМЕР И ФОКУС
 // =============================================================
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isRunning && currentHatchMode === 'online') stopTimer(true); 
@@ -906,7 +908,7 @@ function finishTimer(fromOffline = false) {
 }
 
 // =============================================================
-// 9. ЛАБОРАТОРИЯ (СИНТЕЗ И ПЕГАС)
+// 10. ЛАБОРАТОРИЯ (СИНТЕЗ И ПЕГАС)
 // =============================================================
 function openCraft() {
     getEl('pegasus-shards-count').textContent = pegasusShards;
@@ -997,12 +999,9 @@ function sellPet() {
     closeModal('pet-modal'); showToast(`Продано +${p}`, 'img'); playSound('money'); openInventory(); 
 }
 
-function toggleInventory() { openInventory(); }
-
 // =============================================================
-// 10. МУЛЬТИПЛЕЕР: БАЗОВЫЕ ФУНКЦИИ (ПАТИ)
+// 11. МУЛЬТИПЛЕЕР (ПАТИ)
 // =============================================================
-
 function openPartyModal() {
     if (currentPartyCode) {
         getEl('party-setup-view').style.display = 'none';
@@ -1017,7 +1016,7 @@ function openPartyModal() {
 
 async function apiCreateParty() {
     playSound('click');
-    const btn = event.target; btn.textContent = "Создаем сервер...";
+    const btn = event.target; btn.textContent = "Создаем...";
     const user = getTgUser();
     try {
         const res = await fetch(`${API_URL}/party/create`, {
@@ -1135,7 +1134,7 @@ function startPartyPolling() {
             if(modalStack.includes('mega-egg-modal')) updateMegaEggUI(data.mega_progress, data.mega_target);
             
             if(modalStack.includes('expedition-modal')) {
-                // ПЕРЕДАЕМ ВАЖНЫЙ ПАРАМЕТР server_time
+                // ПЕРЕДАЕМ SERVER_TIME ДЛЯ ФИКСА ЧАСОВЫХ ПОЯСОВ
                 updateExpeditionUI(data.expedition_end, data.expedition_score, data.expedition_location, data.wolf_hp, data.wolf_max_hp, data.server_time);
             }
             
@@ -1196,7 +1195,7 @@ async function requestStartMiniGame(gameType) {
         if (res.ok) {
             currentActiveGame = gameType; forceOpenMiniGame(gameType); updatePartyUI();
         }
-    } catch(e) { showToast("Ошибка сервера", "❌"); }
+    } catch(e) { showToast("Ошибка", "❌"); }
 }
 
 async function requestStopMiniGame() {
@@ -1234,10 +1233,10 @@ function forceOpenMiniGame(gameType) {
     if(gameType === 'expedition') {
         calculatePreStartSynergy(); 
         if(isPartyLeader) {
-            getEl('leader-location-selector').style.display = 'flex';
+            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'flex';
             selectExpeditionLocation('forest'); 
         } else {
-            getEl('leader-location-selector').style.display = 'none';
+            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
         }
     }
 
@@ -1256,7 +1255,7 @@ function forceCloseMiniGame(gameType) {
 }
 
 // =============================================================
-// 11. МИНИ-ИГРА: ГОНКА ЯИЦ
+// 12. МИНИ-ИГРА: ГОНКА ЯИЦ
 // =============================================================
 function renderTapBattle(players) {
     const grid = getEl('tap-battle-grid'); const myId = getTgUser().id; grid.innerHTML = '';
@@ -1310,7 +1309,7 @@ function handleTapBattleEnd(winner, players) {
 }
 
 // =============================================================
-// 12. МИНИ-ИГРА: МЕГА-ЯЙЦО
+// 13. МИНИ-ИГРА: МЕГА-ЯЙЦО
 // =============================================================
 async function apiAddMegaEggTime(seconds) {
     try { await fetch(`${API_URL}/party/mega_egg/add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, seconds: seconds }) }); } catch(e) {}
@@ -1340,12 +1339,13 @@ async function claimMegaEgg() {
 }
 
 // =============================================================
-// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 (С СЕРВЕРНЫМ ВРЕМЕНЕМ)
+// 14. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 (С СЕРВЕРНЫМ ВРЕМЕНЕМ)
 // =============================================================
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
     document.querySelectorAll('#leader-location-selector .tab-btn').forEach(b => b.classList.remove('active'));
     getEl(`loc-btn-${loc}`).classList.add('active');
+    
     const scene = getEl('expedition-scene');
     scene.className = `expedition-scene ${loc}-bg`;
 }
@@ -1389,12 +1389,16 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
     currentWolfHp = wolfHp;
 
     // Считаем оставшееся время по серверу (решает проблему с часовыми поясами!)
-    let secondsLeft = serverEndTime - serverTime;
+    // Если сервер не прислал время, берем локальное как фоллбэк
+    const sTime = serverTime || Math.floor(Date.now() / 1000);
+    let secondsLeft = serverEndTime - sTime;
 
-    // ЕСЛИ ЭКСПЕДИЦИЯ ИДЕТ (ИЛИ ВОЛК)
+    // ЕСЛИ ЭКСПЕДИЦИЯ ИДЕТ ИЛИ ВОЛК
     if (serverEndTime > 0 && secondsLeft > 0) {
         
-        if(loc && !scene.classList.contains(`${loc}-bg`)) scene.className = `expedition-scene ${loc}-bg`;
+        if(loc && !scene.classList.contains(`${loc}-bg`)) {
+            scene.className = `expedition-scene ${loc}-bg`;
+        }
 
         getEl('change-expedition-pet-btn').style.display = 'none';
         if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
@@ -1414,9 +1418,11 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
             wolfOverlay.style.display = 'none';
             getEl('expedition-timer').style.color = '#34c759';
             scene.classList.add('scrolling-bg');
-            if(!bonusSpawningInterval) bonusSpawningInterval = setInterval(spawnFlyingBonus, 8000);
+            // Спавним монетки чаще (каждые 5 сек), если нет волка
+            if(!bonusSpawningInterval) bonusSpawningInterval = setInterval(spawnFlyingBonus, 5000); 
         }
 
+        // Отрисовка отряда
         if(currentPartyPlayersData && petsContainer) {
             petsContainer.innerHTML = '';
             currentPartyPlayersData.forEach(p => {
@@ -1425,12 +1431,13 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
             });
         }
 
-        // Фиксируем локальное время окончания для плавного таймера
-        let localEndTime = Math.floor(Date.now() / 1000) + secondsLeft;
+        // Плавный локальный таймер
+        let localTargetTime = Math.floor(Date.now() / 1000) + secondsLeft;
+        
         if (!expeditionInterval) {
             expeditionInterval = setInterval(() => {
                 let nowLocal = Math.floor(Date.now() / 1000);
-                let diff = localEndTime - nowLocal;
+                let diff = localTargetTime - nowLocal;
                 if (diff <= 0) {
                     clearInterval(expeditionInterval); expeditionInterval = null;
                     getEl('expedition-timer').textContent = "00:00:00";
@@ -1445,8 +1452,9 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
                 }
             }, 1000);
         }
+
     } 
-    // ЕСЛИ ЭКСПЕДИЦИЯ ЗАВЕРШИЛАСЬ (ЖДЕТ СБОРА)
+    // ЕСЛИ ЭКСПЕДИЦИЯ ЗАВЕРШИЛАСЬ
     else if (serverEndTime > 0 && secondsLeft <= 0) {
         scene.classList.remove('scrolling-bg');
         getEl('wolf-overlay').style.display = 'none';
@@ -1459,7 +1467,7 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
         getEl('expedition-timer').style.color = '#34c759';
         
         if(wolfHp === 0) getEl('expedition-claim-btn').style.display = 'block';
-
+        
         if(expeditionInterval) { clearInterval(expeditionInterval); expeditionInterval = null; }
         if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
 
@@ -1470,7 +1478,7 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
             });
         }
     } 
-    // ЕСЛИ ЭКСПЕДИЦИЯ В ЛОББИ
+    // ЕСЛИ В ЛОББИ (НЕ СТАРТОВАЛИ)
     else {
         scene.classList.remove('scrolling-bg');
         getEl('wolf-overlay').style.display = 'none';
@@ -1479,7 +1487,7 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
         getEl('change-expedition-pet-btn').style.display = 'inline-block';
         getEl('expedition-info-view').style.display = 'block';
         getEl('expedition-active-view').style.display = 'none';
-
+        
         if(isPartyLeader) {
             if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'flex';
             getEl('expedition-start-btn').style.display = 'inline-block';
@@ -1489,7 +1497,7 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
             getEl('expedition-start-btn').style.display = 'none';
             getEl('expedition-waiting-msg').style.display = 'block';
         }
-
+        
         calculatePreStartSynergy();
         
         if(currentPartyPlayersData && petsContainer) {
