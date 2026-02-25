@@ -175,15 +175,14 @@
 
             <button id="change-expedition-pet-btn" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 8px; font-size: 14px; margin-bottom: 15px;" onclick="openAvatarSelector()">Выбрать своего бойца 🔄</button>
             
-            <div id="expedition-info-view">
-                <div id="leader-location-selector" style="display: none; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-                    <p style="font-size: 13px; color: #aaa;">Выберите локацию:</p>
-                    <div style="display: flex; gap: 5px;">
-                        <button class="tab-btn active" id="loc-btn-forest" onclick="selectExpeditionLocation('forest')">🌳 Лес (25м)</button>
-                        <button class="tab-btn" id="loc-btn-mountains" onclick="selectExpeditionLocation('mountains')">❄️ Горы (1ч)</button>
-                        <button class="tab-btn" id="loc-btn-space" onclick="selectExpeditionLocation('space')">🌌 Космос (2ч)</button>
-                    </div>
-                </div>
+   <div id="leader-location-selector" style="display: none; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+    <p style="font-size: 13px; color: #aaa;">Выберите локацию:</p>
+    <div style="display: flex; gap: 5px;">
+        <button class="tab-btn active" id="loc-btn-forest" onclick="selectExpeditionLocation('forest')">🌳 Лес (5м)</button>
+        <button class="tab-btn" id="loc-btn-mountains" onclick="selectExpeditionLocation('mountains')">❄️ Горы (15м)</button>
+        <button class="tab-btn" id="loc-btn-space" onclick="selectExpeditionLocation('space')">🌌 Космос (25м)</button>
+    </div>
+</div>
 
                 <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px; font-size: 18px;">Базовый множитель: x<span id="expedition-pre-score">1</span></p>
                 <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Отправить отряд</button>
