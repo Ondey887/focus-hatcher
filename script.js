@@ -51,7 +51,6 @@ function playNote(freq, time, duration) {
 const API_URL = "https://focushatcher-ondey.amvera.io/api"; 
 let modalStack = [];
 
-// Основной прогресс
 let collection = [], userXP = 0, userLevel = 1, walletBalance = 0;
 let ownedItems = { themes: ['default'], eggs: ['default'] };
 let activeTheme = 'default', activeEggSkin = 'default', selectedAvatar = 'default';
@@ -61,14 +60,12 @@ let claimedAchievements = [], claimedQuests = [], usedCodes = [];
 let isVibrationOn = true, isSoundOn = false;
 let pegasusShards = 0;
 
-// Фокус и Таймер
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
 let activeBoosters = { luck: false, speed: false };
 let currentHatchMode = 'none'; 
 let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 let customEggConfig = { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 };
 
-// МУЛЬТИПЛЕЕР (Все таймеры объявляем здесь, чтобы не было ReferenceError!)
 let currentPartyCode = null;
 let partyPollingInterval = null;
 let isPartyLeader = false;
@@ -78,6 +75,7 @@ let invitesPollingInterval = null;
 let currentPendingInviteId = null;
 
 let currentExpeditionLocation = 'forest'; 
+let currentExpeditionEndTime = 0; // ПЕРЕМЕННАЯ ДЛЯ ФИКСА ТАЙМЕРА
 let bossTimerInterval = null; 
 let bossTimeLeft = 60; 
 let bossIsDead = false;
@@ -85,9 +83,6 @@ let expeditionInterval = null;
 let bonusSpawningInterval = null;
 let currentWolfHp = 0;
 
-// =============================================================
-// 3. УТИЛИТЫ И ОКНА
-// =============================================================
 function openModal(id) {
     playSound('click');
     if(modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
@@ -164,7 +159,7 @@ function getTgUser() {
 }
 
 // =============================================================
-// 4. БАЗЫ ДАННЫХ И КОНСТАНТЫ
+// 3. БАЗЫ ДАННЫХ И КОНСТАНТЫ
 // =============================================================
 const MODES = [
     { id: 'short', timeOnline: 25 * 60, timeOffline: 6 * 3600, xpReward: 250, egg: 'default', title: '25 минут', sub: 'Шанс Легендарки: 1%' },
@@ -248,9 +243,10 @@ const PROMO_CODES = {
     'SPEED': { type: 'booster', id: 'speed', val: 5 },
     'SECRET': { type: 'money', val: 5000 }
 };
+const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 // =============================================================
-// 5. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
+// 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
 // =============================================================
 function initGame() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -349,7 +345,7 @@ function saveData() {
 }
 
 // =============================================================
-// 6. ИНТЕРФЕЙС И БАЗОВЫЕ ОКНА
+// 5. ИНТЕРФЕЙС И БАЗОВЫЕ ОКНА
 // =============================================================
 function applyTheme() { 
     const t=SHOP_DATA.themes.find(x=>x.id===activeTheme); 
@@ -451,7 +447,7 @@ function claimQuest(id, r) { if(claimedQuests.includes(id))return; claimedQuests
 function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.invites++; saveData(); checkAchievements(); const t=`У меня ${new Set(collection).size} петов в Focus Hatcher!`; const u=`https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(t)}`; if(window.Telegram.WebApp)window.Telegram.WebApp.openTelegramLink(u); else window.open(u,'_blank'); }
 
 // =============================================================
-// 7. ПРОФИЛЬ, ДРУЗЬЯ И ИНВАЙТЫ
+// 6. ПРОФИЛЬ И ДРУЗЬЯ
 // =============================================================
 async function apiSyncGlobalProfile() {
     const user = getTgUser(); let netWorth = walletBalance; collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
@@ -586,7 +582,7 @@ async function sendInviteToFriend() {
 }
 
 // =============================================================
-// 8. ДОПОЛНИТЕЛЬНЫЕ ОКНА И НАГРАДЫ
+// 7. ДОПОЛНИТЕЛЬНЫЕ ОКНА И НАГРАДЫ
 // =============================================================
 function openLevels() {
     const list = getEl('levels-list'); list.innerHTML = '';
@@ -702,7 +698,7 @@ function openSettings() { openModal('settings-modal'); }
 function openAch() { switchAchTab('achievements'); openModal('achievements-modal'); }
 
 // =============================================================
-// 9. БАЗОВЫЙ ТАЙМЕР И ФОКУС
+// 8. БАЗОВЫЙ ТАЙМЕР И ФОКУС
 // =============================================================
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isRunning && currentHatchMode === 'online') stopTimer(true); 
@@ -910,7 +906,7 @@ function finishTimer(fromOffline = false) {
 }
 
 // =============================================================
-// 10. ЛАБОРАТОРИЯ И ИНВЕНТАРЬ
+// 9. ЛАБОРАТОРИЯ (СИНТЕЗ И ПЕГАС)
 // =============================================================
 function openCraft() {
     getEl('pegasus-shards-count').textContent = pegasusShards;
@@ -1003,9 +999,8 @@ function sellPet() {
 
 function toggleInventory() { openInventory(); }
 
-
 // =============================================================
-// 11. МУЛЬТИПЛЕЕР (РОУТЕР + ПАТИ)
+// 10. МУЛЬТИПЛЕЕР: БАЗОВЫЕ ФУНКЦИИ (ПАТИ)
 // =============================================================
 
 function openPartyModal() {
@@ -1022,7 +1017,7 @@ function openPartyModal() {
 
 async function apiCreateParty() {
     playSound('click');
-    const btn = event.target; btn.textContent = "Создаем...";
+    const btn = event.target; btn.textContent = "Создаем сервер...";
     const user = getTgUser();
     try {
         const res = await fetch(`${API_URL}/party/create`, {
@@ -1058,7 +1053,7 @@ async function apiJoinParty(prefilledCode = null) {
             showToast("Успешный вход!", "✅");
             startPartyPolling();
         } else showToast("Пати не найдено", "❌");
-    } catch(e) { showToast("Ошибка", "❌"); }
+    } catch(e) { showToast("Ошибка соединения", "❌"); }
 }
 
 async function apiLeaveParty(localOnly = false) {
@@ -1260,7 +1255,7 @@ function forceCloseMiniGame(gameType) {
 }
 
 // =============================================================
-// 12. МИНИ-ИГРА: ГОНКА ЯИЦ
+// 11. МИНИ-ИГРА: ГОНКА ЯИЦ
 // =============================================================
 function renderTapBattle(players) {
     const grid = getEl('tap-battle-grid'); const myId = getTgUser().id; grid.innerHTML = '';
@@ -1314,7 +1309,7 @@ function handleTapBattleEnd(winner, players) {
 }
 
 // =============================================================
-// 13. МИНИ-ИГРА: МЕГА-ЯЙЦО
+// 12. МИНИ-ИГРА: МЕГА-ЯЙЦО
 // =============================================================
 async function apiAddMegaEggTime(seconds) {
     try { await fetch(`${API_URL}/party/mega_egg/add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, seconds: seconds }) }); } catch(e) {}
@@ -1344,7 +1339,7 @@ async function claimMegaEgg() {
 }
 
 // =============================================================
-// 14. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 
+// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0
 // =============================================================
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
@@ -1434,23 +1429,28 @@ function updateExpeditionUI(endTime, score, loc, wolfHp, wolfMaxHp) {
             bonusSpawningInterval = setInterval(spawnFlyingBonus, 8000);
         }
 
-        if(expeditionInterval) clearInterval(expeditionInterval);
-        expeditionInterval = setInterval(() => {
-            const t = Math.floor(Date.now() / 1000);
-            if (endTime <= t) {
-                clearInterval(expeditionInterval);
-                getEl('expedition-timer').textContent = "00:00:00";
-                if(currentWolfHp === 0) getEl('expedition-claim-btn').style.display = 'block';
-                scene.classList.remove('scrolling-bg');
-            } else {
-                let diff = endTime - t;
-                let h = Math.floor(diff / 3600).toString().padStart(2, '0');
-                let m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-                let s = (diff % 60).toString().padStart(2, '0');
-                getEl('expedition-timer').textContent = `${h}:${m}:${s}`;
-            }
-        }, 1000);
+        if (currentExpeditionEndTime !== endTime) {
+            currentExpeditionEndTime = endTime;
+            if(expeditionInterval) clearInterval(expeditionInterval);
+            expeditionInterval = setInterval(() => {
+                const t = Math.floor(Date.now() / 1000);
+                if (currentExpeditionEndTime <= t) {
+                    clearInterval(expeditionInterval);
+                    expeditionInterval = null;
+                    getEl('expedition-timer').textContent = "00:00:00";
+                    if(currentWolfHp === 0) getEl('expedition-claim-btn').style.display = 'block';
+                    scene.classList.remove('scrolling-bg');
+                } else {
+                    let diff = currentExpeditionEndTime - t;
+                    let h = Math.floor(diff / 3600).toString().padStart(2, '0');
+                    let m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+                    let s = (diff % 60).toString().padStart(2, '0');
+                    getEl('expedition-timer').textContent = `${h}:${m}:${s}`;
+                }
+            }, 1000);
+        }
     } else if (endTime > 0 && endTime <= now) {
+        currentExpeditionEndTime = 0;
         scene.classList.remove('scrolling-bg'); 
         getEl('change-expedition-pet-btn').style.display = 'none';
         if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
@@ -1460,9 +1460,10 @@ function updateExpeditionUI(endTime, score, loc, wolfHp, wolfMaxHp) {
         getEl('expedition-multiplier').textContent = score;
         if(wolfHp === 0) getEl('expedition-claim-btn').style.display = 'block';
         
-        if(expeditionInterval) clearInterval(expeditionInterval);
+        if(expeditionInterval) { clearInterval(expeditionInterval); expeditionInterval = null; }
         if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
     } else {
+        currentExpeditionEndTime = 0;
         scene.classList.remove('scrolling-bg'); 
         getEl('change-expedition-pet-btn').style.display = 'inline-block';
         getEl('expedition-info-view').style.display = 'block';
@@ -1479,7 +1480,7 @@ function updateExpeditionUI(endTime, score, loc, wolfHp, wolfMaxHp) {
         }
         
         calculatePreStartSynergy(); 
-        if(expeditionInterval) clearInterval(expeditionInterval);
+        if(expeditionInterval) { clearInterval(expeditionInterval); expeditionInterval = null; }
         if(bonusSpawningInterval) { clearInterval(bonusSpawningInterval); bonusSpawningInterval = null; }
     }
 }
