@@ -51,20 +51,20 @@ function playNote(freq, time, duration) {
 const API_URL = "https://focushatcher-ondey.amvera.io/api"; 
 let modalStack = [];
 
-let collection = [], userXP = 0, userLevel = 1, walletBalance = 0;
+let collection = [], userXP = 0, userLevel = 1, walletBalance = 0, userStars = 0, pegasusShards = 0;
 let ownedItems = { themes: ['default'], eggs: ['default'] };
 let activeTheme = 'default', activeEggSkin = 'default', selectedAvatar = 'default';
 let userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0 };
 let myBoosters = { luck: 0, speed: 0 };
 let claimedAchievements = [], claimedQuests = [], usedCodes = [];
 let isVibrationOn = true, isSoundOn = false;
-let pegasusShards = 0;
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
 let activeBoosters = { luck: false, speed: false };
 let currentHatchMode = 'none'; 
 let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 let customEggConfig = { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 };
+let resurrectCountdownInterval = null;
 
 let currentPartyCode = null;
 let partyPollingInterval = null;
@@ -229,8 +229,8 @@ const SHOP_DATA = {
         { id: 'gold', name: 'Золото', price: 15000, img: 'assets/eggs/egg-gold.png' }
     ],
     boosters: [
-        { id: 'luck', name: 'Зелье Удачи', price: 200, icon: 'assets/ui/booster-luck.png', desc: 'Шанс x5' },
-        { id: 'speed', name: 'Ускоритель', price: 500, icon: 'assets/ui/booster-speed.png', desc: 'Меньше времени' }
+        { id: 'luck', name: 'Зелье Удачи', price: 4990, icon: 'assets/ui/booster-luck.png', desc: 'Шанс x5' },
+        { id: 'speed', name: 'Ускоритель', price: 9990, icon: 'assets/ui/booster-speed.png', desc: 'Меньше времени' }
     ]
 };
 
@@ -243,6 +243,7 @@ const PROMO_CODES = {
     'SPEED': { type: 'booster', id: 'speed', val: 5 },
     'SECRET': { type: 'money', val: 5000 }
 };
+const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 // =============================================================
 // 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
@@ -257,6 +258,7 @@ function initGame() {
         userXP = parseInt(localStorage.getItem('userXP')) || 0;
         userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
         walletBalance = parseInt(localStorage.getItem('walletBalance')) || 0;
+        userStars = parseInt(localStorage.getItem('userStars')) || 0;
         pegasusShards = parseInt(localStorage.getItem('pegasusShards')) || 0; 
         ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
         activeTheme = localStorage.getItem('activeTheme') || 'default';
@@ -287,10 +289,11 @@ function initGame() {
 
 function loadFromCloud() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        const keys = ['walletBalance', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards'];
+        const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
+            if (values.userStars) userStars = parseInt(values.userStars);
             if (values.userXP) userXP = parseInt(values.userXP);
             if (values.userLevel) userLevel = parseInt(values.userLevel);
             if (values.pegasusShards) pegasusShards = parseInt(values.pegasusShards);
@@ -313,6 +316,7 @@ function loadFromCloud() {
 
 function saveData() {
     localStorage.setItem('walletBalance', walletBalance);
+    localStorage.setItem('userStars', userStars);
     localStorage.setItem('pegasusShards', pegasusShards);
     localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
     localStorage.setItem('activeTheme', activeTheme);
@@ -329,6 +333,7 @@ function saveData() {
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
+        Telegram.WebApp.CloudStorage.setItem('userStars', userStars.toString());
         Telegram.WebApp.CloudStorage.setItem('pegasusShards', pegasusShards.toString());
         Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
         Telegram.WebApp.CloudStorage.setItem('userLevel', userLevel.toString());
@@ -705,6 +710,8 @@ document.addEventListener("visibilitychange", () => {
 
 function updateBalanceUI() {
     getEl('total-money').innerHTML = `<img src="assets/ui/coin.png" class="coin-img"> ${walletBalance}`;
+    let starsEl = getEl('total-stars');
+    if(starsEl) starsEl.innerHTML = `<span style="font-size: 20px; margin-right: 4px;">⭐️</span> ${userStars}`;
     getEl('unique-count').textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
     checkAchievements();
     renderBoostersPanel();
@@ -841,17 +848,69 @@ function startTimer(mode, isResuming = false) {
 }
 
 function stopTimer(failed = false) {
-    clearInterval(timerInterval); isRunning = false; localStorage.removeItem('hatchEndTime'); 
-    getEl('main-btn').style.display = 'none'; getEl('start-buttons-container').style.display = 'flex';
-    getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
+    if (failed) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        
+        getEl('resurrect-modal').style.display = 'flex';
+        let resTime = 10;
+        getEl('resurrect-timer').textContent = resTime;
+        
+        if (resurrectCountdownInterval) clearInterval(resurrectCountdownInterval);
+        resurrectCountdownInterval = setInterval(() => {
+            resTime--;
+            getEl('resurrect-timer').textContent = resTime;
+            if (resTime <= 0) {
+                confirmFail(true);
+            }
+        }, 1000);
+    } else {
+        confirmFail(false);
+    }
+}
+
+function resurrectEgg() {
+    if (userStars >= 20) {
+        userStars -= 20;
+        saveData();
+        updateBalanceUI();
+        
+        clearInterval(resurrectCountdownInterval);
+        getEl('resurrect-modal').style.display = 'none';
+        showToast("Яйцо спасено! Продолжаем фокус.", "✨");
+        
+        startTimer(currentHatchMode, true);
+    } else {
+        showToast("Недостаточно Звезд!", "❌");
+    }
+}
+
+function confirmFail(wasInterrupted = true) {
+    clearInterval(resurrectCountdownInterval);
+    getEl('resurrect-modal').style.display = 'none';
+    
+    localStorage.removeItem('hatchEndTime'); 
+    getEl('main-btn').style.display = 'none'; 
+    getEl('start-buttons-container').style.display = 'flex';
+    getEl('prev-btn').style.visibility = 'visible'; 
+    getEl('next-btn').style.visibility = 'visible';
     getEl('offline-warning').style.display = 'none';
     
-    const eggDisplay = getEl('egg-display'); eggDisplay.className = 'egg-img'; eggDisplay.classList.remove('shaking'); 
-    getEl('crack-overlay').className = 'crack-overlay'; getEl('hatched-info').style.display = 'none';
+    const eggDisplay = getEl('egg-display'); 
+    eggDisplay.className = 'egg-img'; 
+    eggDisplay.classList.remove('shaking'); 
+    getEl('crack-overlay').className = 'crack-overlay'; 
+    getEl('hatched-info').style.display = 'none';
     
-    updateUI(); renderBoostersPanel();
-    if (failed) { showToast("Фокус прерван! Яйцо разбито...", "❌"); playSound('click'); } 
-    else { showToast("Выращивание отменено", "⚠️"); }
+    updateUI(); 
+    renderBoostersPanel();
+    
+    if (wasInterrupted) { 
+        showToast("Яйцо разбито...", "❌"); 
+        playSound('click'); 
+    } else { 
+        showToast("Выращивание отменено", "⚠️"); 
+    }
 }
 
 function finishTimer(fromOffline = false) {
@@ -1232,10 +1291,12 @@ function forceOpenMiniGame(gameType) {
     if(gameType === 'expedition') {
         calculatePreStartSynergy(); 
         if(isPartyLeader) {
-            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'flex';
-            selectExpeditionLocation('forest'); 
+            let locSel = getEl('leader-location-selector');
+            if (locSel) locSel.style.display = 'flex';
+            if (!currentExpeditionLocation) selectExpeditionLocation('forest'); 
         } else {
-            if(getEl('leader-location-selector')) getEl('leader-location-selector').style.display = 'none';
+            let locSel = getEl('leader-location-selector');
+            if (locSel) locSel.style.display = 'none';
         }
     }
 

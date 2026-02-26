@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=61">
+    <link rel="stylesheet" href="style.css?v=62">
 </head>
 <body>
 
@@ -309,6 +309,19 @@
         </div>
     </div>
 
+    <div id="resurrect-modal" class="modal" style="display: none; z-index: 5000;">
+        <div class="modal-content" style="background: linear-gradient(180deg, #3a0000, #1c1c1e); border: 2px solid #ff3b30;">
+            <h2 style="color: #ff3b30; margin-bottom: 10px;">Фокус сорван! 💔</h2>
+            <img src="assets/eggs/egg-default.png" style="width: 100px; filter: grayscale(100%) opacity(0.7); margin-bottom: 10px;">
+            <p style="font-size: 14px; margin-bottom: 15px;">Твое яйцо начало трескаться из-за потери фокуса!</p>
+            <div style="font-size: 30px; font-weight: bold; color: #ffd700; margin-bottom: 15px;" id="resurrect-timer">10</div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn" style="background: #007aff; font-size: 16px; padding: 12px;" onclick="resurrectEgg()">Спасти яйцо (20 ⭐️)</button>
+                <button class="btn stop" style="font-size: 14px; padding: 12px; background: transparent; border: 1px solid #ff3b30; color: #ff3b30;" onclick="confirmFail()">Смириться с потерей</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="top-bar">
             <div class="left-buttons">
@@ -337,8 +350,13 @@
             <div class="level-container" onclick="openLevels()">
                 <div class="stats-row">
                     <div class="level-info"><span id="rank-name">Новичок</span> <span id="level-number">Lvl 1</span> <span style="font-size: 10px;">ⓘ</span></div>
-                    <div class="money-display" id="total-money">
-                        <img src="assets/ui/coin.png" class="coin-img"> 0
+                    <div style="display: flex; gap: 15px;">
+                        <div class="money-display" id="total-stars" style="color: #00A3FF;">
+                            <span style="font-size: 20px; margin-right: 4px;">⭐️</span> 0
+                        </div>
+                        <div class="money-display" id="total-money">
+                            <img src="assets/ui/coin.png" class="coin-img"> 0
+                        </div>
                     </div>
                 </div>
                 <div id="unique-count" style="font-size: 12px; color: #8e8e93; margin-bottom: 5px; text-align: left;">Коллекция: 0 / 25</div>
@@ -378,7 +396,7 @@
                 <button class="btn" style="background-color: #007aff; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('offline')">Инкубатор<br><span style="font-size: 10px; font-weight: normal;">(Оффлайн)</span></button>
             </div>
 
-            <button id="main-btn" class="btn stop" style="display: none;" onclick="stopTimer()">Сдаться</button>
+            <button id="main-btn" class="btn stop" style="display: none;" onclick="stopTimer(false)">Сдаться</button>
             <button id="share-btn" class="btn share-btn" style="display: none;" onclick="handleShare()">Похвастаться 📢</button>
             
             <button class="inventory-btn-main" onclick="openInventory()">Моя коллекция ▼</button>
@@ -387,6 +405,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=61"></script>
+    <script src="script.js?v=62"></script>
 </body>
 </html>
