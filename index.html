@@ -12,6 +12,23 @@
     <div id="toast-container"></div>
     <div id="debug-console" style="display:none; color:red; position:absolute; top:0; z-index:9999;"></div>
 
+    <div id="hub-modal" class="modal" style="display: none; z-index: 2500;">
+        <div class="modal-content" style="background: #1c1c1e;">
+            <div class="modal-header"><h2>Игровой Центр</h2><button class="close-btn" onclick="closeModal('hub-modal')">✖</button></div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn" style="background: rgba(52, 199, 89, 0.2); border: 1px solid #34c759; display: flex; align-items: center; justify-content: center; gap: 10px;" onclick="openPartyModal()">
+                    <span style="font-size: 24px;">🤝</span> Пати (Мультиплеер)
+                </button>
+                <button class="btn" style="background: rgba(0, 163, 255, 0.2); border: 1px solid #00A3FF; display: flex; align-items: center; justify-content: center; gap: 10px;" onclick="openRouletteModal()">
+                    <span style="font-size: 24px;">🎰</span> Колесо Фортуны
+                </button>
+                <button class="btn" style="background: rgba(255, 215, 0, 0.2); border: 1px solid #ffd700; display: flex; align-items: center; justify-content: center; gap: 10px;" onclick="openAch()">
+                    <span style="font-size: 24px;">🏆</span> Награды и Квесты
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="incoming-invite-modal" class="modal" style="display: none; z-index: 4000;">
         <div class="modal-content" style="background: linear-gradient(180deg, #1c1c1e, #2c2c2e); border: 2px solid #007aff;">
             <h2 style="color: #ffd700; margin-bottom: 10px;">Вам приглашение! 💌</h2>
@@ -356,15 +373,9 @@
                 <button class="icon-btn" onclick="openShop()">
                     <img src="assets/ui/icon-shop.png" class="header-icon-img">
                 </button>
-                <button class="icon-btn" onclick="openAch()">
-                    <img src="assets/ui/icon-trophy.png" class="header-icon-img">
+                <button class="icon-btn" style="background: rgba(0, 163, 255, 0.2); border: 1px solid #00A3FF;" onclick="openModal('hub-modal')">
+                    <div style="font-size: 24px;">🎮</div>
                     <div id="ach-badge" class="red-dot" style="display: none;"></div>
-                </button>
-                <button class="icon-btn" onclick="openModal('roulette-modal')">
-                    <div style="font-size: 24px;">🎰</div>
-                </button>
-                <button class="icon-btn" style="background: rgba(52, 199, 89, 0.2); border: 1px solid #34c759;" onclick="openPartyModal()">
-                    <div style="font-size: 24px;">🤝</div>
                 </button>
             </div>
             <button class="icon-btn" onclick="openSettings()">

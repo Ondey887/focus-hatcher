@@ -826,7 +826,7 @@ function checkAchievements() {
     QUESTS_DATA.forEach(q => { if(!claimedQuests.includes(q.id)&&q.type==='invite'&&(userStats.invites||0)>=q.goal) has=true; });
     
     // БЕЗОПАСНАЯ ПРОВЕРКА КНОПКИ АЧИВОК
-    const badge = getEl('ach-badge');
+    let badge = getEl('ach-badge');
     if (badge) badge.style.display = has ? 'block' : 'none';
 }
 
@@ -1036,6 +1036,8 @@ function updateSecondSlotUI() {
                 secondSlotInterval = setInterval(() => {
                     const diff = Math.floor((secondSlotEndTime - Date.now()) / 1000);
                     if(diff <= 0) {
+                        clearInterval(secondSlotInterval);
+                        secondSlotInterval = null;
                         updateSecondSlotUI();
                         showToast("Яйцо во 2 слоте готово!", "🥚");
                     } else {
