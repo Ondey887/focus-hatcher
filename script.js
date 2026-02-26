@@ -213,6 +213,7 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
+// УВЕЛИЧИЛ ЦЕНЫ НА БУСТЕРЫ ЗДЕСЬ
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
@@ -701,6 +702,19 @@ function openShop() { switchShopTab('themes'); openModal('shop-modal'); }
 function openSettings() { openModal('settings-modal'); }
 function openAch() { switchAchTab('achievements'); openModal('achievements-modal'); }
 
+// ТЕСТОВЫЕ ПОКУПКИ ЗВЕЗД
+function openBuyStarsModal() {
+    openModal('buy-stars-modal');
+}
+function buyStarsTest(amount) {
+    playSound('money');
+    userStars += amount;
+    saveData();
+    updateBalanceUI();
+    showToast(`Куплено ${amount} Звезд! (Тест)`, '⭐️');
+    closeModal('buy-stars-modal');
+}
+
 // =============================================================
 // 8. БАЗОВЫЙ ТАЙМЕР И ФОКУС
 // =============================================================
@@ -711,7 +725,7 @@ document.addEventListener("visibilitychange", () => {
 function updateBalanceUI() {
     getEl('total-money').innerHTML = `<img src="assets/ui/coin.png" class="coin-img"> ${walletBalance}`;
     let starsEl = getEl('total-stars');
-    if(starsEl) starsEl.innerHTML = `<span style="font-size: 20px; margin-right: 4px;">⭐️</span> ${userStars}`;
+    if(starsEl) starsEl.innerHTML = `<span style="font-size: 20px; margin-right: 4px;">⭐️</span> ${userStars} <span style="font-size: 14px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 8px; margin-left: 5px;">+</span>`;
     getEl('unique-count').textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
     checkAchievements();
     renderBoostersPanel();
@@ -853,7 +867,7 @@ function stopTimer(failed = false) {
         isRunning = false;
         
         getEl('resurrect-modal').style.display = 'flex';
-        let resTime = 10;
+        let resTime = 20; 
         getEl('resurrect-timer').textContent = resTime;
         
         if (resurrectCountdownInterval) clearInterval(resurrectCountdownInterval);
