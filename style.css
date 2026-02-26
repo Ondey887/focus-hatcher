@@ -93,6 +93,30 @@ html, body {
 }
 .egg-img.shaking { animation: shake 0.5s infinite !important; }
 
+/* ПРЕМИУМ: ГОЛОГРАФИЧЕСКОЕ ЯЙЦО */
+.holo-egg {
+    filter: drop-shadow(0 0 20px #00A3FF) drop-shadow(0 0 40px #00A3FF) hue-rotate(180deg) opacity(0.8) !important;
+    animation: holoFloat 3s ease-in-out infinite !important;
+}
+@keyframes holoFloat {
+    0%, 100% { transform: translateY(0) scale(1.4); }
+    50% { transform: translateY(-15px) scale(1.4); filter: drop-shadow(0 0 30px #00A3FF) hue-rotate(180deg) opacity(1); }
+}
+
+/* ПРЕМИУМ: ФОН МАТРИЦА */
+.theme-matrix {
+    background-color: #000 !important;
+    background-image: 
+        linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px) !important;
+    background-size: 20px 20px !important;
+    animation: matrixBg 10s linear infinite;
+}
+@keyframes matrixBg {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 20px; }
+}
+
 /* ПИТОМЕЦ ПРИ ВЫЛУПЛЕНИИ */
 .hatched-img {
     width: 250px; height: 250px;

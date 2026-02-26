@@ -52,6 +52,7 @@ const API_URL = "https://focushatcher-ondey.amvera.io/api";
 let modalStack = [];
 
 let collection = [], userXP = 0, userLevel = 1, walletBalance = 0, userStars = 0, pegasusShards = 0;
+let userJokers = 0; // ГЕНЫ МУТАЦИИ (ДЖОКЕРЫ)
 let ownedItems = { themes: ['default'], eggs: ['default'] };
 let activeTheme = 'default', activeEggSkin = 'default', selectedAvatar = 'default';
 let userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0 };
@@ -59,7 +60,6 @@ let myBoosters = { luck: 0, speed: 0 };
 let claimedAchievements = [], claimedQuests = [], usedCodes = [];
 let isVibrationOn = true, isSoundOn = false;
 
-// ПРЕМИУМ ПЕРЕМЕННЫЕ
 let vipEndTime = 0;
 let hasSecondSlot = false;
 let secondSlotEndTime = 0;
@@ -229,14 +229,16 @@ const SHOP_DATA = {
         { id: 'forest', name: 'Лес', price: 500, bgFile: 'assets/bg/bg-forest.jpg' },
         { id: 'space', name: 'Космос', price: 2000, bgFile: 'assets/bg/bg-space.jpg' },
         { id: 'neon', name: 'Неон', price: 5000, bgFile: 'assets/bg/bg-neon.jpg' },
-        { id: 'gold', name: 'Мажор', price: 10000, bgFile: 'assets/bg/bg-gold.jpg' }
+        { id: 'gold', name: 'Мажор', price: 10000, bgFile: 'assets/bg/bg-gold.jpg' },
+        { id: 'matrix', name: 'Матрица PRO', price: '100 ⭐️', isPremium: true, bgFile: null }
     ],
     eggs: [
         { id: 'default', name: 'Стандарт', price: 0, img: 'assets/eggs/egg-default.png' },
         { id: 'glow', name: 'Сияние', price: 1000, img: 'assets/eggs/egg-glow.png' },
         { id: 'ice', name: 'Лед', price: 3000, img: 'assets/eggs/egg-ice.png' },
         { id: 'glitch', name: 'Глюк', price: 7777, img: 'assets/eggs/egg-glitch.png' },
-        { id: 'gold', name: 'Золото', price: 15000, img: 'assets/eggs/egg-gold.png' }
+        { id: 'gold', name: 'Золото', price: 15000, img: 'assets/eggs/egg-gold.png' },
+        { id: 'holo', name: 'Голограмма PRO', price: '100 ⭐️', isPremium: true, img: 'assets/eggs/egg-ice.png' }
     ],
     boosters: [
         { id: 'luck', name: 'Зелье Удачи', price: 4990, icon: 'assets/ui/booster-luck.png', desc: 'Шанс x5' },
@@ -253,6 +255,7 @@ const PROMO_CODES = {
     'SPEED': { type: 'booster', id: 'speed', val: 5 },
     'SECRET': { type: 'money', val: 5000 }
 };
+const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 // =============================================================
 // 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
@@ -269,6 +272,7 @@ function initGame() {
         walletBalance = parseInt(localStorage.getItem('walletBalance')) || 0;
         userStars = parseInt(localStorage.getItem('userStars')) || 0;
         pegasusShards = parseInt(localStorage.getItem('pegasusShards')) || 0; 
+        userJokers = parseInt(localStorage.getItem('userJokers')) || 0; 
         ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
         activeTheme = localStorage.getItem('activeTheme') || 'default';
         activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
@@ -281,7 +285,6 @@ function initGame() {
         isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
         
-        // Премиум данные
         vipEndTime = parseInt(localStorage.getItem('vipEndTime')) || 0;
         hasSecondSlot = localStorage.getItem('hasSecondSlot') === 'true';
         secondSlotEndTime = parseInt(localStorage.getItem('secondSlotEndTime')) || 0;
@@ -305,7 +308,7 @@ function initGame() {
 
 function loadFromCloud() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime'];
+        const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
@@ -313,6 +316,7 @@ function loadFromCloud() {
             if (values.userXP) userXP = parseInt(values.userXP);
             if (values.userLevel) userLevel = parseInt(values.userLevel);
             if (values.pegasusShards) pegasusShards = parseInt(values.pegasusShards);
+            if (values.userJokers) userJokers = parseInt(values.userJokers);
             if (values.myCollection) collection = JSON.parse(values.myCollection);
             if (values.ownedItems) ownedItems = JSON.parse(values.ownedItems);
             if (values.activeTheme) activeTheme = values.activeTheme;
@@ -339,6 +343,7 @@ function saveData() {
     localStorage.setItem('walletBalance', walletBalance);
     localStorage.setItem('userStars', userStars);
     localStorage.setItem('pegasusShards', pegasusShards);
+    localStorage.setItem('userJokers', userJokers);
     localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
     localStorage.setItem('activeTheme', activeTheme);
     localStorage.setItem('activeEggSkin', activeEggSkin);
@@ -359,6 +364,7 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
         Telegram.WebApp.CloudStorage.setItem('userStars', userStars.toString());
         Telegram.WebApp.CloudStorage.setItem('pegasusShards', pegasusShards.toString());
+        Telegram.WebApp.CloudStorage.setItem('userJokers', userJokers.toString());
         Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
         Telegram.WebApp.CloudStorage.setItem('userLevel', userLevel.toString());
         Telegram.WebApp.CloudStorage.setItem('myCollection', JSON.stringify(collection));
@@ -379,12 +385,25 @@ function saveData() {
 // 5. ИНТЕРФЕЙС И БАЗОВЫЕ ОКНА
 // =============================================================
 function applyTheme() { 
+    if (activeTheme === 'matrix') {
+        document.body.className = 'theme-matrix';
+        document.body.style.backgroundImage = 'none';
+        return;
+    }
+    document.body.className = '';
     const t=SHOP_DATA.themes.find(x=>x.id===activeTheme); 
     if(t && t.bgFile) document.body.style.backgroundImage = `url('${t.bgFile}')`; else { document.body.style.backgroundImage = 'none'; document.body.style.backgroundColor = '#1c1c1e'; }
 }
 
 function applyEggSkin() { 
-    const s=SHOP_DATA.eggs.find(x=>x.id===activeEggSkin); const egg=getEl('egg-display'); 
+    const egg=getEl('egg-display'); 
+    if (activeEggSkin === 'holo') {
+        egg.className = 'egg-img holo-egg';
+        egg.src = 'assets/eggs/egg-ice.png';
+        if(isRunning) egg.classList.add('shaking'); 
+        return;
+    }
+    const s=SHOP_DATA.eggs.find(x=>x.id===activeEggSkin); 
     if (s) egg.src = s.img; else egg.src = 'assets/eggs/egg-default.png';
     egg.className = 'egg-img'; if(isRunning) egg.classList.add('shaking'); 
 }
@@ -419,11 +438,28 @@ function renderShop() {
                 <div style="font-size:12px;color:#ccc;margin-bottom:10px;">Расти 2 яйца оффлайн одновременно</div>
                 <button class="buy-btn" style="${hasSecondSlot ? 'background:#555; pointer-events:none;' : 'background: #00A3FF;'}" onclick="buyPremium('slot', 500)">${hasSecondSlot ? 'Куплено навсегда' : '500 ⭐️'}</button>
             </div>
+            <div class="shop-item" style="grid-column: span 2; background: rgba(255, 59, 48, 0.1); border: 1px solid #ff3b30;">
+                <div style="font-size: 30px;">🧬</div>
+                <div class="shop-item-name">Ген Мутации (Джокер)</div>
+                <div style="font-size:12px;color:#ccc;margin-bottom:10px;">Заменяет недостающего пета при синтезе</div>
+                <button class="buy-btn" style="background: #00A3FF;" onclick="buyPremium('joker', 50)">50 ⭐️ (У вас: ${userJokers})</button>
+            </div>
+            <div class="shop-item" style="grid-column: span 1; background: rgba(255, 255, 255, 0.05); border: 1px solid #ffd700;">
+                <div style="font-size: 30px;">🌌</div>
+                <div class="shop-item-name">Фон: Матрица</div>
+                <button class="buy-btn" style="${ownedItems.themes.includes('matrix') ? 'background:#555' : 'background: #00A3FF;'}" onclick="buyPremium('theme_matrix', 100)">${ownedItems.themes.includes('matrix') ? 'Куплено' : '100 ⭐️'}</button>
+            </div>
+            <div class="shop-item" style="grid-column: span 1; background: rgba(255, 255, 255, 0.05); border: 1px solid #ffd700;">
+                <div style="font-size: 30px;">🔮</div>
+                <div class="shop-item-name">Яйцо: Голограмма</div>
+                <button class="buy-btn" style="${ownedItems.eggs.includes('holo') ? 'background:#555' : 'background: #00A3FF;'}" onclick="buyPremium('egg_holo', 100)">${ownedItems.eggs.includes('holo') ? 'Куплено' : '100 ⭐️'}</button>
+            </div>
         `;
         return;
     }
 
     SHOP_DATA[currentShopTab].forEach(item => {
+        if (item.isPremium) return; // Прячем премиум вещи из обычной вкладки
         const d=document.createElement('div'); d.className='shop-item';
         let btnHTML='';
         if(currentShopTab==='boosters') {
@@ -456,6 +492,17 @@ function buyPremium(type, price) {
             hasSecondSlot = true;
             showToast("Второй слот открыт!", "🥚");
             updateSecondSlotUI();
+        } else if (type === 'joker') {
+            userJokers++;
+            showToast("Куплен Ген Мутации! 🧬", "⭐️");
+        } else if (type === 'theme_matrix') {
+            if (ownedItems.themes.includes('matrix')) return;
+            ownedItems.themes.push('matrix');
+            showToast("Куплен премиум фон!", "⭐️");
+        } else if (type === 'egg_holo') {
+            if (ownedItems.eggs.includes('holo')) return;
+            ownedItems.eggs.push('holo');
+            showToast("Куплено премиум яйцо!", "⭐️");
         }
         userStars -= price;
         saveData();
@@ -470,6 +517,7 @@ function buyPremium(type, price) {
 }
 
 function buyItem(id, price) {
+    if(typeof price === 'string') { showToast("Это покупается за Звезды!", "⭐️"); return; }
     if(currentShopTab==='boosters') {
         if(walletBalance>=price) { walletBalance-=price; if(!myBoosters[id])myBoosters[id]=0; myBoosters[id]++; saveData(); updateBalanceUI(); showToast("Куплено!", "🧪"); playSound('money'); } else showToast("Мало денег", "🚫");
         return;
@@ -768,7 +816,6 @@ window.claimDaily = function() {
     if (l && l !== y.toDateString()) s = 0;
     const r = DAILY_REWARDS[s];
     
-    // VIP БОНУС К ЕЖЕДНЕВКЕ
     let bonusMult = isVip() ? 1.2 : 1;
     
     if (r.type === 'money') walletBalance += Math.floor(r.val * bonusMult);
@@ -1005,6 +1052,8 @@ function startTimer(mode, isResuming = false) {
     getEl('egg-display').className = 'egg-img shaking'; renderBoostersPanel();
     
     const totalTime = isResuming ? timeLeft : baseTime; 
+    
+    if(timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         timeLeft--; getEl('timer').textContent = formatTime(timeLeft);
         const progress = 1 - (timeLeft / totalTime);
@@ -1016,9 +1065,8 @@ function startTimer(mode, isResuming = false) {
     }, 1000);
 }
 
-// ИСПРАВЛЕННЫЙ БАГ УСКОРЯЮЩЕГОСЯ ТАЙМЕРА
 function stopTimer(failed = false) {
-    clearInterval(timerInterval); // ВСЕГДА чистим интервал!
+    clearInterval(timerInterval); 
     isRunning = false;
     
     if (failed) {
@@ -1052,6 +1100,7 @@ function resurrectEgg() {
         startTimer(currentHatchMode, true);
     } else {
         showToast("Недостаточно Звезд!", "❌");
+        openBuyStarsModal();
     }
 }
 
@@ -1090,7 +1139,9 @@ function finishTimer(fromOffline = false) {
     getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
     getEl('crack-overlay').className = 'crack-overlay';
 
-    const m = MODES[currentModeIndex]; userXP+=m.xpReward; 
+    let vipMult = isVip() ? 1.2 : 1;
+    const m = MODES[currentModeIndex]; userXP += Math.floor(m.xpReward * vipMult); 
+    
     if(userXP >= userLevel * 200) { 
         userXP -= userLevel * 200; userLevel++; 
         showToast(`Lvl UP: ${userLevel}`, "🎉"); playSound('win'); 
@@ -1138,6 +1189,8 @@ function finishTimer(fromOffline = false) {
 // =============================================================
 function openCraft() {
     getEl('pegasus-shards-count').textContent = pegasusShards;
+    getEl('joker-count-display').textContent = userJokers;
+    
     if(pegasusShards >= 10) {
         getEl('craft-pegasus-btn').className = "btn";
         getEl('craft-pegasus-btn').style.background = "#ffd700";
@@ -1152,10 +1205,16 @@ function openCraft() {
         if(count >= 5) {
             canCraft = true; const r = getPetRarity(pet); const d = document.createElement('div'); d.className = `pet-slot ${r}`;
             d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot"><div class="slot-count" style="background:#ff3b30">${count}/5</div>`;
-            d.onclick = () => craftPet(pet); c.appendChild(d);
+            d.onclick = () => craftPet(pet, 0); c.appendChild(d);
+        } else if (count > 0 && count < 5 && userJokers >= (5 - count)) {
+            // КРАФТ С ДЖОКЕРОМ
+            canCraft = true; const r = getPetRarity(pet); const d = document.createElement('div'); d.className = `pet-slot ${r}`;
+            d.style.borderColor = '#00A3FF';
+            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot"><div class="slot-count" style="background:#00A3FF">+${5-count} 🧬</div>`;
+            d.onclick = () => craftPet(pet, 5 - count); c.appendChild(d);
         }
     });
-    if(!canCraft) c.innerHTML = '<p style="grid-column: span 4; color: #888;">Собери 5 одинаковых обычных петов!</p>';
+    if(!canCraft) c.innerHTML = '<p style="grid-column: span 4; color: #888; font-size: 12px;">Собери 5 одинаковых обычных петов или используй Ген Мутации!</p>';
     openModal('craft-modal');
 }
 
@@ -1172,13 +1231,20 @@ function craftPegasus() {
     }
 }
 
-function craftPet(basePet) {
-    if(confirm(`Соединить 5x ${PET_NAMES[basePet]}?`)) {
+function craftPet(basePet, jokersUsed = 0) {
+    let msg = jokersUsed > 0 ? `Соединить ${5 - jokersUsed}x ${PET_NAMES[basePet]} и ${jokersUsed}x 🧬 Джокер?` : `Соединить 5x ${PET_NAMES[basePet]}?`;
+    
+    if(confirm(msg)) {
         let removed = 0;
         collection = collection.filter(p => {
-            if(p === basePet && removed < 5) { removed++; return false; }
+            if(p === basePet && removed < (5 - jokersUsed)) { removed++; return false; }
             return true;
         });
+        
+        if (jokersUsed > 0) {
+            userJokers -= jokersUsed;
+        }
+
         let newPet = petDatabase.rare[Math.floor(Math.random() * petDatabase.rare.length)];
         showToast(`Успех! Получен Редкий петомец`, '🧪'); playSound('win');
         collection.push(newPet); if(!userStats.crafts) userStats.crafts = 0; userStats.crafts++;
@@ -1221,10 +1287,7 @@ function openPetModal(pet, owned) {
 function sellPet() {
     if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
     let basePrice = PRICES[getPetRarity(selectedPet)];
-    
-    // VIP БОНУС ПРИ ПРОДАЖЕ ПЕТА
     let finalPrice = isVip() ? Math.floor(basePrice * 1.2) : basePrice;
-    
     walletBalance += finalPrice; userStats.earned += finalPrice;
     collection.splice(idx,1); saveData(); updateBalanceUI(); 
     closeModal('pet-modal'); showToast(`Продано +${finalPrice}`, 'img'); playSound('money'); openInventory(); 
@@ -1546,7 +1609,6 @@ function handleTapBattleEnd(winner, players) {
     if(bossIsDead) return; bossIsDead = true; clearInterval(bossTimerInterval); playSound('win');
     const myId = getTgUser().id; const me = players.find(p => p.user_id === myId);
     
-    // VIP БОНУС К ГОНКЕ ЯИЦ
     let vipMult = isVip() ? 1.2 : 1;
     
     if (winner.user_id === myId) { 
@@ -1592,7 +1654,7 @@ async function claimMegaEgg() {
 }
 
 // =============================================================
-// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 (ПЕРЕПИСАННАЯ И БЕЗОПАСНАЯ)
+// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 
 // =============================================================
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
@@ -1858,7 +1920,6 @@ async function claimExpedition() {
     if (currentExpeditionLocation === 'mountains') locMultiplier = 300; 
     if (currentExpeditionLocation === 'space') locMultiplier = 500; 
     
-    // VIP БОНУС
     let vipMult = isVip() ? 1.2 : 1;
     const reward = Math.floor(score * locMultiplier * vipMult); 
     
