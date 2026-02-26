@@ -435,3 +435,21 @@ input:checked + .slider:before { transform: translateX(24px); }
     transform: scale(0.8) rotate(-10deg) !important; 
     filter: drop-shadow(0 0 15px red); 
 }
+
+/* === РУЛЕТКА === */
+.roulette-box {
+    font-size: 80px; 
+    margin: 20px auto;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+    transition: transform 0.1s;
+}
+.roulette-spinning {
+    animation: rumble 0.2s infinite;
+}
+@keyframes rumble {
+    0% { transform: translateX(0) rotate(0deg); }
+    25% { transform: translateX(-5px) rotate(-5deg); }
+    50% { transform: translateX(5px) rotate(5deg); }
+    75% { transform: translateX(-5px) rotate(-5deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+}

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=65">
+    <link rel="stylesheet" href="style.css?v=66">
 </head>
 <body>
 
@@ -162,6 +162,8 @@
         <div class="modal-content" style="background: #1c1c1e; width: 95%; max-width: 400px;">
             <div class="modal-header"><h2>Экспедиция</h2><button class="close-btn" onclick="closeModal('expedition-modal')">✖</button></div>
             
+            <div id="mega-radar-badge" style="display:none; background: linear-gradient(90deg, #ffcc00, #ff9500); color: black; font-weight: bold; padding: 5px; border-radius: 8px; margin-bottom: 10px; animation: pulseFast 2s infinite;">📡 АКТИВЕН МЕГА-РАДАР (x2 ЛУТ ВСЕМ!)</div>
+
             <div id="expedition-scene" class="expedition-scene forest-bg">
                 <div id="expedition-pets-container" class="expedition-pets-container"></div>
                 <div id="wolf-overlay" style="display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 10; flex-direction: column; align-items: center; justify-content: center;">
@@ -186,6 +188,7 @@
                 </div>
 
                 <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px; font-size: 18px;">Базовый множитель: x<span id="expedition-pre-score">1</span></p>
+                <button id="expedition-radar-btn" class="btn" style="background: #00A3FF; margin-bottom: 10px; padding: 10px; font-size: 14px;" onclick="buyMegaRadar()">📡 Купить Мега-Радар (100 ⭐️)</button>
                 <button id="expedition-start-btn" class="btn" style="background: #007aff;" onclick="startExpedition()">Отправить отряд</button>
                 <div id="expedition-waiting-msg" style="display:none; color: #8e8e93; font-weight: bold; padding: 15px;">⏳ Ожидание приказа Лидера...</div>
             </div>
@@ -195,6 +198,16 @@
                 <p style="color: #ffd700; font-weight: bold; font-size: 18px;">Итоговый множитель: x<span id="expedition-multiplier">1</span></p>
                 <button id="expedition-claim-btn" class="btn" style="background: linear-gradient(45deg, #ffd700, #ffa500); color: black; margin-top: 15px; display: none;" onclick="claimExpedition()">Вернуть отряд с Лутом! 💰</button>
             </div>
+        </div>
+    </div>
+
+    <div id="roulette-modal" class="modal" style="display: none; z-index: 4500;">
+        <div class="modal-content" style="background: #1c1c1e;">
+            <div class="modal-header"><h2>Бокс Удачи 🎰</h2><button class="close-btn" onclick="closeModal('roulette-modal')">✖</button></div>
+            <div id="roulette-box" class="roulette-box">🎁</div>
+            <p id="roulette-result-text" style="font-size: 16px; color: #ffd700; font-weight: bold; margin: 15px 0; min-height: 20px;"></p>
+            <button id="roulette-free-btn" class="btn" style="background: #34c759; margin-bottom: 10px;" onclick="spinRoulette(true)">Крутить Бесплатно!</button>
+            <button id="roulette-paid-btn" class="btn" style="background: #00A3FF;" onclick="spinRoulette(false)">Крутить за 10 ⭐️</button>
         </div>
     </div>
 
@@ -343,9 +356,8 @@
                 <button class="icon-btn" onclick="openShop()">
                     <img src="assets/ui/icon-shop.png" class="header-icon-img">
                 </button>
-                <button class="icon-btn" onclick="openAch()">
-                    <img src="assets/ui/icon-trophy.png" class="header-icon-img">
-                    <div id="ach-badge" class="red-dot" style="display: none;"></div>
+                <button class="icon-btn" onclick="openModal('roulette-modal')">
+                    <div style="font-size: 24px;">🎰</div>
                 </button>
                 <button class="icon-btn" style="background: rgba(52, 199, 89, 0.2); border: 1px solid #34c759;" onclick="openPartyModal()">
                     <div style="font-size: 24px;">🤝</div>
@@ -431,6 +443,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=65"></script>
+    <script src="script.js?v=66"></script>
 </body>
 </html>

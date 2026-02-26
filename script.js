@@ -52,7 +52,7 @@ const API_URL = "https://focushatcher-ondey.amvera.io/api";
 let modalStack = [];
 
 let collection = [], userXP = 0, userLevel = 1, walletBalance = 0, userStars = 0, pegasusShards = 0;
-let userJokers = 0; // ГЕНЫ МУТАЦИИ (ДЖОКЕРЫ)
+let userJokers = 0; 
 let ownedItems = { themes: ['default'], eggs: ['default'] };
 let activeTheme = 'default', activeEggSkin = 'default', selectedAvatar = 'default';
 let userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0 };
@@ -88,6 +88,8 @@ let bossIsDead = false;
 let expeditionInterval = null;
 let bonusSpawningInterval = null;
 let currentWolfHp = 0;
+let isMegaRadarActive = false; // ПЕРЕМЕННАЯ ДЛЯ РАДАРА
+let lastRouletteDate = ""; // ПЕРЕМЕННАЯ ДЛЯ РУЛЕТКИ
 
 function openModal(id) {
     playSound('click');
@@ -255,7 +257,15 @@ const PROMO_CODES = {
     'SPEED': { type: 'booster', id: 'speed', val: 5 },
     'SECRET': { type: 'money', val: 5000 }
 };
-const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
+
+const ROULETTE_PRIZES = [
+    { n: "1000 Монет", t: 'money', v: 1000, p: 40 },
+    { n: "5000 Монет", t: 'money', v: 5000, p: 20 },
+    { n: "Бустер Удачи", t: 'luck', v: 1, p: 15 },
+    { n: "Ген Мутации", t: 'joker', v: 1, p: 10 },
+    { n: "10 Звезд", t: 'stars', v: 10, p: 10 },
+    { n: "Осколок Пегаса", t: 'shard', v: 1, p: 5 }
+];
 
 // =============================================================
 // 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
@@ -288,6 +298,7 @@ function initGame() {
         vipEndTime = parseInt(localStorage.getItem('vipEndTime')) || 0;
         hasSecondSlot = localStorage.getItem('hasSecondSlot') === 'true';
         secondSlotEndTime = parseInt(localStorage.getItem('secondSlotEndTime')) || 0;
+        lastRouletteDate = localStorage.getItem('lastRouletteDate') || "";
 
     } catch(e) { console.error("Local Load Error", e); }
 
@@ -308,7 +319,7 @@ function initGame() {
 
 function loadFromCloud() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers'];
+        const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 'lastRouletteDate'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
@@ -330,6 +341,7 @@ function loadFromCloud() {
             if (values.vipEndTime) vipEndTime = parseInt(values.vipEndTime);
             if (values.hasSecondSlot) hasSecondSlot = values.hasSecondSlot === 'true';
             if (values.secondSlotEndTime) secondSlotEndTime = parseInt(values.secondSlotEndTime);
+            if (values.lastRouletteDate) lastRouletteDate = values.lastRouletteDate;
 
             if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
             
@@ -359,6 +371,7 @@ function saveData() {
     localStorage.setItem('vipEndTime', vipEndTime);
     localStorage.setItem('hasSecondSlot', hasSecondSlot);
     localStorage.setItem('secondSlotEndTime', secondSlotEndTime);
+    localStorage.setItem('lastRouletteDate', lastRouletteDate);
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
@@ -378,6 +391,7 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('vipEndTime', vipEndTime.toString());
         Telegram.WebApp.CloudStorage.setItem('hasSecondSlot', hasSecondSlot.toString());
         Telegram.WebApp.CloudStorage.setItem('secondSlotEndTime', secondSlotEndTime.toString());
+        Telegram.WebApp.CloudStorage.setItem('lastRouletteDate', lastRouletteDate);
     }
 }
 
@@ -459,7 +473,7 @@ function renderShop() {
     }
 
     SHOP_DATA[currentShopTab].forEach(item => {
-        if (item.isPremium) return; // Прячем премиум вещи из обычной вкладки
+        if (item.isPremium) return;
         const d=document.createElement('div'); d.className='shop-item';
         let btnHTML='';
         if(currentShopTab==='boosters') {
@@ -568,6 +582,76 @@ function clickLink(id, u, r) { if(window.Telegram.WebApp)window.Telegram.WebApp.
 function claimAch(id, r) { if(claimedAchievements.includes(id))return; claimedAchievements.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderAch(); showToast(`Награда +${r}`, 'img'); playSound('money'); }
 function claimQuest(id, r) { if(claimedQuests.includes(id))return; claimedQuests.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderQuests(); showToast(`Награда +${r}`, 'img'); playSound('money'); }
 function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.invites++; saveData(); checkAchievements(); const t=`У меня ${new Set(collection).size} петов в Focus Hatcher!`; const u=`https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(t)}`; if(window.Telegram.WebApp)window.Telegram.WebApp.openTelegramLink(u); else window.open(u,'_blank'); }
+
+// =============================================================
+// РУЛЕТКА F2P УДЕРЖАНИЕ
+// =============================================================
+function openRouletteModal() {
+    getEl('roulette-result-text').textContent = "";
+    getEl('roulette-box').className = 'roulette-box';
+    const today = new Date().toDateString();
+    
+    if (lastRouletteDate !== today) {
+        getEl('roulette-free-btn').style.display = 'block';
+        getEl('roulette-paid-btn').style.display = 'none';
+    } else {
+        getEl('roulette-free-btn').style.display = 'none';
+        getEl('roulette-paid-btn').style.display = 'block';
+    }
+    openModal('roulette-modal');
+}
+
+function spinRoulette(isFree) {
+    if (!isFree) {
+        if (userStars < 10) {
+            showToast("Недостаточно Звезд!", "❌");
+            return;
+        }
+        userStars -= 10;
+        updateBalanceUI();
+    } else {
+        lastRouletteDate = new Date().toDateString();
+        getEl('roulette-free-btn').style.display = 'none';
+        getEl('roulette-paid-btn').style.display = 'block';
+    }
+    
+    playSound('click');
+    saveData();
+    
+    const box = getEl('roulette-box');
+    const resText = getEl('roulette-result-text');
+    
+    getEl('roulette-paid-btn').disabled = true;
+    box.className = 'roulette-box roulette-spinning';
+    resText.textContent = "Крутим...";
+    
+    setTimeout(() => {
+        box.className = 'roulette-box';
+        getEl('roulette-paid-btn').disabled = false;
+        
+        let rnd = Math.random() * 100;
+        let selectedPrize = null;
+        for (let p of ROULETTE_PRIZES) {
+            if (rnd < p.p) { selectedPrize = p; break; }
+            rnd -= p.p;
+        }
+        if(!selectedPrize) selectedPrize = ROULETTE_PRIZES[0];
+        
+        playSound('win');
+        fireConfetti();
+        
+        if (selectedPrize.t === 'money') { walletBalance += selectedPrize.v; showToast(`+${selectedPrize.v} монет!`, "💰"); box.textContent = "💰"; }
+        else if (selectedPrize.t === 'stars') { userStars += selectedPrize.v; showToast(`+${selectedPrize.v} Звезд!`, "⭐️"); box.textContent = "⭐️"; }
+        else if (selectedPrize.t === 'joker') { userJokers += selectedPrize.v; showToast(`Ген Мутации!`, "🧬"); box.textContent = "🧬"; }
+        else if (selectedPrize.t === 'shard') { pegasusShards += selectedPrize.v; showToast(`Осколок Пегаса!`, "🧩"); box.textContent = "🦄"; }
+        else if (selectedPrize.t === 'luck') { if (!myBoosters.luck) myBoosters.luck=0; myBoosters.luck += selectedPrize.v; showToast(`Зелье удачи!`, "🧪"); box.textContent = "🧪"; }
+        else if (selectedPrize.t === 'speed') { if (!myBoosters.speed) myBoosters.speed=0; myBoosters.speed += selectedPrize.v; showToast(`Ускоритель!`, "⚡️"); box.textContent = "⚡️"; }
+
+        resText.textContent = `Выпало: ${selectedPrize.n}`;
+        saveData();
+        updateBalanceUI();
+    }, 2000);
+}
 
 // =============================================================
 // 6. ПРОФИЛЬ И ДРУЗЬЯ
@@ -1376,6 +1460,7 @@ async function apiLeaveParty(localOnly = false) {
     currentPartyCode = null; 
     isPartyLeader = false;
     currentActiveGame = 'none';
+    isMegaRadarActive = false; // Сброс радара
     
     clearInterval(partyPollingInterval);
     if(bossTimerInterval) clearInterval(bossTimerInterval);
@@ -1417,6 +1502,8 @@ function startPartyPolling() {
             
             isPartyLeader = (getTgUser().id === data.leader_id);
             currentPartyPlayersData = data.players; 
+            isMegaRadarActive = data.mega_radar === 1; // СОХРАНЯЕМ СТАТУС РАДАРА
+            
             renderPartyPlayers(data.players);
             updatePartyUI();
 
@@ -1654,7 +1741,7 @@ async function claimMegaEgg() {
 }
 
 // =============================================================
-// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 
+// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 (С МЕГА-РАДАРОМ)
 // =============================================================
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
@@ -1689,6 +1776,27 @@ function calculatePreStartSynergy() {
     let synEl = getEl('synergy-display');
     if (scoreEl) scoreEl.textContent = score;
     if (synEl) synEl.innerHTML = synergyText.length > 0 ? `Активные баффы: ${synergyText.join(', ')}` : 'Соберите синергию петов!';
+}
+
+// ПОКУПКА МЕГА РАДАРА
+async function buyMegaRadar() {
+    if (userStars < 100) {
+        showToast("Нужно 100 Звезд!", "❌");
+        openBuyStarsModal();
+        return;
+    }
+    playSound('money');
+    userStars -= 100;
+    saveData();
+    updateBalanceUI();
+    showToast("Мега-Радар активирован!", "📡");
+    
+    try {
+        await fetch(`${API_URL}/party/radar`, { 
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ code: currentPartyCode }) 
+        });
+    } catch(e) {}
 }
 
 async function startExpedition() {
@@ -1737,6 +1845,7 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
     const claimBtn = getEl('expedition-claim-btn');
     const timerEl = getEl('expedition-timer');
     const locSelector = getEl('leader-location-selector');
+    const radarBadge = getEl('mega-radar-badge');
 
     if(!infoView || !activeView || !timerEl) return; 
 
@@ -1752,6 +1861,11 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
     
     const isFinished = !isLobby && secondsLeft <= 0;
     const isActive = !isLobby && secondsLeft > 0;
+
+    // Показываем плашку радара
+    if (radarBadge) {
+        radarBadge.style.display = isMegaRadarActive ? 'block' : 'none';
+    }
 
     let targetLoc = 'forest';
     if (isLobby) targetLoc = currentExpeditionLocation || 'forest';
@@ -1780,6 +1894,10 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
         infoView.style.display = 'block';
         activeView.style.display = 'none';
         
+        // Показываем кнопку Радара
+        let radarBtn = getEl('expedition-radar-btn');
+        if (radarBtn) radarBtn.style.display = isMegaRadarActive ? 'none' : 'block';
+
         if (isPartyLeader) {
             if(locSelector) locSelector.style.display = 'flex';
             let startBtn = getEl('expedition-start-btn');
@@ -1920,8 +2038,10 @@ async function claimExpedition() {
     if (currentExpeditionLocation === 'mountains') locMultiplier = 300; 
     if (currentExpeditionLocation === 'space') locMultiplier = 500; 
     
+    // VIP БОНУС И МЕГА РАДАР
     let vipMult = isVip() ? 1.2 : 1;
-    const reward = Math.floor(score * locMultiplier * vipMult); 
+    let radarMult = isMegaRadarActive ? 2 : 1;
+    const reward = Math.floor(score * locMultiplier * vipMult * radarMult); 
     
     let magicCount = 0;
     currentPartyPlayersData.forEach(p => { if (["dragon", "unicorn", "alien"].includes(p.avatar)) magicCount++; });
