@@ -88,8 +88,8 @@ let bossIsDead = false;
 let expeditionInterval = null;
 let bonusSpawningInterval = null;
 let currentWolfHp = 0;
-let isMegaRadarActive = false; // ПЕРЕМЕННАЯ ДЛЯ РАДАРА
-let lastRouletteDate = ""; // ПЕРЕМЕННАЯ ДЛЯ РУЛЕТКИ
+let isMegaRadarActive = false; 
+let lastRouletteDate = ""; 
 
 function openModal(id) {
     playSound('click');
@@ -473,7 +473,7 @@ function renderShop() {
     }
 
     SHOP_DATA[currentShopTab].forEach(item => {
-        if (item.isPremium) return;
+        if (item.isPremium) return; 
         const d=document.createElement('div'); d.className='shop-item';
         let btnHTML='';
         if(currentShopTab==='boosters') {
@@ -659,7 +659,7 @@ function spinRoulette(isFree) {
 async function apiSyncGlobalProfile() {
     const user = getTgUser(); let netWorth = walletBalance; collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
     let finalName = user.name;
-    if (isVip()) finalName += ' 👑'; // Прикрепляем корону если PRO
+    if (isVip()) finalName += ' 👑'; 
     
     try {
         await fetch(`${API_URL}/users/sync`, {
@@ -824,7 +824,10 @@ function checkAchievements() {
         } 
     });
     QUESTS_DATA.forEach(q => { if(!claimedQuests.includes(q.id)&&q.type==='invite'&&(userStats.invites||0)>=q.goal) has=true; });
-    getEl('ach-badge').style.display = has ? 'block' : 'none';
+    
+    // БЕЗОПАСНАЯ ПРОВЕРКА КНОПКИ АЧИВОК
+    const badge = getEl('ach-badge');
+    if (badge) badge.style.display = has ? 'block' : 'none';
 }
 
 function openAvatarSelector() {
@@ -1291,7 +1294,6 @@ function openCraft() {
             d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot"><div class="slot-count" style="background:#ff3b30">${count}/5</div>`;
             d.onclick = () => craftPet(pet, 0); c.appendChild(d);
         } else if (count > 0 && count < 5 && userJokers >= (5 - count)) {
-            // КРАФТ С ДЖОКЕРОМ
             canCraft = true; const r = getPetRarity(pet); const d = document.createElement('div'); d.className = `pet-slot ${r}`;
             d.style.borderColor = '#00A3FF';
             d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot"><div class="slot-count" style="background:#00A3FF">+${5-count} 🧬</div>`;
@@ -1460,7 +1462,7 @@ async function apiLeaveParty(localOnly = false) {
     currentPartyCode = null; 
     isPartyLeader = false;
     currentActiveGame = 'none';
-    isMegaRadarActive = false; // Сброс радара
+    isMegaRadarActive = false; 
     
     clearInterval(partyPollingInterval);
     if(bossTimerInterval) clearInterval(bossTimerInterval);
@@ -1502,7 +1504,7 @@ function startPartyPolling() {
             
             isPartyLeader = (getTgUser().id === data.leader_id);
             currentPartyPlayersData = data.players; 
-            isMegaRadarActive = data.mega_radar === 1; // СОХРАНЯЕМ СТАТУС РАДАРА
+            isMegaRadarActive = data.mega_radar === 1; 
             
             renderPartyPlayers(data.players);
             updatePartyUI();
@@ -1741,7 +1743,7 @@ async function claimMegaEgg() {
 }
 
 // =============================================================
-// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 (С МЕГА-РАДАРОМ)
+// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 
 // =============================================================
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
@@ -1778,7 +1780,6 @@ function calculatePreStartSynergy() {
     if (synEl) synEl.innerHTML = synergyText.length > 0 ? `Активные баффы: ${synergyText.join(', ')}` : 'Соберите синергию петов!';
 }
 
-// ПОКУПКА МЕГА РАДАРА
 async function buyMegaRadar() {
     if (userStars < 100) {
         showToast("Нужно 100 Звезд!", "❌");
@@ -1862,7 +1863,6 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
     const isFinished = !isLobby && secondsLeft <= 0;
     const isActive = !isLobby && secondsLeft > 0;
 
-    // Показываем плашку радара
     if (radarBadge) {
         radarBadge.style.display = isMegaRadarActive ? 'block' : 'none';
     }
@@ -1894,7 +1894,6 @@ function updateExpeditionUI(serverEndTime, score, loc, wolfHp, wolfMaxHp, server
         infoView.style.display = 'block';
         activeView.style.display = 'none';
         
-        // Показываем кнопку Радара
         let radarBtn = getEl('expedition-radar-btn');
         if (radarBtn) radarBtn.style.display = isMegaRadarActive ? 'none' : 'block';
 
@@ -2038,7 +2037,6 @@ async function claimExpedition() {
     if (currentExpeditionLocation === 'mountains') locMultiplier = 300; 
     if (currentExpeditionLocation === 'space') locMultiplier = 500; 
     
-    // VIP БОНУС И МЕГА РАДАР
     let vipMult = isVip() ? 1.2 : 1;
     let radarMult = isMegaRadarActive ? 2 : 1;
     const reward = Math.floor(score * locMultiplier * vipMult * radarMult); 
