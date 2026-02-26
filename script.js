@@ -59,12 +59,18 @@ let myBoosters = { luck: 0, speed: 0 };
 let claimedAchievements = [], claimedQuests = [], usedCodes = [];
 let isVibrationOn = true, isSoundOn = false;
 
+// ПРЕМИУМ ПЕРЕМЕННЫЕ
+let vipEndTime = 0;
+let hasSecondSlot = false;
+let secondSlotEndTime = 0;
+
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
 let activeBoosters = { luck: false, speed: false };
 let currentHatchMode = 'none'; 
 let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 let customEggConfig = { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 };
 let resurrectCountdownInterval = null;
+let secondSlotInterval = null;
 
 let currentPartyCode = null;
 let partyPollingInterval = null;
@@ -158,6 +164,10 @@ function getTgUser() {
     return { id: localStorage.getItem('fake_uid'), name: "Игрок" };
 }
 
+function isVip() {
+    return Date.now() < vipEndTime;
+}
+
 // =============================================================
 // 3. БАЗЫ ДАННЫХ И КОНСТАНТЫ
 // =============================================================
@@ -213,7 +223,6 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
-// УВЕЛИЧИЛ ЦЕНЫ НА БУСТЕРЫ ЗДЕСЬ
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
@@ -244,7 +253,6 @@ const PROMO_CODES = {
     'SPEED': { type: 'booster', id: 'speed', val: 5 },
     'SECRET': { type: 'money', val: 5000 }
 };
-const botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 
 // =============================================================
 // 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
@@ -272,6 +280,12 @@ function initGame() {
         usedCodes = JSON.parse(localStorage.getItem('usedCodes')) || [];
         isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
         isSoundOn = localStorage.getItem('isSoundOn') === 'true';
+        
+        // Премиум данные
+        vipEndTime = parseInt(localStorage.getItem('vipEndTime')) || 0;
+        hasSecondSlot = localStorage.getItem('hasSecondSlot') === 'true';
+        secondSlotEndTime = parseInt(localStorage.getItem('secondSlotEndTime')) || 0;
+
     } catch(e) { console.error("Local Load Error", e); }
 
     checkBackgroundHatch(); checkTutorial();
@@ -283,6 +297,7 @@ function initGame() {
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     
+    updateSecondSlotUI();
     loadFromCloud();
     apiSyncGlobalProfile();
     startInvitesPolling();
@@ -290,7 +305,7 @@ function initGame() {
 
 function loadFromCloud() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards'];
+        const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime'];
         Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
             if (err || !values) return;
             if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
@@ -308,8 +323,13 @@ function loadFromCloud() {
             if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
             if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
             
+            if (values.vipEndTime) vipEndTime = parseInt(values.vipEndTime);
+            if (values.hasSecondSlot) hasSecondSlot = values.hasSecondSlot === 'true';
+            if (values.secondSlotEndTime) secondSlotEndTime = parseInt(values.secondSlotEndTime);
+
             if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
-            updateBalanceUI(); updateLevelUI(); applyTheme(); applyEggSkin();
+            
+            updateBalanceUI(); updateLevelUI(); applyTheme(); applyEggSkin(); updateSecondSlotUI();
             saveData(); apiSyncGlobalProfile();
         });
     }
@@ -331,6 +351,9 @@ function saveData() {
     localStorage.setItem('myCollection', JSON.stringify(collection));
     localStorage.setItem('userXP', userXP);
     localStorage.setItem('userLevel', userLevel);
+    localStorage.setItem('vipEndTime', vipEndTime);
+    localStorage.setItem('hasSecondSlot', hasSecondSlot);
+    localStorage.setItem('secondSlotEndTime', secondSlotEndTime);
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
@@ -346,6 +369,9 @@ function saveData() {
         Telegram.WebApp.CloudStorage.setItem('userStats', JSON.stringify(userStats));
         Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
+        Telegram.WebApp.CloudStorage.setItem('vipEndTime', vipEndTime.toString());
+        Telegram.WebApp.CloudStorage.setItem('hasSecondSlot', hasSecondSlot.toString());
+        Telegram.WebApp.CloudStorage.setItem('secondSlotEndTime', secondSlotEndTime.toString());
     }
 }
 
@@ -377,6 +403,26 @@ function switchShopTab(t) {
 
 function renderShop() {
     const c=getEl('shop-items'); c.innerHTML='';
+    
+    // ПРЕМИУМ МАГАЗИН ЗА ЗВЕЗДЫ
+    if(currentShopTab === 'premium') {
+        c.innerHTML = `
+            <div class="shop-item" style="grid-column: span 2; background: rgba(0, 163, 255, 0.1); border: 1px solid #00A3FF;">
+                <div style="font-size: 30px;">👑</div>
+                <div class="shop-item-name">Focus PRO (30 дней)</div>
+                <div style="font-size:12px;color:#ccc;margin-bottom:10px;">+20% к монетам, коронка в Пати</div>
+                <button class="buy-btn" style="${isVip() ? 'background:#555' : 'background: #00A3FF;'}" onclick="buyPremium('pro', 150)">${isVip() ? 'Продлить (150 ⭐️)' : '150 ⭐️'}</button>
+            </div>
+            <div class="shop-item" style="grid-column: span 2; background: rgba(52, 199, 89, 0.1); border: 1px solid #34c759;">
+                <div style="font-size: 30px;">🥚</div>
+                <div class="shop-item-name">Второй Инкубатор</div>
+                <div style="font-size:12px;color:#ccc;margin-bottom:10px;">Расти 2 яйца оффлайн одновременно</div>
+                <button class="buy-btn" style="${hasSecondSlot ? 'background:#555; pointer-events:none;' : 'background: #00A3FF;'}" onclick="buyPremium('slot', 500)">${hasSecondSlot ? 'Куплено навсегда' : '500 ⭐️'}</button>
+            </div>
+        `;
+        return;
+    }
+
     SHOP_DATA[currentShopTab].forEach(item => {
         const d=document.createElement('div'); d.className='shop-item';
         let btnHTML='';
@@ -397,6 +443,30 @@ function renderShop() {
         }
         c.appendChild(d);
     });
+}
+
+function buyPremium(type, price) {
+    if (userStars >= price) {
+        if (type === 'pro') {
+            if (isVip()) vipEndTime += 30 * 24 * 60 * 60 * 1000;
+            else vipEndTime = Date.now() + 30 * 24 * 60 * 60 * 1000;
+            showToast("Focus PRO активирован! 👑", "⭐️");
+        } else if (type === 'slot') {
+            if (hasSecondSlot) return;
+            hasSecondSlot = true;
+            showToast("Второй слот открыт!", "🥚");
+            updateSecondSlotUI();
+        }
+        userStars -= price;
+        saveData();
+        updateBalanceUI();
+        apiSyncGlobalProfile();
+        renderShop();
+        playSound('money');
+    } else {
+        showToast("Недостаточно Звезд!", "❌");
+        openBuyStarsModal();
+    }
 }
 
 function buyItem(id, price) {
@@ -456,10 +526,13 @@ function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.in
 // =============================================================
 async function apiSyncGlobalProfile() {
     const user = getTgUser(); let netWorth = walletBalance; collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
+    let finalName = user.name;
+    if (isVip()) finalName += ' 👑'; // Прикрепляем корону если PRO
+    
     try {
         await fetch(`${API_URL}/users/sync`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar, level: userLevel, earned: netWorth, hatched: userStats.hatched || 0 })
+            body: JSON.stringify({ user_id: user.id, name: finalName, avatar: selectedAvatar, level: userLevel, earned: netWorth, hatched: userStats.hatched || 0 })
         });
     } catch(e) {}
 }
@@ -512,6 +585,8 @@ function switchProfileTab(tab) {
 function openProfile() {
     apiSyncGlobalProfile(); 
     getEl('profile-rank').textContent = RANKS[Math.floor(userLevel / 5)] || "Создатель";
+    if (isVip()) getEl('profile-rank').innerHTML += ' <span style="color:#ffd700">👑 PRO</span>';
+    
     getEl('profile-level').textContent = `Уровень ${userLevel}`;
     getEl('stat-hatched').textContent = userStats.hatched || 0;
     getEl('stat-unique').textContent = new Set(collection).size;
@@ -641,7 +716,9 @@ function openAvatarSelector() {
 }
 
 async function apiUpdatePlayerAvatar() {
-    try { await fetch(`${API_URL}/party/join`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, name: getTgUser().name, avatar: selectedAvatar, egg_skin: activeEggSkin }) }); } catch(e) {}
+    let finalName = getTgUser().name;
+    if (isVip()) finalName += ' 👑';
+    try { await fetch(`${API_URL}/party/join`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin }) }); } catch(e) {}
 }
 
 function openPromo() { openModal('promo-modal'); }
@@ -690,9 +767,13 @@ window.claimDaily = function() {
     const y = new Date(); y.setDate(y.getDate() - 1);
     if (l && l !== y.toDateString()) s = 0;
     const r = DAILY_REWARDS[s];
-    if (r.type === 'money') walletBalance += r.val;
+    
+    // VIP БОНУС К ЕЖЕДНЕВКЕ
+    let bonusMult = isVip() ? 1.2 : 1;
+    
+    if (r.type === 'money') walletBalance += Math.floor(r.val * bonusMult);
     else if (r.type === 'booster') { if (!myBoosters[r.id]) myBoosters[r.id] = 0; myBoosters[r.id]++; } 
-    else if (r.type === 'mixed') { walletBalance += r.money; if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; myBoosters[r.booster]++; }
+    else if (r.type === 'mixed') { walletBalance += Math.floor(r.money * bonusMult); if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; myBoosters[r.booster]++; }
     s++; if (s >= 7) s = 0;
     localStorage.setItem('dailyStreak', s); localStorage.setItem('lastLoginDate', t);
     saveData(); updateBalanceUI(); showToast("Награда получена!", "📅"); closeModal('daily-modal'); playSound('money');
@@ -792,6 +873,80 @@ function updateUI() {
     getEl('mode-subtitle').innerHTML = currentModeIndex === 2 ? `Настрой редкость <span style="font-size:10px;">(${customEggConfig.target})</span>` : m.sub;
 }
 
+// -------------------------------------------------------------
+// ВТОРОЙ ИНКУБАТОР (ОФФЛАЙН СЛОТ 2)
+// -------------------------------------------------------------
+function updateSecondSlotUI() {
+    const panel = getEl('second-slot-panel');
+    if (!panel) return;
+    
+    if(!hasSecondSlot) {
+        panel.style.display = 'none';
+        return;
+    }
+    panel.style.display = 'block';
+
+    if(secondSlotEndTime > 0) {
+        const now = Date.now();
+        if(now >= secondSlotEndTime) {
+            getEl('second-slot-idle').style.display = 'none';
+            getEl('second-slot-active').style.display = 'none';
+            getEl('second-slot-done').style.display = 'block';
+            if(secondSlotInterval) { clearInterval(secondSlotInterval); secondSlotInterval = null; }
+        } else {
+            getEl('second-slot-idle').style.display = 'none';
+            getEl('second-slot-active').style.display = 'block';
+            getEl('second-slot-done').style.display = 'none';
+            
+            if(!secondSlotInterval) {
+                secondSlotInterval = setInterval(() => {
+                    const diff = Math.floor((secondSlotEndTime - Date.now()) / 1000);
+                    if(diff <= 0) {
+                        updateSecondSlotUI();
+                        showToast("Яйцо во 2 слоте готово!", "🥚");
+                    } else {
+                        getEl('second-slot-timer').textContent = formatTime(diff);
+                    }
+                }, 1000);
+            }
+        }
+    } else {
+        getEl('second-slot-idle').style.display = 'block';
+        getEl('second-slot-active').style.display = 'none';
+        getEl('second-slot-done').style.display = 'none';
+        if(secondSlotInterval) { clearInterval(secondSlotInterval); secondSlotInterval = null; }
+    }
+}
+
+function startSecondSlot() {
+    playSound('click');
+    const m = MODES[currentModeIndex];
+    let time = currentModeIndex === 2 ? customEggConfig.timeOffline : m.timeOffline;
+    secondSlotEndTime = Date.now() + (time * 1000);
+    saveData();
+    updateSecondSlotUI();
+}
+
+function claimSecondSlot() {
+    playSound('win');
+    secondSlotEndTime = 0;
+    
+    let leg = 5; let rare = 30;
+    let pool;
+    const rnd = Math.random() * 100;
+    if(rnd < leg) pool = petDatabase.legendary;
+    else if(rnd < leg + rare) pool = petDatabase.rare;
+    else pool = petDatabase.common;
+    
+    const dropped = pool[Math.floor(Math.random() * pool.length)];
+    collection.push(dropped);
+    saveData();
+    updateBalanceUI();
+    showToast(`Слот 2: Получен ${PET_NAMES[dropped]}!`, "🎉");
+    fireConfetti();
+    updateSecondSlotUI();
+}
+
 function checkBackgroundHatch() {
     const hatchEndTime = parseInt(localStorage.getItem('hatchEndTime'));
     const savedModeIndex = parseInt(localStorage.getItem('hatchEggType'));
@@ -861,11 +1016,12 @@ function startTimer(mode, isResuming = false) {
     }, 1000);
 }
 
+// ИСПРАВЛЕННЫЙ БАГ УСКОРЯЮЩЕГОСЯ ТАЙМЕРА
 function stopTimer(failed = false) {
+    clearInterval(timerInterval); // ВСЕГДА чистим интервал!
+    isRunning = false;
+    
     if (failed) {
-        clearInterval(timerInterval);
-        isRunning = false;
-        
         getEl('resurrect-modal').style.display = 'flex';
         let resTime = 20; 
         getEl('resurrect-timer').textContent = resTime;
@@ -1064,9 +1220,14 @@ function openPetModal(pet, owned) {
 
 function sellPet() {
     if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
-    const p=PRICES[getPetRarity(selectedPet)]; walletBalance+=p; userStats.earned+=p;
+    let basePrice = PRICES[getPetRarity(selectedPet)];
+    
+    // VIP БОНУС ПРИ ПРОДАЖЕ ПЕТА
+    let finalPrice = isVip() ? Math.floor(basePrice * 1.2) : basePrice;
+    
+    walletBalance += finalPrice; userStats.earned += finalPrice;
     collection.splice(idx,1); saveData(); updateBalanceUI(); 
-    closeModal('pet-modal'); showToast(`Продано +${p}`, 'img'); playSound('money'); openInventory(); 
+    closeModal('pet-modal'); showToast(`Продано +${finalPrice}`, 'img'); playSound('money'); openInventory(); 
 }
 
 function toggleInventory() { openInventory(); }
@@ -1091,10 +1252,14 @@ async function apiCreateParty() {
     playSound('click');
     const btn = event.target; btn.textContent = "Создаем сервер...";
     const user = getTgUser();
+    
+    let finalName = user.name;
+    if (isVip()) finalName += ' 👑';
+
     try {
         const res = await fetch(`${API_URL}/party/create`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar, egg_skin: activeEggSkin })
+            body: JSON.stringify({ user_id: user.id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin })
         });
         const data = await res.json();
         currentPartyCode = data.partyCode;
@@ -1112,10 +1277,14 @@ async function apiJoinParty(prefilledCode = null) {
     const code = prefilledCode || getEl('party-code-input').value.trim();
     if(code.length < 4) return showToast("Неверный код", "❌");
     const user = getTgUser();
+    
+    let finalName = user.name;
+    if (isVip()) finalName += ' 👑';
+
     try {
         const res = await fetch(`${API_URL}/party/join`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: code, user_id: user.id, name: user.name, avatar: selectedAvatar, egg_skin: activeEggSkin })
+            body: JSON.stringify({ code: code, user_id: user.id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin })
         });
         if(res.ok) {
             currentPartyCode = code;
@@ -1376,8 +1545,18 @@ async function tapMyEgg() {
 function handleTapBattleEnd(winner, players) {
     if(bossIsDead) return; bossIsDead = true; clearInterval(bossTimerInterval); playSound('win');
     const myId = getTgUser().id; const me = players.find(p => p.user_id === myId);
-    if (winner.user_id === myId) { fireConfetti(); showToast("ТЫ ПОБЕДИЛ В ГОНКЕ! +5000 монет", "🏆"); walletBalance += 5000; } 
-    else { const damageDealt = 10000 - (me ? me.boss_hp : 10000); const reward = Math.floor(damageDealt * 0.1); showToast(`${winner.name} победил! Твой приз: +${reward} монет`, "💰"); walletBalance += reward; }
+    
+    // VIP БОНУС К ГОНКЕ ЯИЦ
+    let vipMult = isVip() ? 1.2 : 1;
+    
+    if (winner.user_id === myId) { 
+        let prize = Math.floor(5000 * vipMult);
+        fireConfetti(); showToast(`ТЫ ПОБЕДИЛ! +${prize} монет`, "🏆"); walletBalance += prize; 
+    } else { 
+        const damageDealt = 10000 - (me ? me.boss_hp : 10000); 
+        const reward = Math.floor(damageDealt * 0.1 * vipMult); 
+        showToast(`${winner.name} победил! Твой приз: +${reward} монет`, "💰"); walletBalance += reward; 
+    }
     saveData(); updateBalanceUI();
     if(isPartyLeader) setTimeout(() => requestStopMiniGame(), 3000);
 }
@@ -1679,7 +1858,9 @@ async function claimExpedition() {
     if (currentExpeditionLocation === 'mountains') locMultiplier = 300; 
     if (currentExpeditionLocation === 'space') locMultiplier = 500; 
     
-    const reward = score * locMultiplier; 
+    // VIP БОНУС
+    let vipMult = isVip() ? 1.2 : 1;
+    const reward = Math.floor(score * locMultiplier * vipMult); 
     
     let magicCount = 0;
     currentPartyPlayersData.forEach(p => { if (["dragon", "unicorn", "alien"].includes(p.avatar)) magicCount++; });

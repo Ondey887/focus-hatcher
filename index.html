@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=61">
+    <link rel="stylesheet" href="style.css?v=64">
 </head>
 <body>
 
@@ -311,6 +311,7 @@
                 <button class="tab-btn active" onclick="switchShopTab('themes')">Фоны</button>
                 <button class="tab-btn" onclick="switchShopTab('eggs')">Яйца</button>
                 <button class="tab-btn" onclick="switchShopTab('boosters')">Бустеры</button>
+                <button class="tab-btn" onclick="switchShopTab('premium')">Премиум ⭐️</button>
             </div>
             <div id="shop-items" class="shop-grid"></div>
         </div>
@@ -397,6 +398,20 @@
                 <button id="custom-egg-btn" class="icon-btn" style="display: none; width: 36px; height: 36px; background: rgba(0, 122, 255, 0.3);" onclick="openCustomEggModal()">⚙️</button>
             </div>
 
+            <div id="second-slot-panel" style="display: none; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px dashed #00A3FF;">
+                <div id="second-slot-idle">
+                    <p style="font-size: 12px; margin-bottom: 5px; color: #00A3FF; font-weight: bold;">Слот 2 (Оффлайн Инкубатор)</p>
+                    <button class="btn" style="background: #00A3FF; padding: 8px; font-size: 14px;" onclick="startSecondSlot()">Запустить процесс</button>
+                </div>
+                <div id="second-slot-active" style="display: none;">
+                    <p style="font-size: 12px; color: #8e8e93; margin-bottom: 5px;">Слот 2 в работе:</p>
+                    <div id="second-slot-timer" style="font-size: 20px; font-weight: bold; color: #34c759; font-variant-numeric: tabular-nums;">00:00:00</div>
+                </div>
+                <div id="second-slot-done" style="display: none;">
+                    <button class="btn" style="background: #34c759; padding: 8px; font-size: 14px; animation: pulseFast 1s infinite;" onclick="claimSecondSlot()">Забрать второго пета! 🎁</button>
+                </div>
+            </div>
+
             <div id="boosters-panel" class="boosters-container"></div>
             <div id="timer">25:00</div>
             <div id="offline-warning" style="display: none; color: #ff3b30; font-size: 12px; margin-bottom: 5px; font-weight: bold;">Не закрывай приложение!</div>
@@ -415,6 +430,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=63"></script>
+    <script src="script.js?v=64"></script>
 </body>
 </html>
