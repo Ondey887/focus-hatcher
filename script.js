@@ -305,9 +305,9 @@ function initGame() {
 
     } catch(e) { console.error("Local Load Error", e); }
 
-    // ИНИЦИАЛИЗАЦИЯ ADSGRAM
+    // ИНИЦИАЛИЗАЦИЯ ADSGRAM (ТУТ ВСТАВЛЕН ТВОЙ ID!)
     if (window.Adsgram) {
-        AdController = window.Adsgram.init({ blockId: "ТВОЙ_ID_БЛОКА" }); 
+        AdController = window.Adsgram.init({ blockId: "24011" }); 
     }
 
     checkBackgroundHatch(); checkTutorial();
