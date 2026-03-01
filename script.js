@@ -693,6 +693,10 @@ function spinRoulette(type) {
 // =============================================================
 // ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
 // =============================================================
+function openBuyStarsModal() {
+    openModal('buy-stars-modal');
+}
+
 async function buyStars(amount) {
     playSound('click');
     const btn = event.target;
@@ -2143,6 +2147,10 @@ async function claimExpedition() {
 // =============================================================
 // ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
 // =============================================================
+function openBuyStarsModal() {
+    openModal('buy-stars-modal');
+}
+
 async function buyStars(amount) {
     playSound('click');
     const btn = event.target;
@@ -2161,6 +2169,7 @@ async function buyStars(amount) {
         if (data.status === 'success' && data.invoice_link) {
             window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
                 if (status === 'paid') {
+                    // Оплата прошла успешно
                     playSound('win');
                     userStars += amount;
                     saveData();
