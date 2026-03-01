@@ -453,6 +453,10 @@ function switchShopTab(t) {
     currentShopTab=t; document.querySelectorAll('#shop-modal .tab-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); renderShop(); playSound('click'); 
 }
 
+function openShop() { switchShopTab('themes'); openModal('shop-modal'); }
+function openSettings() { openModal('settings-modal'); }
+function openAch() { switchAchTab('achievements'); openModal('achievements-modal'); }
+
 function renderShop() {
     const c=getEl('shop-items'); c.innerHTML='';
     
@@ -725,6 +729,7 @@ async function buyStars(amount) {
         if (data.status === 'success' && data.invoice_link) {
             window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
                 if (status === 'paid') {
+                    // Оплата прошла успешно
                     playSound('win');
                     userStars += amount;
                     saveData();
@@ -2231,6 +2236,152 @@ async function claimExpedition() {
     try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
     closeModal('expedition-modal');
     if(isPartyLeader) requestStopMiniGame(); 
+}
+
+// =============================================================
+// ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
+// =============================================================
+function openBuyStarsModal() {
+    openModal('buy-stars-modal');
+}
+
+async function buyStars(amount) {
+    playSound('click');
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = "Загрузка...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/payment/invoice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amount, user_id: getTgUser().id })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success' && data.invoice_link) {
+            window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
+                if (status === 'paid') {
+                    // Оплата прошла успешно
+                    playSound('win');
+                    userStars += amount;
+                    saveData();
+                    updateBalanceUI();
+                    showToast(`Успешно куплено ${amount} Звезд!`, '⭐️');
+                    closeModal('buy-stars-modal');
+                } else if (status === 'cancelled') {
+                    showToast("Оплата отменена", "❌");
+                } else {
+                    showToast("Ошибка оплаты", "❌");
+                }
+            });
+        } else {
+            showToast("Ошибка создания чека: " + (data.detail || ""), "❌");
+        }
+    } catch(e) {
+        showToast("Ошибка сети", "❌");
+    }
+    
+    btn.textContent = originalText;
+    btn.disabled = false;
+}
+
+// =============================================================
+// СЕРВЕРНЫЕ ПРОМОКОДЫ
+// =============================================================
+function openPromo() { openModal('promo-modal'); }
+function openSettings() { openModal('settings-modal'); } // <-- ВЕРНУЛИ НА МЕСТО!
+
+async function activatePromo() {
+    playSound('click');
+    const input = getEl('promo-input');
+    const code = input.value.toUpperCase().trim();
+    if (!code) return;
+
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = "Проверка...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/promo/activate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: getTgUser().id, code: code })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            if (data.type === 'money') { walletBalance += data.val; showToast(`+${data.val} Монет`, 'img'); } 
+            else if (data.type === 'speed') { if (!myBoosters.speed) myBoosters.speed = 0; myBoosters.speed += data.val; showToast(`+${data.val} Ускоритель`, '⚡️'); }
+            else if (data.type === 'luck') { if (!myBoosters.luck) myBoosters.luck = 0; myBoosters.luck += data.val; showToast(`+${data.val} Удача`, '🧪'); }
+            else if (data.type === 'stars') { userStars += data.val; showToast(`+${data.val} Звезд!`, '⭐️'); }
+            else if (data.type === 'joker') { userJokers += data.val; showToast(`+${data.val} Ген Мутации!`, '🧬'); }
+            
+            if (!usedCodes.includes(code)) usedCodes.push(code);
+            saveData(); updateBalanceUI(); playSound('win'); closeModal('promo-modal'); input.value = "";
+        } else {
+            showToast(data.detail, "❌");
+        }
+    } catch (e) {
+        showToast("Ошибка сети", "❌");
+    }
+    
+    btn.textContent = originalText;
+    btn.disabled = false;
+}
+
+// =============================================================
+// АДМИН-ПАНЕЛЬ
+// =============================================================
+function generateRandomPromo() {
+    playSound('click');
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'FH-';
+    for(let i=0; i<6; i++) {
+        if(i===3) code += '-';
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    getEl('admin-promo-code').value = code;
+}
+
+async function adminSubmitPromo() {
+    playSound('click');
+    const code = getEl('admin-promo-code').value.trim().toUpperCase();
+    const type = getEl('admin-promo-type').value;
+    const val = parseInt(getEl('admin-promo-val').value) || 0;
+    const limit = parseInt(getEl('admin-promo-limit').value) || 0;
+    const pwd = getEl('admin-password').value.trim();
+    
+    if(!code || val <= 0 || !pwd) return showToast("Заполни все поля и пароль!", "❌");
+    
+    const btn = event.target;
+    const origText = btn.textContent;
+    btn.textContent = "Создаем...";
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`${API_URL}/admin/promo/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pwd, code: code, type: type, val: val, max_uses: limit })
+        });
+        const data = await res.json();
+        
+        if(data.status === 'success') {
+            showToast("Промокод создан!", "✅");
+            closeModal('admin-modal');
+            getEl('admin-promo-code').value = '';
+        } else {
+            showToast(data.detail, "❌");
+        }
+    } catch(e) {
+        showToast("Ошибка сети", "❌");
+    }
+    
+    btn.textContent = origText;
+    btn.disabled = false;
 }
 
 window.onload = initGame;
