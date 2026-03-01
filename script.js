@@ -305,7 +305,7 @@ function initGame() {
 
     } catch(e) { console.error("Local Load Error", e); }
 
-    // ИНИЦИАЛИЗАЦИЯ ADSGRAM (ТУТ ВСТАВЛЕН ТВОЙ ID!)
+    // ИНИЦИАЛИЗАЦИЯ ADSGRAM
     if (window.Adsgram) {
         AdController = window.Adsgram.init({ blockId: "24011" }); 
     }
@@ -691,6 +691,51 @@ function spinRoulette(type) {
 }
 
 // =============================================================
+// ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
+// =============================================================
+async function buyStars(amount) {
+    playSound('click');
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = "Загрузка...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/payment/invoice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amount, user_id: getTgUser().id })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success' && data.invoice_link) {
+            window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
+                if (status === 'paid') {
+                    // Оплата прошла успешно
+                    playSound('win');
+                    userStars += amount;
+                    saveData();
+                    updateBalanceUI();
+                    showToast(`Успешно куплено ${amount} Звезд!`, '⭐️');
+                    closeModal('buy-stars-modal');
+                } else if (status === 'cancelled') {
+                    showToast("Оплата отменена", "❌");
+                } else {
+                    showToast("Ошибка оплаты", "❌");
+                }
+            });
+        } else {
+            showToast("Ошибка создания чека: " + (data.detail || ""), "❌");
+        }
+    } catch(e) {
+        showToast("Ошибка сети", "❌");
+    }
+    
+    btn.textContent = originalText;
+    btn.disabled = false;
+}
+
+// =============================================================
 // 6. ПРОФИЛЬ И ДРУЗЬЯ
 // =============================================================
 async function apiSyncGlobalProfile() {
@@ -952,19 +997,6 @@ window.claimDaily = function() {
 function openShop() { switchShopTab('themes'); openModal('shop-modal'); }
 function openSettings() { openModal('settings-modal'); }
 function openAch() { switchAchTab('achievements'); openModal('achievements-modal'); }
-
-// ТЕСТОВЫЕ ПОКУПКИ ЗВЕЗД
-function openBuyStarsModal() {
-    openModal('buy-stars-modal');
-}
-function buyStarsTest(amount) {
-    playSound('money');
-    userStars += amount;
-    saveData();
-    updateBalanceUI();
-    showToast(`Куплено ${amount} Звезд! (Тест)`, '⭐️');
-    closeModal('buy-stars-modal');
-}
 
 // =============================================================
 // 8. БАЗОВЫЙ ТАЙМЕР И ФОКУС
@@ -2106,6 +2138,50 @@ async function claimExpedition() {
     try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
     closeModal('expedition-modal');
     if(isPartyLeader) requestStopMiniGame(); 
+}
+
+// =============================================================
+// ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
+// =============================================================
+async function buyStars(amount) {
+    playSound('click');
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = "Загрузка...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/payment/invoice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amount, user_id: getTgUser().id })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success' && data.invoice_link) {
+            window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
+                if (status === 'paid') {
+                    playSound('win');
+                    userStars += amount;
+                    saveData();
+                    updateBalanceUI();
+                    showToast(`Успешно куплено ${amount} Звезд!`, '⭐️');
+                    closeModal('buy-stars-modal');
+                } else if (status === 'cancelled') {
+                    showToast("Оплата отменена", "❌");
+                } else {
+                    showToast("Ошибка оплаты", "❌");
+                }
+            });
+        } else {
+            showToast("Ошибка создания чека: " + (data.detail || ""), "❌");
+        }
+    } catch(e) {
+        showToast("Ошибка сети", "❌");
+    }
+    
+    btn.textContent = originalText;
+    btn.disabled = false;
 }
 
 window.onload = initGame;
