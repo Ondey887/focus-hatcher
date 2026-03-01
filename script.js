@@ -91,6 +91,9 @@ let currentWolfHp = 0;
 let isMegaRadarActive = false; 
 let lastRouletteDate = ""; 
 
+// ПЕРЕМЕННАЯ ДЛЯ РЕКЛАМЫ ADSGRAM
+let AdController = null;
+
 function openModal(id) {
     playSound('click');
     if(modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
@@ -301,6 +304,11 @@ function initGame() {
         lastRouletteDate = localStorage.getItem('lastRouletteDate') || "";
 
     } catch(e) { console.error("Local Load Error", e); }
+
+    // ИНИЦИАЛИЗАЦИЯ ADSGRAM
+    if (window.Adsgram) {
+        AdController = window.Adsgram.init({ blockId: "ТВОЙ_ID_БЛОКА" }); 
+    }
 
     checkBackgroundHatch(); checkTutorial();
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
@@ -593,25 +601,49 @@ function openRouletteModal() {
     
     if (lastRouletteDate !== today) {
         getEl('roulette-free-btn').style.display = 'block';
+        getEl('roulette-ad-btn').style.display = 'none';
         getEl('roulette-paid-btn').style.display = 'none';
     } else {
         getEl('roulette-free-btn').style.display = 'none';
+        getEl('roulette-ad-btn').style.display = 'block';
         getEl('roulette-paid-btn').style.display = 'block';
     }
     openModal('roulette-modal');
 }
 
-function spinRoulette(isFree) {
-    if (!isFree) {
+function spinRouletteAd() {
+    if (!AdController) {
+        showToast("Реклама недоступна", "❌");
+        return;
+    }
+    
+    getEl('roulette-ad-btn').disabled = true;
+    getEl('roulette-ad-btn').textContent = "Загрузка...";
+
+    AdController.show().then((result) => {
+        getEl('roulette-ad-btn').disabled = false;
+        getEl('roulette-ad-btn').textContent = "Смотреть рекламу 📺";
+        spinRoulette('ad'); 
+    }).catch((result) => {
+        getEl('roulette-ad-btn').disabled = false;
+        getEl('roulette-ad-btn').textContent = "Смотреть рекламу 📺";
+        showToast("Ошибка или отмена рекламы", "❌");
+    });
+}
+
+function spinRoulette(type) {
+    if (type === 'stars') {
         if (userStars < 10) {
             showToast("Недостаточно Звезд!", "❌");
+            openBuyStarsModal();
             return;
         }
         userStars -= 10;
         updateBalanceUI();
-    } else {
+    } else if (type === 'free') {
         lastRouletteDate = new Date().toDateString();
         getEl('roulette-free-btn').style.display = 'none';
+        getEl('roulette-ad-btn').style.display = 'block';
         getEl('roulette-paid-btn').style.display = 'block';
     }
     
@@ -621,12 +653,17 @@ function spinRoulette(isFree) {
     const box = getEl('roulette-box');
     const resText = getEl('roulette-result-text');
     
+    getEl('roulette-free-btn').disabled = true;
+    getEl('roulette-ad-btn').disabled = true;
     getEl('roulette-paid-btn').disabled = true;
+    
     box.className = 'roulette-box roulette-spinning';
     resText.textContent = "Крутим...";
     
     setTimeout(() => {
         box.className = 'roulette-box';
+        getEl('roulette-free-btn').disabled = false;
+        getEl('roulette-ad-btn').disabled = false;
         getEl('roulette-paid-btn').disabled = false;
         
         let rnd = Math.random() * 100;
@@ -825,7 +862,6 @@ function checkAchievements() {
     });
     QUESTS_DATA.forEach(q => { if(!claimedQuests.includes(q.id)&&q.type==='invite'&&(userStats.invites||0)>=q.goal) has=true; });
     
-    // БЕЗОПАСНАЯ ПРОВЕРКА КНОПКИ АЧИВОК
     let badge = getEl('ach-badge');
     if (badge) badge.style.display = has ? 'block' : 'none';
 }

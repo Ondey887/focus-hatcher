@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css?v=68">
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <link rel="stylesheet" href="style.css?v=69">
 </head>
 <body>
 
@@ -223,8 +224,9 @@
             <div class="modal-header"><h2>Бокс Удачи 🎰</h2><button class="close-btn" onclick="closeModal('roulette-modal')">✖</button></div>
             <div id="roulette-box" class="roulette-box">🎁</div>
             <p id="roulette-result-text" style="font-size: 16px; color: #ffd700; font-weight: bold; margin: 15px 0; min-height: 20px;"></p>
-            <button id="roulette-free-btn" class="btn" style="background: #34c759; margin-bottom: 10px;" onclick="spinRoulette(true)">Крутить Бесплатно!</button>
-            <button id="roulette-paid-btn" class="btn" style="background: #00A3FF;" onclick="spinRoulette(false)">Крутить за 10 ⭐️</button>
+            <button id="roulette-free-btn" class="btn" style="background: #34c759; margin-bottom: 10px;" onclick="spinRoulette('free')">Крутить Бесплатно!</button>
+            <button id="roulette-ad-btn" class="btn" style="background: #ff9500; margin-bottom: 10px; display: none;" onclick="spinRouletteAd()">Смотреть рекламу 📺</button>
+            <button id="roulette-paid-btn" class="btn" style="background: #00A3FF;" onclick="spinRoulette('stars')">Крутить за 10 ⭐️</button>
         </div>
     </div>
 
@@ -458,6 +460,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=68"></script>
+    <script src="script.js?v=69"></script>
 </body>
 </html>
