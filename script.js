@@ -91,8 +91,9 @@ let currentWolfHp = 0;
 let isMegaRadarActive = false; 
 let lastRouletteDate = ""; 
 
-// ПЕРЕМЕННАЯ ДЛЯ РЕКЛАМЫ ADSGRAM
 let AdController = null;
+let secretTaps = 0;
+let secretTapTimer = null;
 
 function openModal(id) {
     playSound('click');
@@ -300,7 +301,6 @@ function initGame() {
 
     } catch(e) { console.error("Local Load Error", e); }
 
-    // ИНИЦИАЛИЗАЦИЯ ADSGRAM
     if (window.Adsgram) {
         AdController = window.Adsgram.init({ blockId: "24011" }); 
     }
@@ -314,6 +314,22 @@ function initGame() {
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     
+    // СЕКРЕТНЫЙ ОБРАБОТЧИК ДЛЯ АДМИН ПАНЕЛИ
+    const titleEl = getEl('main-title-secret');
+    if (titleEl) {
+        titleEl.onclick = () => {
+            secretTaps++;
+            if(secretTapTimer) clearTimeout(secretTapTimer);
+            secretTapTimer = setTimeout(() => { secretTaps = 0; }, 1500);
+            
+            if(secretTaps >= 7) {
+                secretTaps = 0;
+                playSound('win');
+                openModal('admin-modal');
+            }
+        };
+    }
+
     updateSecondSlotUI();
     loadFromCloud();
     apiSyncGlobalProfile();
@@ -440,7 +456,6 @@ function switchShopTab(t) {
 function renderShop() {
     const c=getEl('shop-items'); c.innerHTML='';
     
-    // ПРЕМИУМ МАГАЗИН ЗА ЗВЕЗДЫ
     if(currentShopTab === 'premium') {
         c.innerHTML = `
             <div class="shop-item" style="grid-column: span 2; background: rgba(0, 163, 255, 0.1); border: 1px solid #00A3FF;">
@@ -710,7 +725,6 @@ async function buyStars(amount) {
         if (data.status === 'success' && data.invoice_link) {
             window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
                 if (status === 'paid') {
-                    // Оплата прошла успешно
                     playSound('win');
                     userStars += amount;
                     saveData();
@@ -775,6 +789,58 @@ async function activatePromo() {
     }
     
     btn.textContent = originalText;
+    btn.disabled = false;
+}
+
+// =============================================================
+// АДМИН-ПАНЕЛЬ
+// =============================================================
+function generateRandomPromo() {
+    playSound('click');
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'FH-';
+    for(let i=0; i<6; i++) {
+        if(i===3) code += '-';
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    getEl('admin-promo-code').value = code;
+}
+
+async function adminSubmitPromo() {
+    playSound('click');
+    const code = getEl('admin-promo-code').value.trim().toUpperCase();
+    const type = getEl('admin-promo-type').value;
+    const val = parseInt(getEl('admin-promo-val').value) || 0;
+    const limit = parseInt(getEl('admin-promo-limit').value) || 0;
+    const pwd = getEl('admin-password').value.trim();
+    
+    if(!code || val <= 0 || !pwd) return showToast("Заполни все поля и пароль!", "❌");
+    
+    const btn = event.target;
+    const origText = btn.textContent;
+    btn.textContent = "Создаем...";
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`${API_URL}/admin/promo/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pwd, code: code, type: type, val: val, max_uses: limit })
+        });
+        const data = await res.json();
+        
+        if(data.status === 'success') {
+            showToast("Промокод создан!", "✅");
+            closeModal('admin-modal');
+            getEl('admin-promo-code').value = '';
+        } else {
+            showToast(data.detail, "❌");
+        }
+    } catch(e) {
+        showToast("Ошибка сети", "❌");
+    }
+    
+    btn.textContent = origText;
     btn.disabled = false;
 }
 
@@ -1024,10 +1090,6 @@ window.claimDaily = function() {
     localStorage.setItem('dailyStreak', s); localStorage.setItem('lastLoginDate', t);
     saveData(); updateBalanceUI(); showToast("Награда получена!", "📅"); closeModal('daily-modal'); playSound('money');
 }
-
-function openShop() { switchShopTab('themes'); openModal('shop-modal'); }
-function openSettings() { openModal('settings-modal'); }
-function openAch() { switchAchTab('achievements'); openModal('achievements-modal'); }
 
 // =============================================================
 // 8. БАЗОВЫЙ ТАЙМЕР И ФОКУС
