@@ -255,11 +255,6 @@ const DAILY_REWARDS = [
     { day: 1, type: 'money', val: 100 }, { day: 2, type: 'money', val: 250 }, { day: 3, type: 'money', val: 500 },
     { day: 4, type: 'money', val: 1000 }, { day: 5, type: 'money', val: 2000 }, { day: 6, type: 'booster', id: 'speed', val: 1 }, { day: 7, type: 'mixed', money: 5000, booster: 'luck' }
 ];
-const PROMO_CODES = {
-    'START2026': { type: 'money', val: 1000 },
-    'SPEED': { type: 'booster', id: 'speed', val: 5 },
-    'SECRET': { type: 'money', val: 5000 }
-};
 
 const ROULETTE_PRIZES = [
     { n: "1000 Монет", t: 'money', v: 1000, p: 40 },
@@ -740,6 +735,50 @@ async function buyStars(amount) {
 }
 
 // =============================================================
+// СЕРВЕРНЫЕ ПРОМОКОДЫ
+// =============================================================
+function openPromo() { openModal('promo-modal'); }
+
+async function activatePromo() {
+    playSound('click');
+    const input = getEl('promo-input');
+    const code = input.value.toUpperCase().trim();
+    if (!code) return;
+
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = "Проверка...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/promo/activate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: getTgUser().id, code: code })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            if (data.type === 'money') { walletBalance += data.val; showToast(`+${data.val} Монет`, 'img'); } 
+            else if (data.type === 'speed') { if (!myBoosters.speed) myBoosters.speed = 0; myBoosters.speed += data.val; showToast(`+${data.val} Ускоритель`, '⚡️'); }
+            else if (data.type === 'luck') { if (!myBoosters.luck) myBoosters.luck = 0; myBoosters.luck += data.val; showToast(`+${data.val} Удача`, '🧪'); }
+            else if (data.type === 'stars') { userStars += data.val; showToast(`+${data.val} Звезд!`, '⭐️'); }
+            else if (data.type === 'joker') { userJokers += data.val; showToast(`+${data.val} Ген Мутации!`, '🧬'); }
+            
+            if (!usedCodes.includes(code)) usedCodes.push(code);
+            saveData(); updateBalanceUI(); playSound('win'); closeModal('promo-modal'); input.value = "";
+        } else {
+            showToast(data.detail, "❌");
+        }
+    } catch (e) {
+        showToast("Ошибка сети", "❌");
+    }
+    
+    btn.textContent = originalText;
+    btn.disabled = false;
+}
+
+// =============================================================
 // 6. ПРОФИЛЬ И ДРУЗЬЯ
 // =============================================================
 async function apiSyncGlobalProfile() {
@@ -939,18 +978,6 @@ async function apiUpdatePlayerAvatar() {
     let finalName = getTgUser().name;
     if (isVip()) finalName += ' 👑';
     try { await fetch(`${API_URL}/party/join`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin }) }); } catch(e) {}
-}
-
-function openPromo() { openModal('promo-modal'); }
-function activatePromo() {
-    const input = getEl('promo-input'); const code = input.value.toUpperCase().trim();
-    if (usedCodes.includes(code)) { showToast("Уже активирован!", "🚫"); return; }
-    if (PROMO_CODES[code]) {
-        const reward = PROMO_CODES[code];
-        if (reward.type === 'money') { walletBalance += reward.val; showToast(`+${reward.val}`, 'img'); } 
-        else if (reward.type === 'booster') { if (!myBoosters[reward.id]) myBoosters[reward.id] = 0; myBoosters[reward.id] += reward.val; showToast(`+${reward.val} буст`, 'img'); }
-        usedCodes.push(code); saveData(); updateBalanceUI(); playSound('win'); closeModal('promo-modal'); input.value = "";
-    } else { showToast("Неверный код", "❌"); }
 }
 
 function checkTutorial() { if (!localStorage.getItem('tutorialSeen')) openModal('tutorial-modal'); }
@@ -2142,55 +2169,6 @@ async function claimExpedition() {
     try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
     closeModal('expedition-modal');
     if(isPartyLeader) requestStopMiniGame(); 
-}
-
-// =============================================================
-// ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
-// =============================================================
-function openBuyStarsModal() {
-    openModal('buy-stars-modal');
-}
-
-async function buyStars(amount) {
-    playSound('click');
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = "Загрузка...";
-    btn.disabled = true;
-
-    try {
-        const res = await fetch(`${API_URL}/payment/invoice`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: amount, user_id: getTgUser().id })
-        });
-        const data = await res.json();
-        
-        if (data.status === 'success' && data.invoice_link) {
-            window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
-                if (status === 'paid') {
-                    // Оплата прошла успешно
-                    playSound('win');
-                    userStars += amount;
-                    saveData();
-                    updateBalanceUI();
-                    showToast(`Успешно куплено ${amount} Звезд!`, '⭐️');
-                    closeModal('buy-stars-modal');
-                } else if (status === 'cancelled') {
-                    showToast("Оплата отменена", "❌");
-                } else {
-                    showToast("Ошибка оплаты", "❌");
-                }
-            });
-        } else {
-            showToast("Ошибка создания чека: " + (data.detail || ""), "❌");
-        }
-    } catch(e) {
-        showToast("Ошибка сети", "❌");
-    }
-    
-    btn.textContent = originalText;
-    btn.disabled = false;
 }
 
 window.onload = initGame;
