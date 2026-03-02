@@ -428,7 +428,7 @@
                 <div class="stats-row">
                     <div class="level-info"><span id="rank-name">Новичок</span> <span id="level-number">Lvl 1</span> <span style="font-size: 10px;">ⓘ</span></div>
                     <div style="display: flex; gap: 15px;">
-                        <div class="money-display" id="total-stars" style="color: #00A3FF; cursor: pointer;" onclick="openBuyStarsModal()">
+                        <div class="money-display" id="total-stars" style="color: #00A3FF; cursor: pointer;" onclick="event.stopPropagation(); openBuyStarsModal()">
                             <span style="font-size: 20px; margin-right: 4px;">⭐️</span> 0 <span style="font-size: 14px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 8px; margin-left: 5px;">+</span>
                         </div>
                         <div class="money-display" id="total-money">
@@ -484,7 +484,7 @@
             
             <div id="start-buttons-container" style="display: flex; gap: 10px; margin-bottom: 5px;">
                 <button class="btn" style="background-color: #ff3b30; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('online')">Фокус<br><span style="font-size: 10px; font-weight: normal;">(Быстро)</span></button>
-                <button class="btn" style="background-color: #007aff; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('offline')">Инкубатор<br><span style="font-size: 10px; font-weight: normal;">(Оффлайн)</span></button>
+                <button class="btn" style="background-color: #007aff; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('offline')">Инкубатор<br><span style="font-size: 10px; font-weight: normal;">(Оффлайн)</span><br><span style="font-size: 9px; color: #ffcc00; font-weight: bold;">Без легенд</span></button>
             </div>
 
             <button id="main-btn" class="btn stop" style="display: none;" onclick="stopTimer(false)">Сдаться</button>
@@ -496,6 +496,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=71"></script>
+    <script src="script.js?v=72"></script>
 </body>
 </html>

@@ -63,6 +63,7 @@ let isVibrationOn = true, isSoundOn = false;
 let vipEndTime = 0;
 let hasSecondSlot = false;
 let secondSlotEndTime = 0;
+let localSaveTime = 0; // Для правильной синхронизации
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
 let activeBoosters = { luck: false, speed: false };
@@ -267,7 +268,7 @@ const ROULETTE_PRIZES = [
 ];
 
 // =============================================================
-// 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
+// 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ (С ПРОВЕРКОЙ ВРЕМЕНИ)
 // =============================================================
 function initGame() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -275,6 +276,7 @@ function initGame() {
         window.Telegram.WebApp.setHeaderColor('#1c1c1e'); window.Telegram.WebApp.setBackgroundColor('#1c1c1e');
     }
     try {
+        localSaveTime = parseInt(localStorage.getItem('lastSaveTime')) || 0;
         collection = JSON.parse(localStorage.getItem('myCollection')) || [];
         userXP = parseInt(localStorage.getItem('userXP')) || 0;
         userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
@@ -305,23 +307,18 @@ function initGame() {
         AdController = window.Adsgram.init({ blockId: "24011" }); 
     }
 
-    checkBackgroundHatch(); checkTutorial();
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
-
-    updateLevelUI(); updateBalanceUI(); applyTheme(); applyEggSkin(); updateUI(); 
     if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
     
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     
-    // СЕКРЕТНЫЙ ОБРАБОТЧИК ДЛЯ АДМИН ПАНЕЛИ
     const titleEl = getEl('main-title-secret');
     if (titleEl) {
         titleEl.onclick = () => {
             secretTaps++;
             if(secretTapTimer) clearTimeout(secretTapTimer);
             secretTapTimer = setTimeout(() => { secretTaps = 0; }, 1500);
-            
             if(secretTaps >= 7) {
                 secretTaps = 0;
                 playSound('win');
@@ -330,47 +327,73 @@ function initGame() {
         };
     }
 
-    updateSecondSlotUI();
-    loadFromCloud();
-    apiSyncGlobalProfile();
-    startInvitesPolling();
-}
-
-function loadFromCloud() {
+    // Если есть облако - загружаем, иначе сразу пост-инит
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 'lastRouletteDate'];
-        Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
-            if (err || !values) return;
-            if (values.walletBalance) walletBalance = parseInt(values.walletBalance);
-            if (values.userStars) userStars = parseInt(values.userStars);
-            if (values.userXP) userXP = parseInt(values.userXP);
-            if (values.userLevel) userLevel = parseInt(values.userLevel);
-            if (values.pegasusShards) pegasusShards = parseInt(values.pegasusShards);
-            if (values.userJokers) userJokers = parseInt(values.userJokers);
-            if (values.myCollection) collection = JSON.parse(values.myCollection);
-            if (values.ownedItems) ownedItems = JSON.parse(values.ownedItems);
-            if (values.activeTheme) activeTheme = values.activeTheme;
-            if (values.activeEggSkin) activeEggSkin = values.activeEggSkin;
-            if (values.selectedAvatar) selectedAvatar = values.selectedAvatar;
-            if (values.userStats) userStats = {...userStats, ...JSON.parse(values.userStats)};
-            if (values.myBoosters) myBoosters = {...myBoosters, ...JSON.parse(values.myBoosters)};
-            if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
-            if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
-            
-            if (values.vipEndTime) vipEndTime = parseInt(values.vipEndTime);
-            if (values.hasSecondSlot) hasSecondSlot = values.hasSecondSlot === 'true';
-            if (values.secondSlotEndTime) secondSlotEndTime = parseInt(values.secondSlotEndTime);
-            if (values.lastRouletteDate) lastRouletteDate = values.lastRouletteDate;
-
-            if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
-            
-            updateBalanceUI(); updateLevelUI(); applyTheme(); applyEggSkin(); updateSecondSlotUI();
-            saveData(); apiSyncGlobalProfile();
-        });
+        loadFromCloud();
+    } else {
+        postInit();
     }
 }
 
-function saveData() {
+function loadFromCloud() {
+    const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 'lastRouletteDate', 'lastSaveTime'];
+    Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
+        if (!err && values && values.lastSaveTime) {
+            let cloudTime = parseInt(values.lastSaveTime) || 0;
+            // ЗАЩИТА: Грузим из облака ТОЛЬКО если оно новее локального сохранения
+            if (cloudTime >= localSaveTime) {
+                if (values.walletBalance !== undefined) walletBalance = parseInt(values.walletBalance);
+                if (values.userStars !== undefined) userStars = parseInt(values.userStars);
+                if (values.userXP !== undefined) userXP = parseInt(values.userXP);
+                if (values.userLevel !== undefined) userLevel = parseInt(values.userLevel);
+                if (values.pegasusShards !== undefined) pegasusShards = parseInt(values.pegasusShards);
+                if (values.userJokers !== undefined) userJokers = parseInt(values.userJokers);
+                if (values.myCollection) collection = JSON.parse(values.myCollection);
+                if (values.ownedItems) ownedItems = JSON.parse(values.ownedItems);
+                if (values.activeTheme) activeTheme = values.activeTheme;
+                if (values.activeEggSkin) activeEggSkin = values.activeEggSkin;
+                if (values.selectedAvatar) selectedAvatar = values.selectedAvatar;
+                if (values.userStats) userStats = {...userStats, ...JSON.parse(values.userStats)};
+                if (values.myBoosters) myBoosters = {...myBoosters, ...JSON.parse(values.myBoosters)};
+                if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
+                if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
+                if (values.vipEndTime !== undefined) vipEndTime = parseInt(values.vipEndTime);
+                if (values.hasSecondSlot !== undefined) hasSecondSlot = values.hasSecondSlot === 'true';
+                if (values.secondSlotEndTime !== undefined) secondSlotEndTime = parseInt(values.secondSlotEndTime);
+                if (values.lastRouletteDate) lastRouletteDate = values.lastRouletteDate;
+                
+                if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
+                saveData(true); // Записываем в локалку
+            } else {
+                // Локалка новее! Пушим в облако
+                saveData(false);
+            }
+        } else if (!err && (!values || !values.lastSaveTime)) {
+            // Облако пустое - заливаем локалку
+            saveData(false);
+        }
+        postInit();
+    });
+}
+
+function postInit() {
+    updateUI(); 
+    checkBackgroundHatch(); 
+    updateSecondSlotUI();
+    updateLevelUI(); 
+    updateBalanceUI(); 
+    applyTheme(); 
+    applyEggSkin(); 
+    apiSyncGlobalProfile();
+    startInvitesPolling();
+    checkTutorial();
+}
+
+function saveData(skipTimeUpdate = false) {
+    let now = Date.now();
+    if (!skipTimeUpdate) localSaveTime = now;
+
+    localStorage.setItem('lastSaveTime', localSaveTime);
     localStorage.setItem('walletBalance', walletBalance);
     localStorage.setItem('userStars', userStars);
     localStorage.setItem('pegasusShards', pegasusShards);
@@ -393,6 +416,7 @@ function saveData() {
     localStorage.setItem('lastRouletteDate', lastRouletteDate);
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
+        Telegram.WebApp.CloudStorage.setItem('lastSaveTime', localSaveTime.toString());
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
         Telegram.WebApp.CloudStorage.setItem('userStars', userStars.toString());
         Telegram.WebApp.CloudStorage.setItem('pegasusShards', pegasusShards.toString());
@@ -611,6 +635,7 @@ function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.in
 function openRouletteModal() {
     getEl('roulette-result-text').textContent = "";
     getEl('roulette-box').className = 'roulette-box';
+    getEl('roulette-box').textContent = '🎁';
     const today = new Date().toDateString();
     
     if (lastRouletteDate !== today) {
@@ -1416,10 +1441,22 @@ function finishTimer(fromOffline = false) {
     
     let pool;
     if (currentModeIndex === 2 && customEggConfig.target !== 'all') {
-        pool = petDatabase[customEggConfig.target]; playSound(customEggConfig.target === 'legendary' ? 'legendary' : 'win');
+        if (fromOffline && customEggConfig.target === 'legendary') {
+            pool = petDatabase.rare;
+            playSound('win');
+            showToast("В оффлайне легендарки не выпадают!", "⚠️");
+        } else {
+            pool = petDatabase[customEggConfig.target]; playSound(customEggConfig.target === 'legendary' ? 'legendary' : 'win');
+        }
     } else {
         let leg = m.id==='short'?1:5; let rare=m.id==='short'?15:30;
         if(activeBoosters.luck) { leg*=5; myBoosters.luck--; activeBoosters.luck=false; }
+        
+        if (fromOffline) {
+            rare += leg; 
+            leg = 0; 
+        }
+
         const rnd = Math.random()*100;
         if(rnd<leg) { pool=petDatabase.legendary; playSound('legendary'); }
         else if(rnd<leg+rare) { pool=petDatabase.rare; playSound('win'); }
@@ -2236,152 +2273,6 @@ async function claimExpedition() {
     try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
     closeModal('expedition-modal');
     if(isPartyLeader) requestStopMiniGame(); 
-}
-
-// =============================================================
-// ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
-// =============================================================
-function openBuyStarsModal() {
-    openModal('buy-stars-modal');
-}
-
-async function buyStars(amount) {
-    playSound('click');
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = "Загрузка...";
-    btn.disabled = true;
-
-    try {
-        const res = await fetch(`${API_URL}/payment/invoice`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: amount, user_id: getTgUser().id })
-        });
-        const data = await res.json();
-        
-        if (data.status === 'success' && data.invoice_link) {
-            window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
-                if (status === 'paid') {
-                    // Оплата прошла успешно
-                    playSound('win');
-                    userStars += amount;
-                    saveData();
-                    updateBalanceUI();
-                    showToast(`Успешно куплено ${amount} Звезд!`, '⭐️');
-                    closeModal('buy-stars-modal');
-                } else if (status === 'cancelled') {
-                    showToast("Оплата отменена", "❌");
-                } else {
-                    showToast("Ошибка оплаты", "❌");
-                }
-            });
-        } else {
-            showToast("Ошибка создания чека: " + (data.detail || ""), "❌");
-        }
-    } catch(e) {
-        showToast("Ошибка сети", "❌");
-    }
-    
-    btn.textContent = originalText;
-    btn.disabled = false;
-}
-
-// =============================================================
-// СЕРВЕРНЫЕ ПРОМОКОДЫ
-// =============================================================
-function openPromo() { openModal('promo-modal'); }
-function openSettings() { openModal('settings-modal'); } // <-- ВЕРНУЛИ НА МЕСТО!
-
-async function activatePromo() {
-    playSound('click');
-    const input = getEl('promo-input');
-    const code = input.value.toUpperCase().trim();
-    if (!code) return;
-
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = "Проверка...";
-    btn.disabled = true;
-
-    try {
-        const res = await fetch(`${API_URL}/promo/activate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: getTgUser().id, code: code })
-        });
-        const data = await res.json();
-        
-        if (data.status === 'success') {
-            if (data.type === 'money') { walletBalance += data.val; showToast(`+${data.val} Монет`, 'img'); } 
-            else if (data.type === 'speed') { if (!myBoosters.speed) myBoosters.speed = 0; myBoosters.speed += data.val; showToast(`+${data.val} Ускоритель`, '⚡️'); }
-            else if (data.type === 'luck') { if (!myBoosters.luck) myBoosters.luck = 0; myBoosters.luck += data.val; showToast(`+${data.val} Удача`, '🧪'); }
-            else if (data.type === 'stars') { userStars += data.val; showToast(`+${data.val} Звезд!`, '⭐️'); }
-            else if (data.type === 'joker') { userJokers += data.val; showToast(`+${data.val} Ген Мутации!`, '🧬'); }
-            
-            if (!usedCodes.includes(code)) usedCodes.push(code);
-            saveData(); updateBalanceUI(); playSound('win'); closeModal('promo-modal'); input.value = "";
-        } else {
-            showToast(data.detail, "❌");
-        }
-    } catch (e) {
-        showToast("Ошибка сети", "❌");
-    }
-    
-    btn.textContent = originalText;
-    btn.disabled = false;
-}
-
-// =============================================================
-// АДМИН-ПАНЕЛЬ
-// =============================================================
-function generateRandomPromo() {
-    playSound('click');
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = 'FH-';
-    for(let i=0; i<6; i++) {
-        if(i===3) code += '-';
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    getEl('admin-promo-code').value = code;
-}
-
-async function adminSubmitPromo() {
-    playSound('click');
-    const code = getEl('admin-promo-code').value.trim().toUpperCase();
-    const type = getEl('admin-promo-type').value;
-    const val = parseInt(getEl('admin-promo-val').value) || 0;
-    const limit = parseInt(getEl('admin-promo-limit').value) || 0;
-    const pwd = getEl('admin-password').value.trim();
-    
-    if(!code || val <= 0 || !pwd) return showToast("Заполни все поля и пароль!", "❌");
-    
-    const btn = event.target;
-    const origText = btn.textContent;
-    btn.textContent = "Создаем...";
-    btn.disabled = true;
-    
-    try {
-        const res = await fetch(`${API_URL}/admin/promo/create`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pwd, code: code, type: type, val: val, max_uses: limit })
-        });
-        const data = await res.json();
-        
-        if(data.status === 'success') {
-            showToast("Промокод создан!", "✅");
-            closeModal('admin-modal');
-            getEl('admin-promo-code').value = '';
-        } else {
-            showToast(data.detail, "❌");
-        }
-    } catch(e) {
-        showToast("Ошибка сети", "❌");
-    }
-    
-    btn.textContent = origText;
-    btn.disabled = false;
 }
 
 window.onload = initGame;
