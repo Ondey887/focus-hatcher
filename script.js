@@ -49,6 +49,7 @@ function playNote(freq, time, duration) {
 // 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И СТЕК ОКОН
 // =============================================================
 const API_URL = "https://focushatcher-ondey.amvera.io/api"; 
+const botLink = "https://t.me/FocusHatcher_Ondey_bot/game"; 
 let modalStack = [];
 
 let collection = [], userXP = 0, userLevel = 1, walletBalance = 0, userStars = 0, pegasusShards = 0;
@@ -63,7 +64,7 @@ let isVibrationOn = true, isSoundOn = false;
 let vipEndTime = 0;
 let hasSecondSlot = false;
 let secondSlotEndTime = 0;
-let localSaveTime = 0; // Для правильной синхронизации
+let localSaveTime = 0; 
 
 let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
 let activeBoosters = { luck: false, speed: false };
@@ -90,11 +91,17 @@ let expeditionInterval = null;
 let bonusSpawningInterval = null;
 let currentWolfHp = 0;
 let isMegaRadarActive = false; 
-let lastRouletteDate = ""; 
 
+let lastRouletteDate = ""; 
 let AdController = null;
+let boxAdsProgress = { epic: 0, mythic: 0 };
+let currentBoxType = 'base';
+
 let secretTaps = 0;
 let secretTapTimer = null;
+
+let forbesDataCache = null;
+let currentForbesTab = 'global';
 
 function openModal(id) {
     playSound('click');
@@ -258,14 +265,30 @@ const DAILY_REWARDS = [
     { day: 4, type: 'money', val: 1000 }, { day: 5, type: 'money', val: 2000 }, { day: 6, type: 'booster', id: 'speed', val: 1 }, { day: 7, type: 'mixed', money: 5000, booster: 'luck' }
 ];
 
-const ROULETTE_PRIZES = [
-    { n: "1000 Монет", t: 'money', v: 1000, p: 40 },
-    { n: "5000 Монет", t: 'money', v: 5000, p: 20 },
-    { n: "Бустер Удачи", t: 'luck', v: 1, p: 15 },
-    { n: "Ген Мутации", t: 'joker', v: 1, p: 10 },
-    { n: "10 Звезд", t: 'stars', v: 10, p: 10 },
-    { n: "Осколок Пегаса", t: 'shard', v: 1, p: 5 }
-];
+const ROULETTE_PRIZES = {
+    base: [
+        { n: "1000 Монет", t: 'money', v: 1000, p: 40 },
+        { n: "5000 Монет", t: 'money', v: 5000, p: 20 },
+        { n: "Бустер Удачи", t: 'luck', v: 1, p: 15 },
+        { n: "Ген Мутации", t: 'joker', v: 1, p: 10 },
+        { n: "10 Звезд", t: 'stars', v: 10, p: 10 },
+        { n: "Осколок Пегаса", t: 'shard', v: 1, p: 5 }
+    ],
+    epic: [
+        { n: "5000 Монет", t: 'money', v: 5000, p: 35 },
+        { n: "10000 Монет", t: 'money', v: 10000, p: 25 },
+        { n: "Бустер Удачи x3", t: 'luck', v: 3, p: 15 },
+        { n: "Ген Мутации x2", t: 'joker', v: 2, p: 15 },
+        { n: "Осколок Пегаса", t: 'shard', v: 1, p: 10 }
+    ],
+    mythic: [
+        { n: "15000 Монет", t: 'money', v: 15000, p: 30 },
+        { n: "Ген Мутации x5", t: 'joker', v: 5, p: 25 },
+        { n: "Осколок Пегаса x2", t: 'shard', v: 2, p: 25 },
+        { n: "50 Звезд", t: 'stars', v: 50, p: 15 },
+        { n: "Бог Фокуса", t: 'pet', v: 'god', p: 5 } 
+    ]
+};
 
 // =============================================================
 // 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ (С ПРОВЕРКОЙ ВРЕМЕНИ)
@@ -300,6 +323,8 @@ function initGame() {
         hasSecondSlot = localStorage.getItem('hasSecondSlot') === 'true';
         secondSlotEndTime = parseInt(localStorage.getItem('secondSlotEndTime')) || 0;
         lastRouletteDate = localStorage.getItem('lastRouletteDate') || "";
+        
+        let a = JSON.parse(localStorage.getItem('boxAdsProgress')); if(a) boxAdsProgress = a;
 
     } catch(e) { console.error("Local Load Error", e); }
 
@@ -327,7 +352,6 @@ function initGame() {
         };
     }
 
-    // Если есть облако - загружаем, иначе сразу пост-инит
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         loadFromCloud();
     } else {
@@ -336,11 +360,10 @@ function initGame() {
 }
 
 function loadFromCloud() {
-    const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 'lastRouletteDate', 'lastSaveTime'];
+    const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress'];
     Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
         if (!err && values && values.lastSaveTime) {
             let cloudTime = parseInt(values.lastSaveTime) || 0;
-            // ЗАЩИТА: Грузим из облака ТОЛЬКО если оно новее локального сохранения
             if (cloudTime >= localSaveTime) {
                 if (values.walletBalance !== undefined) walletBalance = parseInt(values.walletBalance);
                 if (values.userStars !== undefined) userStars = parseInt(values.userStars);
@@ -361,15 +384,14 @@ function loadFromCloud() {
                 if (values.hasSecondSlot !== undefined) hasSecondSlot = values.hasSecondSlot === 'true';
                 if (values.secondSlotEndTime !== undefined) secondSlotEndTime = parseInt(values.secondSlotEndTime);
                 if (values.lastRouletteDate) lastRouletteDate = values.lastRouletteDate;
+                if (values.boxAdsProgress) boxAdsProgress = JSON.parse(values.boxAdsProgress);
                 
                 if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
-                saveData(true); // Записываем в локалку
+                saveData(true); 
             } else {
-                // Локалка новее! Пушим в облако
                 saveData(false);
             }
         } else if (!err && (!values || !values.lastSaveTime)) {
-            // Облако пустое - заливаем локалку
             saveData(false);
         }
         postInit();
@@ -414,6 +436,7 @@ function saveData(skipTimeUpdate = false) {
     localStorage.setItem('hasSecondSlot', hasSecondSlot);
     localStorage.setItem('secondSlotEndTime', secondSlotEndTime);
     localStorage.setItem('lastRouletteDate', lastRouletteDate);
+    localStorage.setItem('boxAdsProgress', JSON.stringify(boxAdsProgress));
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         Telegram.WebApp.CloudStorage.setItem('lastSaveTime', localSaveTime.toString());
@@ -435,6 +458,7 @@ function saveData(skipTimeUpdate = false) {
         Telegram.WebApp.CloudStorage.setItem('hasSecondSlot', hasSecondSlot.toString());
         Telegram.WebApp.CloudStorage.setItem('secondSlotEndTime', secondSlotEndTime.toString());
         Telegram.WebApp.CloudStorage.setItem('lastRouletteDate', lastRouletteDate);
+        Telegram.WebApp.CloudStorage.setItem('boxAdsProgress', JSON.stringify(boxAdsProgress));
     }
 }
 
@@ -627,18 +651,95 @@ function renderQuests() {
 function clickLink(id, u, r) { if(window.Telegram.WebApp)window.Telegram.WebApp.openLink(u); else window.open(u,'_blank'); const b=getEl(`qbtn-${id}`); if(b){b.textContent="Проверяю...";b.disabled=true;b.style.background="#555";setTimeout(()=>claimQuest(id,r),4000);}}
 function claimAch(id, r) { if(claimedAchievements.includes(id))return; claimedAchievements.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderAch(); showToast(`Награда +${r}`, 'img'); playSound('money'); }
 function claimQuest(id, r) { if(claimedQuests.includes(id))return; claimedQuests.push(id); walletBalance+=r; saveData(); updateBalanceUI(); renderQuests(); showToast(`Награда +${r}`, 'img'); playSound('money'); }
-function handleShare() { if(!userStats.invites)userStats.invites=0; userStats.invites++; saveData(); checkAchievements(); const t=`У меня ${new Set(collection).size} петов в Focus Hatcher!`; const u=`https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(t)}`; if(window.Telegram.WebApp)window.Telegram.WebApp.openTelegramLink(u); else window.open(u,'_blank'); }
+
+function handleShare() { 
+    if(!userStats.invites) userStats.invites=0; 
+    userStats.invites++; 
+    saveData(); 
+    checkAchievements(); 
+    const t = `У меня ${new Set(collection).size} петов в Focus Hatcher!`; 
+    const u = `https://t.me/share/url?url=${botLink}&text=${encodeURIComponent(t)}`; 
+    if(window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(u); 
+    else window.open(u,'_blank'); 
+}
 
 // =============================================================
-// РУЛЕТКА F2P УДЕРЖАНИЕ
+// FORBES (ТОП БОГАЧЕЙ)
 // =============================================================
-function openRouletteModal() {
-    getEl('roulette-result-text').textContent = "";
-    getEl('roulette-box').className = 'roulette-box';
-    getEl('roulette-box').textContent = '🎁';
-    const today = new Date().toDateString();
+async function openForbes() {
+    playSound('click');
+    openModal('forbes-modal');
+    getEl('forbes-list-container').innerHTML = '<div style="text-align:center; color:#888; padding: 20px;">Синхронизация...</div>';
     
-    if (lastRouletteDate !== today) {
+    await apiSyncGlobalProfile();
+    
+    try {
+        const res = await fetch(`${API_URL}/forbes/${getTgUser().id}`);
+        forbesDataCache = await res.json();
+        renderForbesList(currentForbesTab);
+    } catch(e) {
+        getEl('forbes-list-container').innerHTML = '<div style="text-align:center; color:#ff3b30; padding: 20px;">Ошибка загрузки топа</div>';
+    }
+}
+
+function switchForbesTab(tab) {
+    playSound('click');
+    currentForbesTab = tab;
+    document.querySelectorAll('#forbes-modal .tab-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderForbesList(tab);
+}
+
+function renderForbesList(tab) {
+    const container = getEl('forbes-list-container');
+    container.innerHTML = '';
+    if(!forbesDataCache || !forbesDataCache[tab]) return;
+    
+    const list = forbesDataCache[tab];
+    if(list.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#888; padding: 20px;">Тут пока пусто</div>';
+        return;
+    }
+
+    let html = '';
+    list.forEach((p, index) => {
+        let rankNum = index + 1;
+        let rankClass = rankNum <= 3 ? `top-${rankNum}` : '';
+        let isMe = p.user_id === String(getTgUser().id) ? 'me' : '';
+        
+        html += `
+            <div class="forbes-item ${isMe}">
+                <div class="forbes-rank ${rankClass}">${rankNum}</div>
+                <img src="${getPetImg(p.avatar)}" class="forbes-avatar">
+                <div class="forbes-info">
+                    <div class="forbes-name">${p.name} ${isMe ? '(Ты)' : ''}</div>
+                    <div class="forbes-lvl">Уровень ${p.level}</div>
+                </div>
+                <div class="forbes-val">${p.earned} <img src="assets/ui/coin.png"></div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+
+// =============================================================
+// РУЛЕТКА И РЕКЛАМА
+// =============================================================
+function switchRouletteBox(type) {
+    playSound('click');
+    currentBoxType = type;
+    document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => b.classList.remove('active'));
+    getEl(`r-tab-${type}`).classList.add('active');
+    
+    let cost = 10; let reqAds = 1;
+    if(type === 'epic') { cost = 25; reqAds = 2; }
+    if(type === 'mythic') { cost = 50; reqAds = 3; }
+    
+    getEl('roulette-paid-btn').textContent = `Крутить за ${cost} ⭐️`;
+    
+    const today = new Date().toDateString();
+    if (type === 'base' && lastRouletteDate !== today) {
         getEl('roulette-free-btn').style.display = 'block';
         getEl('roulette-ad-btn').style.display = 'none';
         getEl('roulette-paid-btn').style.display = 'none';
@@ -646,48 +747,79 @@ function openRouletteModal() {
         getEl('roulette-free-btn').style.display = 'none';
         getEl('roulette-ad-btn').style.display = 'block';
         getEl('roulette-paid-btn').style.display = 'block';
+        
+        if (type !== 'base') {
+            let watched = boxAdsProgress[type] || 0;
+            getEl('roulette-ad-btn').textContent = `Смотреть рекламу 📺 (${watched}/${reqAds})`;
+        } else {
+            getEl('roulette-ad-btn').textContent = `Смотреть рекламу 📺`;
+        }
     }
+    
+    let boxColor = '#fff';
+    if(type === 'epic') boxColor = '#00A3FF';
+    if(type === 'mythic') boxColor = '#ffd700';
+    getEl('roulette-box').style.filter = `drop-shadow(0 0 20px ${boxColor})`;
+    getEl('roulette-box').textContent = '🎁';
+    getEl('roulette-result-text').textContent = '';
+}
+
+function openRouletteModal() {
+    switchRouletteBox('base');
     openModal('roulette-modal');
 }
 
 function spinRouletteAd() {
-    if (!AdController) {
-        showToast("Реклама недоступна", "❌");
-        return;
-    }
+    if (!AdController) return showToast("Реклама недоступна", "❌");
     
-    getEl('roulette-ad-btn').disabled = true;
-    getEl('roulette-ad-btn').textContent = "Загрузка...";
+    const btn = getEl('roulette-ad-btn');
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = "Загрузка...";
 
     AdController.show().then((result) => {
-        getEl('roulette-ad-btn').disabled = false;
-        getEl('roulette-ad-btn').textContent = "Смотреть рекламу 📺";
-        spinRoulette('ad'); 
+        btn.disabled = false; btn.textContent = orig;
+        
+        if (currentBoxType !== 'base') {
+            let req = currentBoxType === 'epic' ? 2 : 3;
+            if (!boxAdsProgress[currentBoxType]) boxAdsProgress[currentBoxType] = 0;
+            boxAdsProgress[currentBoxType]++;
+            
+            if (boxAdsProgress[currentBoxType] >= req) {
+                boxAdsProgress[currentBoxType] = 0;
+                spinRoulette('ad');
+            } else {
+                saveData(); 
+                switchRouletteBox(currentBoxType); 
+                showToast(`Реклама просмотрена: ${boxAdsProgress[currentBoxType]}/${req}`, '📺');
+            }
+        } else {
+            spinRoulette('ad'); 
+        }
     }).catch((result) => {
-        getEl('roulette-ad-btn').disabled = false;
-        getEl('roulette-ad-btn').textContent = "Смотреть рекламу 📺";
+        btn.disabled = false; btn.textContent = orig;
         showToast("Ошибка или отмена рекламы", "❌");
     });
 }
 
-function spinRoulette(type) {
-    if (type === 'stars') {
-        if (userStars < 10) {
+function spinRoulette(method) {
+    let cost = 10;
+    if(currentBoxType === 'epic') cost = 25;
+    if(currentBoxType === 'mythic') cost = 50;
+
+    if (method === 'stars') {
+        if (userStars < cost) {
             showToast("Недостаточно Звезд!", "❌");
             openBuyStarsModal();
             return;
         }
-        userStars -= 10;
+        userStars -= cost;
         updateBalanceUI();
-    } else if (type === 'free') {
+    } else if (method === 'free' && currentBoxType === 'base') {
         lastRouletteDate = new Date().toDateString();
-        getEl('roulette-free-btn').style.display = 'none';
-        getEl('roulette-ad-btn').style.display = 'block';
-        getEl('roulette-paid-btn').style.display = 'block';
+        switchRouletteBox('base'); 
     }
     
-    playSound('click');
-    saveData();
+    playSound('click'); saveData();
     
     const box = getEl('roulette-box');
     const resText = getEl('roulette-result-text');
@@ -695,6 +827,7 @@ function spinRoulette(type) {
     getEl('roulette-free-btn').disabled = true;
     getEl('roulette-ad-btn').disabled = true;
     getEl('roulette-paid-btn').disabled = true;
+    document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => b.disabled = true);
     
     box.className = 'roulette-box roulette-spinning';
     resText.textContent = "Крутим...";
@@ -704,28 +837,30 @@ function spinRoulette(type) {
         getEl('roulette-free-btn').disabled = false;
         getEl('roulette-ad-btn').disabled = false;
         getEl('roulette-paid-btn').disabled = false;
+        document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => b.disabled = false);
         
         let rnd = Math.random() * 100;
         let selectedPrize = null;
-        for (let p of ROULETTE_PRIZES) {
+        let pool = ROULETTE_PRIZES[currentBoxType];
+        
+        for (let p of pool) {
             if (rnd < p.p) { selectedPrize = p; break; }
             rnd -= p.p;
         }
-        if(!selectedPrize) selectedPrize = ROULETTE_PRIZES[0];
+        if(!selectedPrize) selectedPrize = pool[0];
         
-        playSound('win');
-        fireConfetti();
+        playSound('win'); fireConfetti();
         
         if (selectedPrize.t === 'money') { walletBalance += selectedPrize.v; showToast(`+${selectedPrize.v} монет!`, "💰"); box.textContent = "💰"; }
         else if (selectedPrize.t === 'stars') { userStars += selectedPrize.v; showToast(`+${selectedPrize.v} Звезд!`, "⭐️"); box.textContent = "⭐️"; }
-        else if (selectedPrize.t === 'joker') { userJokers += selectedPrize.v; showToast(`Ген Мутации!`, "🧬"); box.textContent = "🧬"; }
-        else if (selectedPrize.t === 'shard') { pegasusShards += selectedPrize.v; showToast(`Осколок Пегаса!`, "🧩"); box.textContent = "🦄"; }
-        else if (selectedPrize.t === 'luck') { if (!myBoosters.luck) myBoosters.luck=0; myBoosters.luck += selectedPrize.v; showToast(`Зелье удачи!`, "🧪"); box.textContent = "🧪"; }
-        else if (selectedPrize.t === 'speed') { if (!myBoosters.speed) myBoosters.speed=0; myBoosters.speed += selectedPrize.v; showToast(`Ускоритель!`, "⚡️"); box.textContent = "⚡️"; }
+        else if (selectedPrize.t === 'joker') { userJokers += selectedPrize.v; showToast(`Ген Мутации x${selectedPrize.v}!`, "🧬"); box.textContent = "🧬"; }
+        else if (selectedPrize.t === 'shard') { pegasusShards += selectedPrize.v; showToast(`Осколок Пегаса x${selectedPrize.v}!`, "🧩"); box.textContent = "🦄"; }
+        else if (selectedPrize.t === 'luck') { if (!myBoosters.luck) myBoosters.luck=0; myBoosters.luck += selectedPrize.v; showToast(`Зелье удачи x${selectedPrize.v}!`, "🧪"); box.textContent = "🧪"; }
+        else if (selectedPrize.t === 'speed') { if (!myBoosters.speed) myBoosters.speed=0; myBoosters.speed += selectedPrize.v; showToast(`Ускоритель x${selectedPrize.v}!`, "⚡️"); box.textContent = "⚡️"; }
+        else if (selectedPrize.t === 'pet') { collection.push(selectedPrize.v); showToast(`Получен питомец!`, "🐣"); box.textContent = "🐲"; }
 
         resText.textContent = `Выпало: ${selectedPrize.n}`;
-        saveData();
-        updateBalanceUI();
+        saveData(); updateBalanceUI();
     }, 2000);
 }
 

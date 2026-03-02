@@ -30,6 +30,18 @@
         </div>
     </div>
 
+    <div id="forbes-modal" class="modal" style="display: none; z-index: 3800;">
+        <div class="modal-content" style="max-height: 90vh;">
+            <div class="modal-header"><h2>Топ Forbes 👑</h2><button class="close-btn" onclick="closeModal('forbes-modal')">✖</button></div>
+            <div class="shop-tabs">
+                <button class="tab-btn active" onclick="switchForbesTab('global')">Мир 🌍</button>
+                <button class="tab-btn" onclick="switchForbesTab('friends')">Друзья 🤝</button>
+            </div>
+            <div id="forbes-list-container" class="forbes-list">
+                </div>
+        </div>
+    </div>
+
     <div id="admin-modal" class="modal" style="display: none; z-index: 6000;">
         <div class="modal-content" style="background: #1c1c1e; border: 2px solid #ff3b30;">
             <div class="modal-header"><h2 style="color: #ff3b30;">Панель Создателя 👑</h2><button class="close-btn" onclick="closeModal('admin-modal')">✖</button></div>
@@ -258,6 +270,11 @@
     <div id="roulette-modal" class="modal" style="display: none; z-index: 4500;">
         <div class="modal-content" style="background: #1c1c1e;">
             <div class="modal-header"><h2>Бокс Удачи 🎰</h2><button class="close-btn" onclick="closeModal('roulette-modal')">✖</button></div>
+            <div class="shop-tabs" style="margin-bottom: 15px;">
+                <button class="tab-btn active" id="r-tab-base" onclick="switchRouletteBox('base')">Базовый</button>
+                <button class="tab-btn" id="r-tab-epic" onclick="switchRouletteBox('epic')" style="color:#00A3FF">Эпик</button>
+                <button class="tab-btn" id="r-tab-mythic" onclick="switchRouletteBox('mythic')" style="color:#ffd700">Мифик</button>
+            </div>
             <div id="roulette-box" class="roulette-box">🎁</div>
             <p id="roulette-result-text" style="font-size: 16px; color: #ffd700; font-weight: bold; margin: 15px 0; min-height: 20px;"></p>
             <button id="roulette-free-btn" class="btn" style="background: #34c759; margin-bottom: 10px;" onclick="spinRoulette('free')">Крутить Бесплатно!</button>
@@ -287,7 +304,12 @@
                 <div class="stats-grid">
                     <div class="stat-box"><div class="stat-val" id="stat-hatched">0</div><div class="stat-label">Яиц</div></div>
                     <div class="stat-box"><div class="stat-val" id="stat-unique">0</div><div class="stat-label">Видов</div></div>
-                    <div class="stat-box"><div class="stat-val" id="stat-earned">0</div><div class="stat-label">Капитал</div></div>
+                    
+                    <div class="stat-box" style="cursor: pointer; border: 1px solid #ffd700; background: rgba(255,215,0,0.1);" onclick="openForbes()">
+                        <div class="stat-val" id="stat-earned" style="color: #ffd700;">0</div>
+                        <div class="stat-label">Капитал (Forbes 🏆)</div>
+                    </div>
+
                     <div class="stat-box"><div class="stat-val" id="stat-invites">0</div><div class="stat-label">Бонусы</div></div>
                 </div>
             </div>
@@ -496,6 +518,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=72"></script>
+    <script src="script.js?v=73"></script>
 </body>
 </html>

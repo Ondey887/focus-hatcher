@@ -453,3 +453,21 @@ input:checked + .slider:before { transform: translateX(24px); }
     75% { transform: translateX(-5px) rotate(-5deg); }
     100% { transform: translateX(0) rotate(0deg); }
 }
+
+/* === FORBES === */
+.forbes-list { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; text-align: left; padding-right: 5px; }
+.forbes-item { background: rgba(255,255,255,0.08); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.05); }
+.forbes-item.me { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+.forbes-rank { font-weight: bold; font-size: 16px; width: 30px; text-align: center; color: #8e8e93; }
+.forbes-rank.top-1 { color: #ffd700; font-size: 22px; text-shadow: 0 0 5px #ffd700; }
+.forbes-rank.top-2 { color: #c0c0c0; font-size: 20px; text-shadow: 0 0 5px #c0c0c0; }
+.forbes-rank.top-3 { color: #cd7f32; font-size: 18px; text-shadow: 0 0 5px #cd7f32; }
+.forbes-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #555; background: #2c2c2e;}
+.top-1 + .forbes-avatar { border-color: #ffd700; }
+.top-2 + .forbes-avatar { border-color: #c0c0c0; }
+.top-3 + .forbes-avatar { border-color: #cd7f32; }
+.forbes-info { flex: 1; overflow: hidden; }
+.forbes-name { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.forbes-lvl { font-size: 11px; color: #aaa; }
+.forbes-val { font-weight: bold; color: #ffd700; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+.forbes-val img { width: 16px; height: 16px; object-fit: contain; }
