@@ -333,7 +333,7 @@ function initGame() {
     } catch(e) { console.error("Local Load Error", e); }
 
     if (window.Adsgram) {
-        AdController = window.Adsgram.init({ blockId: "23125" }); 
+        AdController = window.Adsgram.init({ blockId: "24145" }); 
     }
 
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
