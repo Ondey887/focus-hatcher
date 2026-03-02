@@ -123,15 +123,24 @@
     <div id="craft-modal" class="modal" style="display: none;">
         <div class="modal-content" style="max-height: 85vh;">
             <div class="modal-header"><h2>Синтез</h2><button class="close-btn" onclick="closeModal('craft-modal')">✖</button></div>
-            <div style="margin-bottom: 20px; padding: 15px; background: rgba(255,215,0,0.1); border: 1px solid #ffd700; border-radius: 15px;">
-                <h3 style="color: #ffd700; margin-bottom: 5px;">Призыв Пегаса 🦄</h3>
-                <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Собери 10 Осколков в Космосе, чтобы получить Мифического Пета!</p>
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(138,43,226,0.1); border: 1px solid #8a2be2; border-radius: 15px;">
+                <h3 style="color: #8a2be2; margin-bottom: 5px;">Призыв Мифика 🔮</h3>
+                <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Собери 10 Осколков (или расщепи старых петов), чтобы получить случайного Мифического Пета!</p>
                 <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"><span id="pegasus-shards-count" style="color: #34c759;">0</span> / 10 Осколков</div>
-                <button id="craft-pegasus-btn" class="btn locked" onclick="craftPegasus()">Создать Мифика</button>
+                <button id="craft-mythic-btn" class="btn locked" onclick="craftMythic()">Создать Мифика</button>
             </div>
             <p style="font-size: 13px; color: #aaa; margin-bottom: 5px;">Соедини 5 одинаковых обычных петов для редкого:</p>
             <div style="font-size: 12px; color: #00A3FF; margin-bottom: 15px; font-weight: bold;">У вас Генов Мутации (Джокеров): <span id="joker-count-display">0</span> 🧬</div>
             <div id="craft-list" class="collection-grid"></div>
+        </div>
+    </div>
+
+    <div id="mythic-craft-modal" class="modal" style="display: none; z-index: 3500;">
+        <div class="modal-content" style="background: #1c1c1e; border: 2px solid #8a2be2;">
+            <h2 style="color: #8a2be2; margin-bottom: 20px;">Синтез Мифика...</h2>
+            <div class="mythic-craft-container">
+                <img id="mythic-silhouette" src="assets/eggs/egg-default.png" class="mythic-silhouette">
+            </div>
         </div>
     </div>
 
