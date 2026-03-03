@@ -160,6 +160,13 @@ function formatTime(s) {
     if(s >= 3600) return `${Math.floor(s/3600)}ч ${Math.floor((s%3600)/60).toString().padStart(2,'0')}м`;
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; 
 }
+function getPetRarity(p) {
+    if(p === "god") return 'legendary';
+    if(petDatabase.mythic.includes(p)) return 'mythic';
+    if(petDatabase.legendary.includes(p)) return 'legendary';
+    if(petDatabase.rare.includes(p)) return 'rare';
+    return 'common';
+}
 function getPetImg(id) { return id === 'default' ? 'assets/ui/icon-profile.png' : `assets/pets/pet-${id}.png`; }
 function hardReset() { if(confirm("Сбросить все?")) { localStorage.clear(); location.reload(); } }
 
@@ -215,14 +222,6 @@ const petDatabase = {
 };
 const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, ...petDatabase.mythic, "god"];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
-
-function getPetRarity(p) {
-    if(p === "god") return 'legendary';
-    if(petDatabase.mythic.includes(p)) return 'mythic';
-    if(petDatabase.legendary.includes(p)) return 'legendary';
-    if(petDatabase.rare.includes(p)) return 'rare';
-    return 'common';
-}
 
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
@@ -899,7 +898,6 @@ async function buyStars(amount) {
         if (data.status === 'success' && data.invoice_link) {
             window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
                 if (status === 'paid') {
-                    // Оплата прошла успешно
                     playSound('win');
                     userStars += amount;
                     saveData();
@@ -1622,18 +1620,20 @@ function finishTimer(fromOffline = false) {
 }
 
 // =============================================================
-// 9. ЛАБОРАТОРИЯ (СИНТЕЗ И ПЕГАС)
+// 9. ЛАБОРАТОРИЯ (СИНТЕЗ И МИФИКИ)
 // =============================================================
 function openCraft() {
     getEl('pegasus-shards-count').textContent = pegasusShards;
     getEl('joker-count-display').textContent = userJokers;
     
     if(pegasusShards >= 10) {
-        getEl('craft-pegasus-btn').className = "btn";
-        getEl('craft-pegasus-btn').style.background = "#ffd700";
-        getEl('craft-pegasus-btn').style.color = "black";
+        getEl('craft-mythic-btn').className = "btn";
+        getEl('craft-mythic-btn').style.background = "#8a2be2";
+        getEl('craft-mythic-btn').style.color = "white";
+        getEl('craft-mythic-btn').style.boxShadow = "0 0 15px rgba(138, 43, 226, 0.8)";
     } else {
-        getEl('craft-pegasus-btn').className = "btn locked";
+        getEl('craft-mythic-btn').className = "btn locked";
+        getEl('craft-mythic-btn').style.boxShadow = "none";
     }
 
     const c = getEl('craft-list'); c.innerHTML = ''; let canCraft = false;
@@ -1654,14 +1654,34 @@ function openCraft() {
     openModal('craft-modal');
 }
 
-function craftPegasus() {
+function craftMythic() {
     if(pegasusShards >= 10) {
         pegasusShards -= 10;
-        collection.push("pegasus");
         saveData(); updateBalanceUI();
-        playSound('win'); fireConfetti();
-        showToast("МИФИК СОЗДАН: Пегас! 🦄", "🌟");
-        openCraft();
+        closeModal('craft-modal');
+        openModal('mythic-craft-modal');
+        playSound('legendary');
+        
+        getEl('mythic-silhouette').className = 'mythic-silhouette spinning';
+        getEl('mythic-silhouette').src = 'assets/eggs/egg-default.png';
+        
+        setTimeout(() => {
+            let pool = petDatabase.mythic;
+            let dropped = pool[Math.floor(Math.random() * pool.length)];
+            collection.push(dropped);
+            saveData(); updateBalanceUI();
+            
+            getEl('mythic-silhouette').className = 'mythic-silhouette revealed';
+            getEl('mythic-silhouette').src = `assets/pets/pet-${dropped}.png`;
+            
+            showToast(`МИФИК СОЗДАН: ${PET_NAMES[dropped]}! 🦄`, "🌟");
+            fireConfetti();
+            
+            setTimeout(() => {
+                closeModal('mythic-craft-modal');
+                openInventory();
+            }, 4000);
+        }, 3000);
     } else {
         showToast("Не хватает осколков!", "❌");
     }
@@ -1689,6 +1709,29 @@ function craftPet(basePet, jokersUsed = 0) {
     }
 }
 
+function splinterPet(pet, rarity) {
+    if(!confirm(`ВНИМАНИЕ! Питомец ${PET_NAMES[pet]} будет уничтожен в расщепителе. Продолжить?`)) return;
+    const idx = collection.indexOf(pet);
+    if(idx === -1) return;
+    
+    collection.splice(idx, 1);
+    playSound('click');
+    
+    if(rarity === 'rare') {
+        if(Math.random() < 0.20) {
+            pegasusShards += 1;
+            showToast(`Успех! Получен 1 Осколок! 🧩`, "win");
+        } else {
+            showToast(`Питомец расщеплен, но осколок не выпал... 💨`, "❌");
+        }
+    } else if (rarity === 'legendary') {
+        let amount = Math.random() < 0.5 ? 1 : 2;
+        pegasusShards += amount;
+        showToast(`Успех! Получено ${amount} Осколков! 🧩`, "win");
+    }
+    saveData(); updateBalanceUI(); closeModal('pet-modal'); openInventory();
+}
+
 function openInventory() {
     const container = document.getElementById('collection-container'); 
     if(!container) return; container.innerHTML = ''; 
@@ -1700,7 +1743,12 @@ function openInventory() {
             if(count > 1) { const b = document.createElement('div'); b.className = 'slot-count'; b.textContent = `x${count}`; d.appendChild(b); }
             d.onclick = () => openPetModal(pet, true);
         } else {
-            d.className = `pet-slot locked`; d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot">`;
+            d.className = `pet-slot locked`; 
+            if(r === 'mythic') {
+                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" style="filter:brightness(0) opacity(0.5);" onerror="this.src='assets/eggs/egg-default.png'"> <div style="position:absolute; font-size: 24px; font-weight:bold; color:#8a2be2; text-shadow: 0 0 5px #000;">?</div>`;
+            } else {
+                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`;
+            }
             d.onclick = () => openPetModal(pet, false);
         }
         container.appendChild(d);
@@ -1709,20 +1757,28 @@ function openInventory() {
 }
 
 function openPetModal(pet, owned) {
-    selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r];
+    selectedPet=pet; const r=getPetRarity(pet); const p=PRICES[r] || 0;
     const petName = PET_NAMES[pet] || "Питомец";
+    
+    let splinterBtn = '';
+    if (owned) {
+        if (r === 'rare') splinterBtn = `<button class="btn" style="background:#ff9500; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,149,0,0.5);" onclick="splinterPet('${pet}', 'rare')">Расщепить (Шанс 20%) 🧩</button>`;
+        if (r === 'legendary') splinterBtn = `<button class="btn" style="background:#ff3b30; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,59,48,0.5);" onclick="splinterPet('${pet}', 'legendary')">Расщепить (100% 1-2 🧩)</button>`;
+    }
+
     getEl('pet-detail-view').innerHTML = owned ? 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big">
+        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" onerror="this.src='assets/eggs/egg-default.png'">
          <h3 class="pet-name">${petName}</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
-         <button class="btn sell-action" onclick="sellPet()">Продать ${p}</button>` : 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)">
+         <button class="btn sell-action" onclick="sellPet()">Продать ${p}</button>
+         ${splinterBtn}` : 
+        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)" onerror="this.src='assets/eggs/egg-default.png'">
          <h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
     openModal('pet-modal');
 }
 
 function sellPet() {
     if(!selectedPet) return; const idx=collection.indexOf(selectedPet); if(idx===-1)return;
-    let basePrice = PRICES[getPetRarity(selectedPet)];
+    let basePrice = PRICES[getPetRarity(selectedPet)] || 0;
     let finalPrice = isVip() ? Math.floor(basePrice * 1.2) : basePrice;
     walletBalance += finalPrice; userStats.earned += finalPrice;
     collection.splice(idx,1); saveData(); updateBalanceUI(); 
@@ -1833,7 +1889,7 @@ function renderPartyPlayers(players) {
     const header = document.querySelector('#party-active-view h3');
     if (header && players.length) header.innerHTML = `Игроки <span id="leader-badge" style="color: #ffd700; font-size: 12px; display: ${isPartyLeader ? 'inline' : 'none'};">(Вы Лидер 👑)</span>`;
     players.forEach(p => {
-        container.innerHTML += `<div class="player-slot"><div class="player-avatar-circle"><img src="assets/pets/pet-${p.avatar}.png"></div><div class="player-name">${p.name}</div></div>`;
+        container.innerHTML += `<div class="player-slot"><div class="player-avatar-circle"><img src="assets/pets/pet-${p.avatar}.png" onerror="this.src='assets/eggs/egg-default.png'"></div><div class="player-name">${p.name}</div></div>`;
     });
 }
 
