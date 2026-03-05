@@ -102,6 +102,79 @@ let secretTapTimer = null;
 let forbesDataCache = null;
 let currentForbesTab = 'global';
 
+function openModal(id) {
+    playSound('click');
+    if(modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
+    if (modalStack.length > 0) {
+        const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
+        if(prevEl) prevEl.style.display = 'none';
+    }
+    const el = document.getElementById(id);
+    if(el) { el.style.display = 'flex'; modalStack.push(id); }
+}
+
+function closeModal(id) {
+    playSound('click');
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+    modalStack = modalStack.filter(m => m !== id);
+    if (modalStack.length > 0) {
+        const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
+        if(prevEl) prevEl.style.display = 'flex';
+    }
+}
+
+function fireConfetti() {
+    const canvas = document.getElementById('confetti-canvas'); if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    let particles = [];
+    const colors = ['#ff3b30', '#ffcc00', '#34c759', '#007aff', '#5856d6'];
+    for (let i = 0; i < 100; i++) {
+        particles.push({
+            x: canvas.width / 2, y: canvas.height / 2, w: Math.random() * 10 + 5, h: Math.random() * 10 + 5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20 - 10, grav: 0.5
+        });
+    }
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, index) => {
+            p.x += p.vx; p.y += p.vy; p.vy += p.grav;
+            ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.w, p.h);
+            if (p.y > canvas.height) particles.splice(index, 1);
+        });
+        if (particles.length > 0) requestAnimationFrame(draw); else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    draw();
+}
+
+function getEl(id) { return document.getElementById(id); }
+function showToast(msg, icon='🔔') {
+    const c = getEl('toast-container'); const d = document.createElement('div');
+    let content = icon === 'img' ? `<img src="assets/ui/coin.png"> <span>${msg}</span>` : `<span>${icon}</span> <span>${msg}</span>`;
+    d.className = 'toast'; d.innerHTML = content;
+    c.appendChild(d); setTimeout(() => { d.classList.add('fade-out'); setTimeout(()=>d.remove(), 300); }, 3000);
+}
+function formatTime(s) { 
+    if(s >= 3600) return `${Math.floor(s/3600)}ч ${Math.floor((s%3600)/60).toString().padStart(2,'0')}м`;
+    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; 
+}
+function getPetImg(id) { return id === 'default' ? 'assets/ui/icon-profile.png' : `assets/pets/pet-${id}.png`; }
+function hardReset() { if(confirm("Сбросить все?")) { localStorage.clear(); location.reload(); } }
+
+function getTgUser() {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+        return { id: String(window.Telegram.WebApp.initDataUnsafe.user.id), name: window.Telegram.WebApp.initDataUnsafe.user.first_name };
+    }
+    if(!localStorage.getItem('fake_uid')) localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random()*10000));
+    return { id: localStorage.getItem('fake_uid'), name: "Игрок" };
+}
+
+function isVip() {
+    return Date.now() < vipEndTime;
+}
+
 // =============================================================
 // 3. БАЗЫ ДАННЫХ И КОНСТАНТЫ
 // =============================================================
@@ -192,7 +265,7 @@ const SHOP_DATA = {
     boosters: [
         { id: 'luck', name: 'Зелье Удачи', price: 4990, icon: 'assets/ui/booster-luck.png', desc: 'Шанс x5' },
         { id: 'speed', name: 'Ускоритель', price: 9990, icon: 'assets/ui/booster-speed.png', desc: 'Меньше времени' },
-        { id: 'bio', name: 'Биодобавка 💉', price: '50 ⭐️', icon: 'assets/ui/booster-speed.png', desc: 'Мутант гарантирован' }
+        { id: 'bio', name: 'Биодобавка 💉', price: '50 ⭐️', icon: '💉', desc: 'Мутант гарантирован' }
     ]
 };
 
@@ -227,79 +300,6 @@ const ROULETTE_PRIZES = {
         { n: "СЛУЧАЙНАЯ ЛЕГЕНДА!", t: 'legendary_random', v: 1, p: 5 }
     ]
 };
-
-function openModal(id) {
-    playSound('click');
-    if(modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
-    if (modalStack.length > 0) {
-        const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
-        if(prevEl) prevEl.style.display = 'none';
-    }
-    const el = document.getElementById(id);
-    if(el) { el.style.display = 'flex'; modalStack.push(id); }
-}
-
-function closeModal(id) {
-    playSound('click');
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-    modalStack = modalStack.filter(m => m !== id);
-    if (modalStack.length > 0) {
-        const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
-        if(prevEl) prevEl.style.display = 'flex';
-    }
-}
-
-function fireConfetti() {
-    const canvas = document.getElementById('confetti-canvas'); if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    let particles = [];
-    const colors = ['#ff3b30', '#ffcc00', '#34c759', '#007aff', '#5856d6'];
-    for (let i = 0; i < 100; i++) {
-        particles.push({
-            x: canvas.width / 2, y: canvas.height / 2, w: Math.random() * 10 + 5, h: Math.random() * 10 + 5,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20 - 10, grav: 0.5
-        });
-    }
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach((p, index) => {
-            p.x += p.vx; p.y += p.vy; p.vy += p.grav;
-            ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.w, p.h);
-            if (p.y > canvas.height) particles.splice(index, 1);
-        });
-        if (particles.length > 0) requestAnimationFrame(draw); else ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    draw();
-}
-
-function getEl(id) { return document.getElementById(id); }
-function showToast(msg, icon='🔔') {
-    const c = getEl('toast-container'); const d = document.createElement('div');
-    let content = icon === 'img' ? `<img src="assets/ui/coin.png"> <span>${msg}</span>` : `<span>${icon}</span> <span>${msg}</span>`;
-    d.className = 'toast'; d.innerHTML = content;
-    c.appendChild(d); setTimeout(() => { d.classList.add('fade-out'); setTimeout(()=>d.remove(), 300); }, 3000);
-}
-function formatTime(s) { 
-    if(s >= 3600) return `${Math.floor(s/3600)}ч ${Math.floor((s%3600)/60).toString().padStart(2,'0')}м`;
-    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; 
-}
-function getPetImg(id) { return id === 'default' ? 'assets/ui/icon-profile.png' : `assets/pets/pet-${id}.png`; }
-function hardReset() { if(confirm("Сбросить все?")) { localStorage.clear(); location.reload(); } }
-
-function getTgUser() {
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-        return { id: String(window.Telegram.WebApp.initDataUnsafe.user.id), name: window.Telegram.WebApp.initDataUnsafe.user.first_name };
-    }
-    if(!localStorage.getItem('fake_uid')) localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random()*10000));
-    return { id: localStorage.getItem('fake_uid'), name: "Игрок" };
-}
-
-function isVip() {
-    return Date.now() < vipEndTime;
-}
 
 // =============================================================
 // 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
@@ -338,10 +338,6 @@ function initGame() {
         let a = JSON.parse(localStorage.getItem('boxAdsProgress')); if(a) boxAdsProgress = a;
 
     } catch(e) { console.error("Local Load Error", e); }
-
-    if (window.Adsgram) {
-        AdController = window.Adsgram.init({ blockId: "24011" }); 
-    }
 
     if (localStorage.getItem('tutorialSeen')) checkDailyReward();
     if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
@@ -489,32 +485,36 @@ function applyTheme() {
 
 function applyEggSkin() { 
     const egg=getEl('egg-display'); 
-    
-    // ПРОВЕРКА НА БЛОКИРОВКУ
+    if(!egg) return;
+
+    egg.className = 'egg-img'; 
     const m = MODES[currentModeIndex];
+
     if(userLevel < m.reqLevel) {
-        egg.className = 'egg-img egg-locked';
+        egg.classList.add('egg-locked');
         egg.src = 'assets/eggs/egg-default.png';
         return;
     }
 
-    if (activeEggSkin === 'holo') {
+    if (m.egg !== 'default') {
+        egg.src = `assets/eggs/egg-${m.egg}.png`;
+    } else if (activeEggSkin === 'holo') {
         egg.className = 'egg-img holo-egg';
         egg.src = 'assets/eggs/egg-ice.png';
-        if(isRunning) egg.classList.add('shaking'); 
-        return;
+    } else {
+        const s = SHOP_DATA.eggs.find(x => x.id === activeEggSkin); 
+        egg.src = s ? s.img : 'assets/eggs/egg-default.png';
     }
-    const s=SHOP_DATA.eggs.find(x=>x.id===activeEggSkin); 
-    if (s) egg.src = s.img; else egg.src = 'assets/eggs/egg-default.png';
-    egg.className = 'egg-img'; if(isRunning) egg.classList.add('shaking'); 
+    
+    if(isRunning) egg.classList.add('shaking'); 
 }
 
 function updateLevelUI() { 
     const max=userLevel*200; let p=(userXP/max)*100; if(p>100)p=100; 
-    getEl('xp-bar').style.width=`${p}%`; 
-    getEl('level-number').textContent=`Lvl ${userLevel}`; 
+    let xpBar = getEl('xp-bar'); if(xpBar) xpBar.style.width=`${p}%`; 
+    let numEl = getEl('level-number'); if(numEl) numEl.textContent=`Lvl ${userLevel}`; 
     let r=Math.floor(userLevel/5); 
-    getEl('rank-name').textContent=RANKS[Math.min(r,RANKS.length-1)] || "Создатель"; 
+    let rankEl = getEl('rank-name'); if(rankEl) rankEl.textContent=RANKS[Math.min(r,RANKS.length-1)] || "Создатель"; 
 }
 
 function switchShopTab(t) { 
@@ -568,7 +568,8 @@ function renderShop() {
         let btnHTML='';
         if(currentShopTab==='boosters') {
             btnHTML=`<button class="buy-btn" onclick="buyItem('${item.id}', '${item.price}')">${item.price} ${typeof item.price === 'number' ? '<img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">' : ''}</button>`;
-            d.innerHTML=`<img src="${item.icon}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#888">${item.desc}</div>${btnHTML}`;
+            let iconContent = item.icon.includes('.png') ? `<img src="${item.icon}" class="shop-icon-img">` : `<div style="font-size: 50px; margin-bottom: 10px;">${item.icon}</div>`;
+            d.innerHTML=`${iconContent}<div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#888">${item.desc}</div>${btnHTML}`;
         } else if(currentShopTab==='eggs') {
             const owned=ownedItems.eggs.includes(item.id); const active=activeEggSkin===item.id;
             let cls=owned?"buy-btn owned":"buy-btn"; if(!owned&&walletBalance<item.price)cls+=" locked"; let txt=owned?(active?"Выбрано":"Выбрать") : `${item.price} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
@@ -913,6 +914,7 @@ function spinRoulette(method) {
         
         playSound('win'); fireConfetti();
         
+        // РЕВОРК РУЛЕТКИ: ВЫПАДЕНИЕ ЛЕГЕНДАРКИ
         if (selectedPrize.t === 'legendary_random') {
             const randLeg = petDatabase.legendary[Math.floor(Math.random() * petDatabase.legendary.length)];
             collection.push(randLeg);
@@ -1289,7 +1291,6 @@ function checkDailyReward() {
     if (lastLogin !== yesterday.toDateString()) streak = 0;
     renderDailyModal(streak); openModal('daily-modal'); playSound('win'); 
 }
-
 function renderDailyModal(curr) {
     const g = getEl('daily-grid'); g.innerHTML = '';
     DAILY_REWARDS.forEach((r, i) => {
@@ -1305,7 +1306,6 @@ function renderDailyModal(curr) {
         g.appendChild(d);
     });
 }
-
 window.claimDaily = function() {
     let s = parseInt(localStorage.getItem('dailyStreak')) || 0;
     const t = new Date().toDateString();
@@ -1344,13 +1344,14 @@ function renderBoostersPanel() {
     const p = getEl('boosters-panel'); p.innerHTML = '';
     p.appendChild(createBoosterBtn('luck', 'assets/ui/booster-luck.png', myBoosters.luck||0, activeBoosters.luck));
     p.appendChild(createBoosterBtn('speed', 'assets/ui/booster-speed.png', myBoosters.speed||0, activeBoosters.speed));
-    p.appendChild(createBoosterBtn('bio', 'assets/ui/booster-speed.png', myBoosters.bio||0, activeBoosters.bio)); 
+    p.appendChild(createBoosterBtn('bio', '💉', myBoosters.bio||0, activeBoosters.bio)); 
 }
 
-function createBoosterBtn(type, img, count, isActive) {
+function createBoosterBtn(type, content, count, isActive) {
     const d = document.createElement('div');
     d.className = `booster-slot ${isActive?'active':''} ${count===0?'empty':''}`;
-    d.innerHTML = `<img src="${img}"> <div class="booster-count">${count}</div>`;
+    let inner = content.includes('.png') ? `<img src="${content}">` : `<div style="font-size:30px;">${content}</div>`;
+    d.innerHTML = `${inner} <div class="booster-count">${count}</div>`;
     d.onclick = () => {
         if(count>0 && !isRunning) { 
             activeBoosters[type] = !activeBoosters[type]; 
@@ -1393,25 +1394,29 @@ function updateUI() {
 
     if(!isRunning) { 
         applyEggSkin();
-        getEl('timer').textContent = formatTime(t); 
-        getEl('hatched-info').style.display = 'none';
+        let timerEl = getEl('timer'); if(timerEl) timerEl.textContent = formatTime(t); 
+        let infoEl = getEl('hatched-info'); if(infoEl) infoEl.style.display = 'none';
+        let custBtn = getEl('custom-egg-btn'); if(custBtn) custBtn.style.display = currentModeIndex === 2 ? 'block' : 'none';
         
+        let lockEl = getEl('egg-lock');
+        let btnFocus = getEl('btn-focus') || document.querySelectorAll('#start-buttons-container .btn')[0];
+        let btnIncub = getEl('btn-incubator') || document.querySelectorAll('#start-buttons-container .btn')[1];
+        let titleEl = getEl('mode-title');
+        let subEl = getEl('mode-subtitle');
+
         if (userLevel < m.reqLevel) {
-            getEl('egg-lock').style.display = 'block';
-            getEl('btn-focus').disabled = true;
-            getEl('btn-incubator').disabled = true;
-            getEl('custom-egg-btn').style.display = 'none';
-            getEl('mode-title').textContent = `Доступно с ${m.reqLevel} уровня`;
-            getEl('mode-title').style.color = '#ff3b30';
-            getEl('mode-subtitle').innerHTML = m.title;
+            if(lockEl) lockEl.style.display = 'block';
+            if(btnFocus) btnFocus.disabled = true;
+            if(btnIncub) btnIncub.disabled = true;
+            if(custBtn) custBtn.style.display = 'none';
+            if(titleEl) { titleEl.textContent = `Доступно с ${m.reqLevel} уровня`; titleEl.style.color = '#ff3b30'; }
+            if(subEl) subEl.innerHTML = m.title;
         } else {
-            getEl('egg-lock').style.display = 'none';
-            getEl('btn-focus').disabled = false;
-            getEl('btn-incubator').disabled = false;
-            getEl('custom-egg-btn').style.display = currentModeIndex === 2 ? 'block' : 'none';
-            getEl('mode-title').textContent = m.title;
-            getEl('mode-title').style.color = 'white';
-            getEl('mode-subtitle').innerHTML = currentModeIndex === 2 ? `Настрой редкость <span style="font-size:10px;">(${customEggConfig.target})</span>` : m.sub;
+            if(lockEl) lockEl.style.display = 'none';
+            if(btnFocus) btnFocus.disabled = false;
+            if(btnIncub) btnIncub.disabled = false;
+            if(titleEl) { titleEl.textContent = m.title; titleEl.style.color = 'white'; }
+            if(subEl) subEl.innerHTML = currentModeIndex === 2 ? `Настрой редкость <span style="font-size:10px;">(${customEggConfig.target})</span>` : m.sub;
         }
     }
 }
@@ -2475,7 +2480,7 @@ async function claimExpedition() {
     let msgBonus = uniqueMutants > 0 ? ` (Мутанты: +${uniqueMutants*5}%)` : '';
     
     if(droppedShard) {
-        showToast(`Лут: +${reward} монет и ОСКОЛОК ПЕГАСА! 🧩`, "💰");
+        showToast(`Лут: +${reward} монет${msgBonus} и ОСКОЛОК ПЕГАСА! 🧩`, "💰");
         fireConfetti();
     } else {
         showToast(`Лут собран: +${reward} монет${msgBonus}!`, "💰");
