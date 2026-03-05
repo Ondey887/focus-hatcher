@@ -122,7 +122,7 @@
                 <h3 style="color: #8a2be2; margin-bottom: 5px;">Призыв Мифика 🔮</h3>
                 <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Собери 10 Осколков (или расщепи старых петов), чтобы получить случайного Мифического Пета!</p>
                 <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"><span id="pegasus-shards-count" style="color: #34c759;">0</span> / 10 Осколков</div>
-                <button id="craft-mythic-btn" class="btn locked" onclick="craftMythic()">Создать Мифика</button>
+                <button id="craft-mythic-btn" class="btn locked" onclick="startDnaPuzzle()">Создать Мифика</button>
             </div>
             <p style="font-size: 13px; color: #aaa; margin-bottom: 5px;">Соедини 5 одинаковых обычных петов для редкого:</p>
             <div style="font-size: 12px; color: #00A3FF; margin-bottom: 15px; font-weight: bold;">У вас Генов Мутации (Джокеров): <span id="joker-count-display">0</span> 🧬</div>
@@ -130,7 +130,16 @@
         </div>
     </div>
 
-    <div id="mythic-craft-modal" class="modal" style="display: none; z-index: 3500;">
+    <div id="dna-modal" class="modal" style="display: none; z-index: 3800;">
+        <div class="modal-content" style="background: #1c1c1e; border: 2px solid #8a2be2;">
+            <div class="modal-header"><h2 style="color: #8a2be2;">Синтез ДНК 🧬</h2><button class="close-btn" onclick="closeModal('dna-modal')">✖</button></div>
+            <p style="font-size: 12px; color: #aaa; margin-bottom: 15px;">Активируй все атомы (сделай красными)! Нажатие меняет соседние.</p>
+            <div id="dna-grid" class="dna-grid"></div>
+            <button class="btn" style="background: #555; margin-top:15px; padding: 10px;" onclick="startDnaPuzzle()">Перезапустить</button>
+        </div>
+    </div>
+
+    <div id="mythic-craft-modal" class="modal" style="display: none; z-index: 4000;">
         <div class="modal-content" style="background: #1c1c1e; border: 2px solid #8a2be2;">
             <h2 style="color: #8a2be2; margin-bottom: 20px;">Синтез Мифика...</h2>
             <div class="mythic-craft-container">
@@ -183,9 +192,9 @@
                             <div class="game-desc">Кооп-фокус на 10 часов</div>
                         </div>
                         <div class="party-game-card" onclick="requestStartMiniGame('tap_boss')">
-                            <div class="game-icon">⚔️</div>
-                            <div class="game-title">Гонка Яиц</div>
-                            <div class="game-desc">Разбей своё яйцо первым!</div>
+                            <div class="game-icon">☣️</div>
+                            <div class="game-title">Зараженное Яйцо</div>
+                            <div class="game-desc">Босс-Рейд: Уничтожь мутанта!</div>
                         </div>
                         <div class="party-game-card" onclick="requestStartMiniGame('expedition')">
                             <div class="game-icon">🗺️</div>
@@ -206,12 +215,28 @@
         </div>
     </div>
 
-    <div id="tap-boss-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="background: #1c1c1e; width: 95%; max-width: 400px;">
-            <div class="modal-header"><h2>Гонка Яиц!</h2><button class="close-btn" onclick="closeModal('tap-boss-modal')">✖</button></div>
-            <div style="font-size: 30px; font-weight: bold; color: #ff3b30;" id="boss-timer">60.0</div>
-            <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Тапай по СВОЕМУ яйцу! Кто первый разобьет — заберет 5000 монет!</p>
-            <div id="tap-battle-grid" class="tap-grid"></div>
+    <div id="boss-raid-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="background: #1c1c1e; width: 95%; max-width: 400px; position: relative; overflow: hidden;">
+            <div id="stun-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(57,255,20,0.3); z-index:100; backdrop-filter: blur(2px); justify-content:center; align-items:center; flex-direction:column;">
+                <div style="font-size: 50px;">🤢</div>
+                <div style="color:#39ff14; font-weight:bold; font-size:20px; text-shadow:0 0 10px #000;">ОГЛУШЕНИЕ!</div>
+            </div>
+            
+            <div class="modal-header"><h2>Зараженное Яйцо ☣️</h2><button class="close-btn" onclick="closeModal('boss-raid-modal')">✖</button></div>
+            <div style="font-size: 30px; font-weight: bold; color: #ff3b30;" id="raid-timer">60.0</div>
+            
+            <div class="progress-bar-bg" style="height: 20px; margin: 15px 0; border: 1px solid #39ff14; box-shadow: 0 0 10px rgba(57,255,20,0.5);">
+                <div id="raid-hp-fill" class="progress-bar-fill" style="background: #39ff14; width: 100%; transition: width 0.2s;"></div>
+            </div>
+            <div style="color: #39ff14; font-weight: bold; margin-bottom: 15px;" id="raid-hp-text">10000 / 10000 HP</div>
+            
+            <div id="raid-boss-container" style="position: relative; width: 200px; height: 200px; margin: 0 auto; cursor: pointer;" onclick="tapRaidBoss(event)">
+                <img src="assets/eggs/egg-glitch.png" id="raid-boss-img" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 20px #39ff14);">
+                <div id="parasites-container"></div>
+            </div>
+            
+            <h3 style="margin: 15px 0 5px 0; font-size: 14px; text-align:left; color:#aaa;">Урон команды:</h3>
+            <div id="raid-players-grid" class="tap-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 5px;"></div>
         </div>
     </div>
 

@@ -495,3 +495,8 @@ input:checked + .slider:before { transform: translateX(24px); }
     80% { transform: rotate(1080deg) scale(1); filter: brightness(0) drop-shadow(0 0 50px #fff); }
     100% { transform: rotate(1440deg) scale(1.2); filter: brightness(1) drop-shadow(0 0 50px #8a2be2); }
 }
+
+/* === DNA ПАЗЛ (RE: REQUIEM) === */
+.dna-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 220px; margin: 0 auto 20px auto; }
+.dna-node { width: 60px; height: 60px; background: #3a3a3c; border-radius: 10px; cursor: pointer; transition: all 0.3s; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+.dna-node.active { background: radial-gradient(circle, #ff3b30, #8b0000); border-radius: 50%; box-shadow: 0 0 15px #ff3b30, inset 0 0 10px #fff; transform: scale(1.1); }
