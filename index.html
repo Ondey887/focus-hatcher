@@ -14,7 +14,7 @@
         }
     </script>
     
-    <link rel="stylesheet" href="style.css?v=80">
+    <link rel="stylesheet" href="style.css?v=85">
 </head>
 <body>
 
@@ -308,10 +308,12 @@
                 <div class="stats-grid">
                     <div class="stat-box"><div class="stat-val" id="stat-hatched">0</div><div class="stat-label">Яиц</div></div>
                     <div class="stat-box"><div class="stat-val" id="stat-unique">0</div><div class="stat-label">Видов</div></div>
+                    
                     <div class="stat-box" style="cursor: pointer; border: 1px solid #ffd700; background: rgba(255,215,0,0.1);" onclick="openForbes()">
                         <div class="stat-val" id="stat-earned" style="color: #ffd700;">0</div>
                         <div class="stat-label">Капитал (Forbes 🏆)</div>
                     </div>
+
                     <div class="stat-box"><div class="stat-val" id="stat-invites">0</div><div class="stat-label">Бонусы</div></div>
                 </div>
             </div>
@@ -364,7 +366,7 @@
             <button class="btn" style="background: #007aff; margin-top: 15px;" onclick="activatePromo()">Активировать ✨</button>
         </div>
     </div>
-    
+
     <div id="tutorial-modal" class="modal" style="display: none; z-index: 3000;">
         <div class="modal-content" style="text-align: left;">
             <div class="modal-header" style="justify-content: center;"><h2>🎓 Как играть?</h2></div>
@@ -511,6 +513,7 @@
             </div>
 
             <div id="boosters-panel" class="boosters-container"></div>
+            
             <div id="timer">25:00</div>
             <div id="offline-warning" style="display: none; color: #ff3b30; font-size: 12px; margin-bottom: 5px; font-weight: bold;">Не закрывай приложение!</div>
             
@@ -528,6 +531,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=90"></script>
+    <script src="script.js?v=95"></script>
 </body>
 </html>

@@ -3,8 +3,10 @@
 // =============================================================
 const debugConsole = document.getElementById('debug-console');
 window.onerror = function(msg, source, lineno) {
-    debugConsole.style.display = 'block';
-    debugConsole.innerHTML += `<div class="error-msg">❌ ${msg} (стр. ${lineno})</div>`;
+    if(debugConsole) {
+        debugConsole.style.display = 'block';
+        debugConsole.innerHTML += `<div class="error-msg">❌ ${msg} (стр. ${lineno})</div>`;
+    }
     return false;
 };
 
@@ -151,7 +153,9 @@ function fireConfetti() {
 
 function getEl(id) { return document.getElementById(id); }
 function showToast(msg, icon='🔔') {
-    const c = getEl('toast-container'); const d = document.createElement('div');
+    const c = getEl('toast-container'); 
+    if(!c) return;
+    const d = document.createElement('div');
     let content = icon === 'img' ? `<img src="assets/ui/coin.png"> <span>${msg}</span>` : `<span>${icon}</span> <span>${msg}</span>`;
     d.className = 'toast'; d.innerHTML = content;
     c.appendChild(d); setTimeout(() => { d.classList.add('fade-out'); setTimeout(()=>d.remove(), 300); }, 3000);
@@ -159,6 +163,14 @@ function showToast(msg, icon='🔔') {
 function formatTime(s) { 
     if(s >= 3600) return `${Math.floor(s/3600)}ч ${Math.floor((s%3600)/60).toString().padStart(2,'0')}м`;
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; 
+}
+function getPetRarity(p) {
+    if(p === "god") return 'legendary';
+    if(petDatabase.mythic.includes(p)) return 'mythic';
+    if(petDatabase.mutant.includes(p)) return 'mutant';
+    if(petDatabase.legendary.includes(p)) return 'legendary';
+    if(petDatabase.rare.includes(p)) return 'rare';
+    return 'common';
 }
 function getPetImg(id) { return id === 'default' ? 'assets/ui/icon-profile.png' : `assets/pets/pet-${id}.png`; }
 function hardReset() { if(confirm("Сбросить все?")) { localStorage.clear(); location.reload(); } }
@@ -171,9 +183,7 @@ function getTgUser() {
     return { id: localStorage.getItem('fake_uid'), name: "Игрок" };
 }
 
-function isVip() {
-    return Date.now() < vipEndTime;
-}
+function isVip() { return Date.now() < vipEndTime; }
 
 // =============================================================
 // 3. БАЗЫ ДАННЫХ И КОНСТАНТЫ
@@ -219,15 +229,6 @@ const petDatabase = {
 };
 const ALL_PETS_FLAT = [...petDatabase.common, ...petDatabase.rare, ...petDatabase.legendary, ...petDatabase.mythic, ...petDatabase.mutant, "god"];
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
-
-function getPetRarity(p) {
-    if(p === "god") return 'legendary';
-    if(petDatabase.mythic.includes(p)) return 'mythic';
-    if(petDatabase.mutant.includes(p)) return 'mutant';
-    if(petDatabase.legendary.includes(p)) return 'legendary';
-    if(petDatabase.rare.includes(p)) return 'rare';
-    return 'common';
-}
 
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
@@ -302,6 +303,67 @@ const ROULETTE_PRIZES = {
 };
 
 // =============================================================
+// ГЛОБАЛЬНЫЕ ФУНКЦИИ (ДЛЯ ТУТОРИАЛА И НАГРАД)
+// =============================================================
+function checkTutorial() { 
+    if (!localStorage.getItem('tutorialSeen')) openModal('tutorial-modal'); 
+}
+
+window.closeTutorial = function() { 
+    localStorage.setItem('tutorialSeen', 'true'); 
+    closeModal('tutorial-modal'); 
+    checkDailyReward(); 
+}
+
+function checkDailyReward() {
+    const today = new Date().toDateString();
+    const lastLogin = localStorage.getItem('lastLoginDate');
+    let streak = parseInt(localStorage.getItem('dailyStreak')) || 0;
+    if (lastLogin === today) return; 
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    if (lastLogin !== yesterday.toDateString()) streak = 0;
+    renderDailyModal(streak); 
+    openModal('daily-modal'); 
+    playSound('win'); 
+}
+
+function renderDailyModal(curr) {
+    const g = getEl('daily-grid'); 
+    if(!g) return;
+    g.innerHTML = '';
+    DAILY_REWARDS.forEach((r, i) => {
+        const d = document.createElement('div');
+        let st = ''; if(i<curr) st='claimed'; if(i===curr) st='active';
+        d.className = `daily-item ${st}`;
+        let iconHTML = '';
+        if (r.type === 'money') iconHTML = `<img src="assets/ui/coin.png" class="daily-icon-img">`;
+        else if (r.type === 'booster' && r.id === 'speed') iconHTML = `<img src="assets/ui/booster-speed.png" class="daily-icon-img">`;
+        else if (r.type === 'mixed') iconHTML = `<img src="assets/ui/icon-trophy.png" class="daily-icon-img">`; 
+        let v = (r.type==='money'||r.type==='mixed') ? `+${r.money||r.val}` : '+1 Буст';
+        d.innerHTML = `<div class="daily-day">День ${r.day}</div>${iconHTML}<div class="daily-val">${v}</div>`;
+        g.appendChild(d);
+    });
+}
+
+window.claimDaily = function() {
+    let s = parseInt(localStorage.getItem('dailyStreak')) || 0;
+    const t = new Date().toDateString();
+    const l = localStorage.getItem('lastLoginDate');
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    if (l && l !== y.toDateString()) s = 0;
+    const r = DAILY_REWARDS[s];
+    
+    let bonusMult = isVip() ? 1.2 : 1;
+    
+    if (r.type === 'money') walletBalance += Math.floor(r.val * bonusMult);
+    else if (r.type === 'booster') { if (!myBoosters[r.id]) myBoosters[r.id] = 0; myBoosters[r.id]++; } 
+    else if (r.type === 'mixed') { walletBalance += Math.floor(r.money * bonusMult); if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; myBoosters[r.booster]++; }
+    s++; if (s >= 7) s = 0;
+    localStorage.setItem('dailyStreak', s); localStorage.setItem('lastLoginDate', t);
+    saveData(); updateBalanceUI(); showToast("Награда получена!", "📅"); closeModal('daily-modal'); playSound('money');
+}
+
+// =============================================================
 // 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
 // =============================================================
 function initGame() {
@@ -339,8 +401,10 @@ function initGame() {
 
     } catch(e) { console.error("Local Load Error", e); }
 
-    if (localStorage.getItem('tutorialSeen')) checkDailyReward();
-    if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
+    let profileBtn = getEl('header-profile-btn');
+    if (selectedAvatar !== 'default' && profileBtn) { 
+        profileBtn.innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`; 
+    }
     
     if(getEl('vibration-toggle')) { getEl('vibration-toggle').checked = isVibrationOn; getEl('vibration-toggle').onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     if(getEl('sound-toggle')) { getEl('sound-toggle').checked = isSoundOn; getEl('sound-toggle').onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
@@ -393,7 +457,10 @@ function loadFromCloud() {
                 if (values.lastRouletteDate) lastRouletteDate = values.lastRouletteDate;
                 if (values.boxAdsProgress) boxAdsProgress = JSON.parse(values.boxAdsProgress);
                 
-                if (selectedAvatar !== 'default') { getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar">`; }
+                let profileBtn = getEl('header-profile-btn');
+                if (selectedAvatar !== 'default' && profileBtn) { 
+                    profileBtn.innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`; 
+                }
                 saveData(true); 
             } else {
                 saveData(false);
@@ -415,7 +482,12 @@ function postInit() {
     applyEggSkin(); 
     apiSyncGlobalProfile();
     startInvitesPolling();
-    checkTutorial();
+    
+    if (localStorage.getItem('tutorialSeen')) {
+        checkDailyReward();
+    } else {
+        openModal('tutorial-modal');
+    }
 }
 
 function saveData(skipTimeUpdate = false) {
@@ -526,7 +598,9 @@ function openSettings() { openModal('settings-modal'); }
 function openAch() { switchAchTab('achievements'); openModal('achievements-modal'); }
 
 function renderShop() {
-    const c=getEl('shop-items'); c.innerHTML='';
+    const c=getEl('shop-items'); 
+    if(!c) return;
+    c.innerHTML='';
     
     if(currentShopTab === 'premium') {
         c.innerHTML = `
@@ -656,7 +730,8 @@ function buyItem(id, price) {
 function switchAchTab(t) { currentAchTab=t; document.querySelectorAll('#achievements-modal .tab-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); if(t==='achievements')renderAch();else renderQuests(); playSound('click'); }
 
 function renderAch() {
-    const c=getEl('achievements-list'); c.innerHTML=''; let u=new Set(collection).size;
+    const c=getEl('achievements-list'); if(!c) return;
+    c.innerHTML=''; let u=new Set(collection).size;
     ACHIEVEMENTS_DATA.forEach(a => {
         const claimed=claimedAchievements.includes(a.id); let done=false; 
         if(a.type==='money' && walletBalance >= a.goal) done = true;
@@ -673,7 +748,8 @@ function renderAch() {
 }
 
 function renderQuests() {
-    const c=getEl('achievements-list'); c.innerHTML='';
+    const c=getEl('achievements-list'); if(!c) return;
+    c.innerHTML='';
     QUESTS_DATA.forEach(q => {
         const claimed=claimedQuests.includes(q.id); const d=document.createElement('div'); d.className=`achievement-card ${claimed?'unlocked':''}`;
         let btn=''; if(claimed)btn="✅"; else if(q.type==='link')btn=`<button id="qbtn-${q.id}" class="buy-btn" style="background:#007aff" onclick="clickLink('${q.id}','${q.url}',${q.reward})">Выполнить</button>`; else if(q.type==='invite') { if((userStats.invites||0)>=q.goal)btn=`<button class="buy-btn" onclick="claimQuest('${q.id}',${q.reward})">Забрать ${q.reward} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle"></button>`; else btn=`<span style="font-size:12px;color:#888">${userStats.invites||0}/${q.goal}</span>`; }
@@ -726,6 +802,7 @@ function switchForbesTab(tab) {
 
 function renderForbesList(tab) {
     const container = getEl('forbes-list-container');
+    if(!container) return;
     container.innerHTML = '';
     if(!forbesDataCache || !forbesDataCache[tab]) return;
     
@@ -744,7 +821,7 @@ function renderForbesList(tab) {
         html += `
             <div class="forbes-item ${isMe}">
                 <div class="forbes-rank ${rankClass}">${rankNum}</div>
-                <img src="${getPetImg(p.avatar)}" class="forbes-avatar">
+                <img src="${getPetImg(p.avatar)}" class="forbes-avatar" onerror="this.src='assets/ui/icon-profile.png'">
                 <div class="forbes-info">
                     <div class="forbes-name">${p.name} ${isMe ? '(Ты)' : ''}</div>
                     <div class="forbes-lvl">Уровень ${p.level}</div>
@@ -763,38 +840,48 @@ function switchRouletteBox(type) {
     playSound('click');
     currentBoxType = type;
     document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => b.classList.remove('active'));
-    getEl(`r-tab-${type}`).classList.add('active');
+    let activeTab = getEl(`r-tab-${type}`);
+    if(activeTab) activeTab.classList.add('active');
     
     let cost = 10; let reqAds = 1;
     if(type === 'epic') { cost = 25; reqAds = 2; }
     if(type === 'mythic') { cost = 50; reqAds = 3; }
     
-    getEl('roulette-paid-btn').textContent = `Крутить за ${cost} ⭐️`;
+    let paidBtn = getEl('roulette-paid-btn');
+    if(paidBtn) paidBtn.textContent = `Крутить за ${cost} ⭐️`;
     
     const today = new Date().toDateString();
+    let freeBtn = getEl('roulette-free-btn');
+    let adBtn = getEl('roulette-ad-btn');
+
     if (type === 'base' && lastRouletteDate !== today) {
-        getEl('roulette-free-btn').style.display = 'block';
-        getEl('roulette-ad-btn').style.display = 'none';
-        getEl('roulette-paid-btn').style.display = 'none';
+        if(freeBtn) freeBtn.style.display = 'block';
+        if(adBtn) adBtn.style.display = 'none';
+        if(paidBtn) paidBtn.style.display = 'none';
     } else {
-        getEl('roulette-free-btn').style.display = 'none';
-        getEl('roulette-ad-btn').style.display = 'block';
-        getEl('roulette-paid-btn').style.display = 'block';
-        
-        if (type !== 'base') {
-            let watched = boxAdsProgress[type] || 0;
-            getEl('roulette-ad-btn').textContent = `Смотреть рекламу 📺 (${watched}/${reqAds})`;
-        } else {
-            getEl('roulette-ad-btn').textContent = `Смотреть рекламу 📺`;
+        if(freeBtn) freeBtn.style.display = 'none';
+        if(adBtn) {
+            adBtn.style.display = 'block';
+            if (type !== 'base') {
+                let watched = boxAdsProgress[type] || 0;
+                adBtn.textContent = `Смотреть рекламу 📺 (${watched}/${reqAds})`;
+            } else {
+                adBtn.textContent = `Смотреть рекламу 📺`;
+            }
         }
+        if(paidBtn) paidBtn.style.display = 'block';
     }
     
     let boxColor = '#fff';
     if(type === 'epic') boxColor = '#00A3FF';
     if(type === 'mythic') boxColor = '#ffd700';
-    getEl('roulette-box').style.filter = `drop-shadow(0 0 20px ${boxColor})`;
-    getEl('roulette-box').textContent = '🎁';
-    getEl('roulette-result-text').textContent = '';
+    let rBox = getEl('roulette-box');
+    if(rBox) {
+        rBox.style.filter = `drop-shadow(0 0 20px ${boxColor})`;
+        rBox.textContent = '🎁';
+    }
+    let resText = getEl('roulette-result-text');
+    if(resText) resText.textContent = '';
 }
 
 function openRouletteModal() {
@@ -810,6 +897,7 @@ function spinRouletteAd() {
     }
     
     const btn = getEl('roulette-ad-btn');
+    if(!btn) return;
     const orig = btn.textContent;
     btn.disabled = true; 
     btn.textContent = "Поиск видео...";
@@ -886,10 +974,11 @@ function spinRoulette(method) {
     
     const box = getEl('roulette-box');
     const resText = getEl('roulette-result-text');
+    if(!box || !resText) return;
     
-    getEl('roulette-free-btn').disabled = true;
-    getEl('roulette-ad-btn').disabled = true;
-    getEl('roulette-paid-btn').disabled = true;
+    if(getEl('roulette-free-btn')) getEl('roulette-free-btn').disabled = true;
+    if(getEl('roulette-ad-btn')) getEl('roulette-ad-btn').disabled = true;
+    if(getEl('roulette-paid-btn')) getEl('roulette-paid-btn').disabled = true;
     document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => b.disabled = true);
     
     box.className = 'roulette-box roulette-spinning';
@@ -897,9 +986,9 @@ function spinRoulette(method) {
     
     setTimeout(() => {
         box.className = 'roulette-box';
-        getEl('roulette-free-btn').disabled = false;
-        getEl('roulette-ad-btn').disabled = false;
-        getEl('roulette-paid-btn').disabled = false;
+        if(getEl('roulette-free-btn')) getEl('roulette-free-btn').disabled = false;
+        if(getEl('roulette-ad-btn')) getEl('roulette-ad-btn').disabled = false;
+        if(getEl('roulette-paid-btn')) getEl('roulette-paid-btn').disabled = false;
         document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => b.disabled = false);
         
         let rnd = Math.random() * 100;
@@ -1260,11 +1349,11 @@ function openAvatarSelector() {
     uniquePets.forEach(pet => {
         const div = document.createElement('div');
         div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
-        div.innerHTML = `<img src="assets/pets/pet-${pet}.png">`;
+        div.innerHTML = `<img src="assets/pets/pet-${pet}.png" onerror="this.src='assets/eggs/egg-default.png'">`;
         div.onclick = () => {
             selectedAvatar = pet; saveData();
-            getEl('profile-avatar').src = getPetImg(pet);
-            getEl('header-profile-btn').innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar">`;
+            let pAvatar = getEl('profile-avatar'); if(pAvatar) pAvatar.src = getPetImg(pet);
+            let hBtn = getEl('header-profile-btn'); if(hBtn) hBtn.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`;
             if(currentPartyCode) apiUpdatePlayerAvatar();
             closeModal('avatar-modal'); showToast("Аватар изменен!");
         };
@@ -1279,51 +1368,6 @@ async function apiUpdatePlayerAvatar() {
     try { await fetch(`${API_URL}/party/join`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin }) }); } catch(e) {}
 }
 
-function checkTutorial() { if (!localStorage.getItem('tutorialSeen')) openModal('tutorial-modal'); }
-window.closeTutorial = function() { localStorage.setItem('tutorialSeen', 'true'); closeModal('tutorial-modal'); checkDailyReward(); }
-
-function checkDailyReward() {
-    const today = new Date().toDateString();
-    const lastLogin = localStorage.getItem('lastLoginDate');
-    let streak = parseInt(localStorage.getItem('dailyStreak')) || 0;
-    if (lastLogin === today) return; 
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    if (lastLogin !== yesterday.toDateString()) streak = 0;
-    renderDailyModal(streak); openModal('daily-modal'); playSound('win'); 
-}
-function renderDailyModal(curr) {
-    const g = getEl('daily-grid'); g.innerHTML = '';
-    DAILY_REWARDS.forEach((r, i) => {
-        const d = document.createElement('div');
-        let st = ''; if(i<curr) st='claimed'; if(i===curr) st='active';
-        d.className = `daily-item ${st}`;
-        let iconHTML = '';
-        if (r.type === 'money') iconHTML = `<img src="assets/ui/coin.png" class="daily-icon-img">`;
-        else if (r.type === 'booster' && r.id === 'speed') iconHTML = `<img src="assets/ui/booster-speed.png" class="daily-icon-img">`;
-        else if (r.type === 'mixed') iconHTML = `<img src="assets/ui/icon-trophy.png" class="daily-icon-img">`; 
-        let v = (r.type==='money'||r.type==='mixed') ? `+${r.money||r.val}` : '+1 Буст';
-        d.innerHTML = `<div class="daily-day">День ${r.day}</div>${iconHTML}<div class="daily-val">${v}</div>`;
-        g.appendChild(d);
-    });
-}
-window.claimDaily = function() {
-    let s = parseInt(localStorage.getItem('dailyStreak')) || 0;
-    const t = new Date().toDateString();
-    const l = localStorage.getItem('lastLoginDate');
-    const y = new Date(); y.setDate(y.getDate() - 1);
-    if (l && l !== y.toDateString()) s = 0;
-    const r = DAILY_REWARDS[s];
-    
-    let bonusMult = isVip() ? 1.2 : 1;
-    
-    if (r.type === 'money') walletBalance += Math.floor(r.val * bonusMult);
-    else if (r.type === 'booster') { if (!myBoosters[r.id]) myBoosters[r.id] = 0; myBoosters[r.id]++; } 
-    else if (r.type === 'mixed') { walletBalance += Math.floor(r.money * bonusMult); if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; myBoosters[r.booster]++; }
-    s++; if (s >= 7) s = 0;
-    localStorage.setItem('dailyStreak', s); localStorage.setItem('lastLoginDate', t);
-    saveData(); updateBalanceUI(); showToast("Награда получена!", "📅"); closeModal('daily-modal'); playSound('money');
-}
-
 // =============================================================
 // 8. БАЗОВЫЙ ТАЙМЕР И ФОКУС (С УРОВНЯМИ И МУТАНТАМИ)
 // =============================================================
@@ -1332,16 +1376,18 @@ document.addEventListener("visibilitychange", () => {
 });
 
 function updateBalanceUI() {
-    getEl('total-money').innerHTML = `<img src="assets/ui/coin.png" class="coin-img"> ${walletBalance}`;
+    let moneyEl = getEl('total-money'); if(moneyEl) moneyEl.innerHTML = `<img src="assets/ui/coin.png" class="coin-img"> ${walletBalance}`;
     let starsEl = getEl('total-stars');
     if(starsEl) starsEl.innerHTML = `<span style="font-size: 20px; margin-right: 4px;">⭐️</span> ${userStars} <span style="font-size: 14px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 8px; margin-left: 5px;">+</span>`;
-    getEl('unique-count').textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
+    let uc = getEl('unique-count'); if(uc) uc.textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
     checkAchievements();
     renderBoostersPanel();
 }
 
 function renderBoostersPanel() {
-    const p = getEl('boosters-panel'); p.innerHTML = '';
+    const p = getEl('boosters-panel'); 
+    if(!p) return;
+    p.innerHTML = '';
     p.appendChild(createBoosterBtn('luck', 'assets/ui/booster-luck.png', myBoosters.luck||0, activeBoosters.luck));
     p.appendChild(createBoosterBtn('speed', 'assets/ui/booster-speed.png', myBoosters.speed||0, activeBoosters.speed));
     p.appendChild(createBoosterBtn('bio', '💉', myBoosters.bio||0, activeBoosters.bio)); 
@@ -1366,18 +1412,21 @@ function nextMode() { if(!isRunning) { currentModeIndex++; if(currentModeIndex>=
 
 function openCustomEggModal() { updateCustomEggTimes(); openModal('custom-egg-modal'); }
 function updateCustomEggTimes() {
-    const r = getEl('custom-rarity-select').value;
-    if (r === 'rare' && userLevel < 10) { showToast("Редкие с 10 уровня!", "🔒"); getEl('custom-rarity-select').value = 'common'; return; }
-    if (r === 'legendary' && userLevel < 20) { showToast("Легендарки с 20 уровня!", "🔒"); getEl('custom-rarity-select').value = 'common'; return; }
+    let sel = getEl('custom-rarity-select'); if(!sel) return;
+    const r = sel.value;
+    if (r === 'rare' && userLevel < 10) { showToast("Редкие с 10 уровня!", "🔒"); sel.value = 'common'; return; }
+    if (r === 'legendary' && userLevel < 20) { showToast("Легендарки с 20 уровня!", "🔒"); sel.value = 'common'; return; }
 
     if(r==='all') { customEggConfig.timeOnline=3600; customEggConfig.timeOffline=5*3600; }
     else if(r==='common') { customEggConfig.timeOnline=3600; customEggConfig.timeOffline=6*3600; }
     else if(r==='rare') { customEggConfig.timeOnline=2*3600; customEggConfig.timeOffline=7*3600; }
     else if(r==='legendary') { customEggConfig.timeOnline=3*3600; customEggConfig.timeOffline=8*3600; }
-    getEl('custom-egg-times').textContent = `Онлайн: ${customEggConfig.timeOnline/3600} ч | Оффлайн: ${customEggConfig.timeOffline/3600} ч`;
+    
+    let timesEl = getEl('custom-egg-times');
+    if(timesEl) timesEl.textContent = `Онлайн: ${customEggConfig.timeOnline/3600} ч | Оффлайн: ${customEggConfig.timeOffline/3600} ч`;
 }
 function saveCustomEgg() {
-    customEggConfig.target = getEl('custom-rarity-select').value;
+    let sel = getEl('custom-rarity-select'); if(sel) customEggConfig.target = sel.value;
     closeModal('custom-egg-modal');
     updateUI();
 }
@@ -1399,8 +1448,8 @@ function updateUI() {
         let custBtn = getEl('custom-egg-btn'); if(custBtn) custBtn.style.display = currentModeIndex === 2 ? 'block' : 'none';
         
         let lockEl = getEl('egg-lock');
-        let btnFocus = getEl('btn-focus') || document.querySelectorAll('#start-buttons-container .btn')[0];
-        let btnIncub = getEl('btn-incubator') || document.querySelectorAll('#start-buttons-container .btn')[1];
+        let btnFocus = getEl('btn-focus') || (document.querySelectorAll('#start-buttons-container .btn').length > 0 ? document.querySelectorAll('#start-buttons-container .btn')[0] : null);
+        let btnIncub = getEl('btn-incubator') || (document.querySelectorAll('#start-buttons-container .btn').length > 1 ? document.querySelectorAll('#start-buttons-container .btn')[1] : null);
         let titleEl = getEl('mode-title');
         let subEl = getEl('mode-subtitle');
 
@@ -1457,31 +1506,41 @@ function startTimer(mode, isResuming = false) {
     }
     
     isRunning = true;
-    getEl('timer').textContent = formatTime(timeLeft);
-    getEl('start-buttons-container').style.display = 'none';
-    getEl('main-btn').style.display = 'block'; getEl('main-btn').textContent = "Сдаться"; getEl('main-btn').className = "btn stop";
-    getEl('share-btn').style.display = 'none'; getEl('prev-btn').style.visibility = 'hidden'; getEl('next-btn').style.visibility = 'hidden';
-    getEl('hatched-info').style.display = 'none'; getEl('custom-egg-btn').style.display = 'none';
-    if (mode === 'online') getEl('offline-warning').style.display = 'block';
+    let timerEl = getEl('timer'); if(timerEl) timerEl.textContent = formatTime(timeLeft);
+    let sbc = getEl('start-buttons-container'); if(sbc) sbc.style.display = 'none';
+    let mb = getEl('main-btn'); if(mb) { mb.style.display = 'block'; mb.textContent = "Сдаться"; mb.className = "btn stop"; }
+    let sb = getEl('share-btn'); if(sb) sb.style.display = 'none';
+    let pb = getEl('prev-btn'); if(pb) pb.style.visibility = 'hidden';
+    let nb = getEl('next-btn'); if(nb) nb.style.visibility = 'hidden';
+    let hi = getEl('hatched-info'); if(hi) hi.style.display = 'none';
+    let ceb = getEl('custom-egg-btn'); if(ceb) ceb.style.display = 'none';
+    let ow = getEl('offline-warning'); if(ow) { if (mode === 'online') ow.style.display = 'block'; else ow.style.display = 'none'; }
 
     if (!isResuming) {
-        if (m.egg === 'diamond') getEl('egg-display').src = 'assets/eggs/egg-diamond.png';
-        else applyEggSkin();
-        getEl('crack-overlay').className = 'crack-overlay'; 
+        let egg = getEl('egg-display');
+        if(egg) {
+            if (m.egg === 'diamond') egg.src = 'assets/eggs/egg-diamond.png';
+            else applyEggSkin();
+        }
+        let co = getEl('crack-overlay'); if(co) co.className = 'crack-overlay'; 
     }
     
-    getEl('egg-display').className = 'egg-img shaking'; renderBoostersPanel();
+    let egg = getEl('egg-display'); if(egg) egg.className = 'egg-img shaking'; 
+    renderBoostersPanel();
     
     const totalTime = isResuming ? timeLeft : baseTime; 
     
     if(timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        timeLeft--; getEl('timer').textContent = formatTime(timeLeft);
+        timeLeft--; 
+        let t = getEl('timer'); if(t) t.textContent = formatTime(timeLeft);
         const progress = 1 - (timeLeft / totalTime);
         const overlay = getEl('crack-overlay');
-        if (progress > 0.25 && progress < 0.5) overlay.className = 'crack-overlay crack-stage-1';
-        else if (progress >= 0.5 && progress < 0.75) overlay.className = 'crack-overlay crack-stage-2';
-        else if (progress >= 0.75) overlay.className = 'crack-overlay crack-stage-3';
+        if(overlay) {
+            if (progress > 0.25 && progress < 0.5) overlay.className = 'crack-overlay crack-stage-1';
+            else if (progress >= 0.5 && progress < 0.75) overlay.className = 'crack-overlay crack-stage-2';
+            else if (progress >= 0.75) overlay.className = 'crack-overlay crack-stage-3';
+        }
         if(timeLeft <= 0) finishTimer();
     }, 1000);
 }
@@ -1491,14 +1550,14 @@ function stopTimer(failed = false) {
     isRunning = false;
     
     if (failed) {
-        getEl('resurrect-modal').style.display = 'flex';
+        let rm = getEl('resurrect-modal'); if(rm) rm.style.display = 'flex';
         let resTime = 20; 
-        getEl('resurrect-timer').textContent = resTime;
+        let rt = getEl('resurrect-timer'); if(rt) rt.textContent = resTime;
         
         if (resurrectCountdownInterval) clearInterval(resurrectCountdownInterval);
         resurrectCountdownInterval = setInterval(() => {
             resTime--;
-            getEl('resurrect-timer').textContent = resTime;
+            if(rt) rt.textContent = resTime;
             if (resTime <= 0) {
                 confirmFail(true);
             }
@@ -1515,7 +1574,7 @@ function resurrectEgg() {
         updateBalanceUI();
         
         clearInterval(resurrectCountdownInterval);
-        getEl('resurrect-modal').style.display = 'none';
+        let rm = getEl('resurrect-modal'); if(rm) rm.style.display = 'none';
         showToast("Яйцо спасено! Продолжаем фокус.", "✨");
         
         startTimer(currentHatchMode, true);
@@ -1527,20 +1586,19 @@ function resurrectEgg() {
 
 function confirmFail(wasInterrupted = true) {
     clearInterval(resurrectCountdownInterval);
-    getEl('resurrect-modal').style.display = 'none';
+    let rm = getEl('resurrect-modal'); if(rm) rm.style.display = 'none';
     
     localStorage.removeItem('hatchEndTime'); 
-    getEl('main-btn').style.display = 'none'; 
-    getEl('start-buttons-container').style.display = 'flex';
-    getEl('prev-btn').style.visibility = 'visible'; 
-    getEl('next-btn').style.visibility = 'visible';
-    getEl('offline-warning').style.display = 'none';
+    let mb = getEl('main-btn'); if(mb) mb.style.display = 'none'; 
+    let sbc = getEl('start-buttons-container'); if(sbc) sbc.style.display = 'flex';
+    let pb = getEl('prev-btn'); if(pb) pb.style.visibility = 'visible'; 
+    let nb = getEl('next-btn'); if(nb) nb.style.visibility = 'visible';
+    let ow = getEl('offline-warning'); if(ow) ow.style.display = 'none';
     
     const eggDisplay = getEl('egg-display'); 
-    eggDisplay.className = 'egg-img'; 
-    eggDisplay.classList.remove('shaking'); 
-    getEl('crack-overlay').className = 'crack-overlay'; 
-    getEl('hatched-info').style.display = 'none';
+    if(eggDisplay) { eggDisplay.className = 'egg-img'; eggDisplay.classList.remove('shaking'); }
+    let co = getEl('crack-overlay'); if(co) co.className = 'crack-overlay'; 
+    let hi = getEl('hatched-info'); if(hi) hi.style.display = 'none';
     
     updateUI(); 
     renderBoostersPanel();
@@ -1555,10 +1613,13 @@ function confirmFail(wasInterrupted = true) {
 
 function finishTimer(fromOffline = false) {
     clearInterval(timerInterval); isRunning = false; localStorage.removeItem('hatchEndTime');
-    getEl('offline-warning').style.display = 'none'; getEl('main-btn').style.display = 'none';
-    getEl('start-buttons-container').style.display = 'flex'; getEl('share-btn').style.display = 'block'; 
-    getEl('prev-btn').style.visibility = 'visible'; getEl('next-btn').style.visibility = 'visible';
-    getEl('crack-overlay').className = 'crack-overlay';
+    let ow = getEl('offline-warning'); if(ow) ow.style.display = 'none'; 
+    let mb = getEl('main-btn'); if(mb) mb.style.display = 'none';
+    let sbc = getEl('start-buttons-container'); if(sbc) sbc.style.display = 'flex'; 
+    let sb = getEl('share-btn'); if(sb) sb.style.display = 'block'; 
+    let pb = getEl('prev-btn'); if(pb) pb.style.visibility = 'visible'; 
+    let nb = getEl('next-btn'); if(nb) nb.style.visibility = 'visible';
+    let co = getEl('crack-overlay'); if(co) co.className = 'crack-overlay';
 
     let vipMult = isVip() ? 1.2 : 1;
     const m = MODES[currentModeIndex]; userXP += Math.floor(m.xpReward * vipMult); 
@@ -1617,11 +1678,16 @@ function finishTimer(fromOffline = false) {
     const dropped = pool[Math.floor(Math.random()*pool.length)]; collection.push(dropped); saveData();
     
     const eggDisplay = getEl('egg-display');
-    eggDisplay.src = `assets/pets/pet-${dropped}.png`; eggDisplay.className = `hatched-img ${getPetRarity(dropped)}`;
+    if(eggDisplay) {
+        eggDisplay.src = `assets/pets/pet-${dropped}.png`; 
+        eggDisplay.className = `hatched-img ${getPetRarity(dropped)}`;
+    }
     
-    const infoBox = getEl('hatched-info'); getEl('hatched-name').textContent = PET_NAMES[dropped] || "Питомец";
-    const rarityElem = getEl('hatched-rarity'); rarityElem.textContent = getPetRarity(dropped); rarityElem.className = getPetRarity(dropped);
-    infoBox.style.display = 'block';
+    const infoBox = getEl('hatched-info'); 
+    let hn = getEl('hatched-name'); if(hn) hn.textContent = PET_NAMES[dropped] || "Питомец";
+    const rarityElem = getEl('hatched-rarity'); 
+    if(rarityElem) { rarityElem.textContent = getPetRarity(dropped); rarityElem.className = getPetRarity(dropped); }
+    if(infoBox) infoBox.style.display = 'block';
     
     fireConfetti(); showToast(`Получено!`, "🐣"); updateBalanceUI();
     if(isVibrationOn && window.navigator.vibrate) window.navigator.vibrate(200);
@@ -1631,30 +1697,35 @@ function finishTimer(fromOffline = false) {
 // 9. ЛАБОРАТОРИЯ (СИНТЕЗ И МИФИКИ)
 // =============================================================
 function openCraft() {
-    getEl('pegasus-shards-count').textContent = pegasusShards;
-    getEl('joker-count-display').textContent = userJokers;
+    let psc = getEl('pegasus-shards-count'); if(psc) psc.textContent = pegasusShards;
+    let jcd = getEl('joker-count-display'); if(jcd) jcd.textContent = userJokers;
     
-    if(pegasusShards >= 10) {
-        getEl('craft-mythic-btn').className = "btn";
-        getEl('craft-mythic-btn').style.background = "#8a2be2";
-        getEl('craft-mythic-btn').style.color = "white";
-        getEl('craft-mythic-btn').style.boxShadow = "0 0 15px rgba(138, 43, 226, 0.8)";
-    } else {
-        getEl('craft-mythic-btn').className = "btn locked";
-        getEl('craft-mythic-btn').style.boxShadow = "none";
+    let cmb = getEl('craft-mythic-btn');
+    if(cmb) {
+        if(pegasusShards >= 10) {
+            cmb.className = "btn";
+            cmb.style.background = "#8a2be2";
+            cmb.style.color = "white";
+            cmb.style.boxShadow = "0 0 15px rgba(138, 43, 226, 0.8)";
+        } else {
+            cmb.className = "btn locked";
+            cmb.style.boxShadow = "none";
+        }
     }
 
-    const c = getEl('craft-list'); c.innerHTML = ''; let canCraft = false;
+    const c = getEl('craft-list'); 
+    if(!c) return;
+    c.innerHTML = ''; let canCraft = false;
     [...petDatabase.common].forEach(pet => {
         const count = collection.filter(p => p === pet).length;
         if(count >= 5) {
             canCraft = true; const r = getPetRarity(pet); const d = document.createElement('div'); d.className = `pet-slot ${r}`;
-            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot"><div class="slot-count" style="background:#ff3b30">${count}/5</div>`;
+            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'"><div class="slot-count" style="background:#ff3b30">${count}/5</div>`;
             d.onclick = () => craftPet(pet, 0); c.appendChild(d);
         } else if (count > 0 && count < 5 && userJokers >= (5 - count)) {
             canCraft = true; const r = getPetRarity(pet); const d = document.createElement('div'); d.className = `pet-slot ${r}`;
             d.style.borderColor = '#00A3FF';
-            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot"><div class="slot-count" style="background:#00A3FF">+${5-count} 🧬</div>`;
+            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'"><div class="slot-count" style="background:#00A3FF">+${5-count} 🧬</div>`;
             d.onclick = () => craftPet(pet, 5 - count); c.appendChild(d);
         }
     });
@@ -1670,8 +1741,11 @@ function craftMythic() {
         openModal('mythic-craft-modal');
         playSound('legendary');
         
-        getEl('mythic-silhouette').className = 'mythic-silhouette spinning';
-        getEl('mythic-silhouette').src = 'assets/eggs/egg-default.png';
+        let ms = getEl('mythic-silhouette');
+        if(ms) {
+            ms.className = 'mythic-silhouette spinning';
+            ms.src = 'assets/eggs/egg-default.png';
+        }
         
         setTimeout(() => {
             let pool = petDatabase.mythic;
@@ -1679,8 +1753,10 @@ function craftMythic() {
             collection.push(dropped);
             saveData(); updateBalanceUI();
             
-            getEl('mythic-silhouette').className = 'mythic-silhouette revealed';
-            getEl('mythic-silhouette').src = `assets/pets/pet-${dropped}.png`;
+            if(ms) {
+                ms.className = 'mythic-silhouette revealed';
+                ms.src = `assets/pets/pet-${dropped}.png`;
+            }
             
             showToast(`МИФИК СОЗДАН: ${PET_NAMES[dropped]}! 🦄`, "🌟");
             fireConfetti();
@@ -1747,13 +1823,13 @@ function openInventory() {
         const count = collection.filter(p => p === pet).length;
         const r = getPetRarity(pet); const d = document.createElement('div');
         if(count > 0) {
-            d.className = `pet-slot ${r}`; d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot">`;
+            d.className = `pet-slot ${r}`; d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`;
             if(count > 1) { const b = document.createElement('div'); b.className = 'slot-count'; b.textContent = `x${count}`; d.appendChild(b); }
             d.onclick = () => openPetModal(pet, true);
         } else {
             d.className = `pet-slot locked`; 
-            if(r === 'mythic') {
-                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" style="filter:brightness(0) opacity(0.5);" onerror="this.src='assets/eggs/egg-default.png'"> <div style="position:absolute; font-size: 24px; font-weight:bold; color:#8a2be2; text-shadow: 0 0 5px #000;">?</div>`;
+            if(r === 'mythic' || r === 'mutant') {
+                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" style="filter:brightness(0) opacity(0.5);" onerror="this.src='assets/eggs/egg-default.png'"> <div style="position:absolute; font-size: 24px; font-weight:bold; color:${r==='mutant'?'#39ff14':'#8a2be2'}; text-shadow: 0 0 5px #000;">?</div>`;
             } else {
                 d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`;
             }
@@ -1774,13 +1850,16 @@ function openPetModal(pet, owned) {
         if (r === 'legendary') splinterBtn = `<button class="btn" style="background:#ff3b30; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,59,48,0.5);" onclick="splinterPet('${pet}', 'legendary')">Расщепить (100% 1-2 🧩)</button>`;
     }
 
-    getEl('pet-detail-view').innerHTML = owned ? 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" onerror="this.src='assets/eggs/egg-default.png'">
-         <h3 class="pet-name">${petName}</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
-         <button class="btn sell-action" onclick="sellPet()">Продать ${p}</button>
-         ${splinterBtn}` : 
-        `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)" onerror="this.src='assets/eggs/egg-default.png'">
-         <h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
+    let pdv = getEl('pet-detail-view');
+    if(pdv) {
+        pdv.innerHTML = owned ? 
+            `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" onerror="this.src='assets/eggs/egg-default.png'">
+             <h3 class="pet-name">${petName}</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
+             <button class="btn sell-action" onclick="sellPet()">Продать ${p}</button>
+             ${splinterBtn}` : 
+            `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)" onerror="this.src='assets/eggs/egg-default.png'">
+             <h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
+    }
     openModal('pet-modal');
 }
 
@@ -1800,13 +1879,15 @@ function toggleInventory() { openInventory(); }
 // =============================================================
 
 function openPartyModal() {
+    let psv = getEl('party-setup-view');
+    let pav = getEl('party-active-view');
     if (currentPartyCode) {
-        getEl('party-setup-view').style.display = 'none';
-        getEl('party-active-view').style.display = 'block';
+        if(psv) psv.style.display = 'none';
+        if(pav) pav.style.display = 'block';
         startPartyPolling(); 
     } else {
-        getEl('party-setup-view').style.display = 'block';
-        getEl('party-active-view').style.display = 'none';
+        if(psv) psv.style.display = 'block';
+        if(pav) pav.style.display = 'none';
     }
     openModal('party-modal');
 }
@@ -1826,9 +1907,9 @@ async function apiCreateParty() {
         });
         const data = await res.json();
         currentPartyCode = data.partyCode;
-        getEl('current-party-code').textContent = currentPartyCode;
-        getEl('party-setup-view').style.display = 'none';
-        getEl('party-active-view').style.display = 'block';
+        let cpc = getEl('current-party-code'); if(cpc) cpc.textContent = currentPartyCode;
+        let psv = getEl('party-setup-view'); if(psv) psv.style.display = 'none';
+        let pav = getEl('party-active-view'); if(pav) pav.style.display = 'block';
         showToast("Пати создано! Ты лидер 👑", "🎮");
         startPartyPolling();
     } catch (e) { showToast("Ошибка сервера", "❌"); }
@@ -1837,7 +1918,8 @@ async function apiCreateParty() {
 
 async function apiJoinParty(prefilledCode = null) {
     playSound('click');
-    const code = prefilledCode || getEl('party-code-input').value.trim();
+    const input = getEl('party-code-input');
+    const code = prefilledCode || (input ? input.value.trim() : '');
     if(code.length < 4) return showToast("Неверный код", "❌");
     const user = getTgUser();
     
@@ -1851,9 +1933,9 @@ async function apiJoinParty(prefilledCode = null) {
         });
         if(res.ok) {
             currentPartyCode = code;
-            getEl('current-party-code').textContent = currentPartyCode;
-            getEl('party-setup-view').style.display = 'none';
-            getEl('party-active-view').style.display = 'block';
+            let cpc = getEl('current-party-code'); if(cpc) cpc.textContent = currentPartyCode;
+            let psv = getEl('party-setup-view'); if(psv) psv.style.display = 'none';
+            let pav = getEl('party-active-view'); if(pav) pav.style.display = 'block';
             showToast("Успешный вход!", "✅");
             startPartyPolling();
         } else showToast("Пати не найдено", "❌");
@@ -1887,13 +1969,15 @@ async function apiLeaveParty(localOnly = false) {
         if(modalStack.includes(m)) closeModal(m);
     });
 
-    getEl('party-setup-view').style.display = 'block';
-    getEl('party-active-view').style.display = 'none';
-    getEl('return-game-btn').style.display = 'none';
+    let psv = getEl('party-setup-view'); if(psv) psv.style.display = 'block';
+    let pav = getEl('party-active-view'); if(pav) pav.style.display = 'none';
+    let rgb = getEl('return-game-btn'); if(rgb) rgb.style.display = 'none';
 }
 
 function renderPartyPlayers(players) {
-    const container = getEl('party-players-list'); container.innerHTML = '';
+    const container = getEl('party-players-list'); 
+    if(!container) return;
+    container.innerHTML = '';
     const header = document.querySelector('#party-active-view h3');
     if (header && players.length) header.innerHTML = `Игроки <span id="leader-badge" style="color: #ffd700; font-size: 12px; display: ${isPartyLeader ? 'inline' : 'none'};">(Вы Лидер 👑)</span>`;
     players.forEach(p => {
@@ -1950,30 +2034,35 @@ function startPartyPolling() {
 }
 
 function updatePartyUI() {
+    let plc = getEl('party-leader-controls');
+    let pmc = getEl('party-member-controls');
+    let cgb = getEl('cancel-game-btn');
+    let rgb = getEl('return-game-btn');
+
     if (isPartyLeader) {
-        getEl('party-leader-controls').style.display = 'block';
-        getEl('party-member-controls').style.display = 'none';
+        if(plc) plc.style.display = 'block';
+        if(pmc) pmc.style.display = 'none';
         if (currentActiveGame !== 'none') {
-            getEl('cancel-game-btn').style.display = 'block';
-            getEl('party-leader-controls').style.opacity = '0.5';
-            getEl('party-leader-controls').style.pointerEvents = 'none';
+            if(cgb) cgb.style.display = 'block';
+            if(plc) { plc.style.opacity = '0.5'; plc.style.pointerEvents = 'none'; }
         } else {
-            getEl('cancel-game-btn').style.display = 'none';
-            getEl('party-leader-controls').style.opacity = '1';
-            getEl('party-leader-controls').style.pointerEvents = 'auto';
+            if(cgb) cgb.style.display = 'none';
+            if(plc) { plc.style.opacity = '1'; plc.style.pointerEvents = 'auto'; }
         }
     } else {
-        getEl('party-leader-controls').style.display = 'none';
-        getEl('cancel-game-btn').style.display = 'none';
-        getEl('party-member-controls').style.display = 'block';
-        if (currentActiveGame !== 'none') getEl('party-member-controls').innerHTML = `Игра "<b>${getGameName(currentActiveGame)}</b>" запущена!`;
-        else getEl('party-member-controls').innerHTML = "⏳ Ожидание лидера...";
+        if(plc) plc.style.display = 'none';
+        if(cgb) cgb.style.display = 'none';
+        if(pmc) {
+            pmc.style.display = 'block';
+            if (currentActiveGame !== 'none') pmc.innerHTML = `Игра "<b>${getGameName(currentActiveGame)}</b>" запущена!`;
+            else pmc.innerHTML = "⏳ Ожидание лидера...";
+        }
     }
     
     if (currentActiveGame !== 'none' && !modalStack.includes(getModalIdForGame(currentActiveGame))) {
-        getEl('return-game-btn').style.display = 'block';
+        if(rgb) rgb.style.display = 'block';
     } else {
-        getEl('return-game-btn').style.display = 'none';
+        if(rgb) rgb.style.display = 'none';
     }
 }
 
@@ -2023,7 +2112,7 @@ function forceOpenMiniGame(gameType) {
     let modalId = getModalIdForGame(gameType);
     if(gameType === 'tap_boss') { 
         bossTimeLeft = 60; bossIsDead = false; 
-        getEl('tap-battle-grid').innerHTML = ''; 
+        let tbg = getEl('tap-battle-grid'); if(tbg) tbg.innerHTML = ''; 
         if(bossTimerInterval) clearInterval(bossTimerInterval);
         bossTimerInterval = setInterval(() => {
             bossTimeLeft -= 0.1; const timerEl = getEl('boss-timer'); if(timerEl) timerEl.textContent = bossTimeLeft.toFixed(1);
@@ -2067,7 +2156,9 @@ function forceCloseMiniGame(gameType) {
 // 11. МИНИ-ИГРА: ГОНКА ЯИЦ
 // =============================================================
 function renderTapBattle(players) {
-    const grid = getEl('tap-battle-grid'); const myId = getTgUser().id; grid.innerHTML = '';
+    const grid = getEl('tap-battle-grid'); 
+    if(!grid) return;
+    const myId = getTgUser().id; grid.innerHTML = '';
     players.forEach(p => {
         const isMe = p.user_id === myId; const hpPercent = (p.boss_hp / 10000) * 100;
         let eggSkin = p.egg_skin || 'default'; const item = SHOP_DATA.eggs.find(x => x.id === eggSkin);
@@ -2085,6 +2176,7 @@ function renderTapBattle(players) {
 
 function updateTapBattleUI(players) {
     const grid = getEl('tap-battle-grid');
+    if(!grid) return;
     if(!grid.innerHTML || grid.children.length !== players.length) {
         renderTapBattle(players);
     } else {
@@ -2135,9 +2227,9 @@ async function apiAddMegaEggTime(seconds) {
 
 function updateMegaEggUI(progress, target) {
     let p = (progress / target) * 100; if(p>100) p=100;
-    getEl('mega-egg-bar').style.width = `${p}%`;
-    getEl('mega-egg-text').textContent = `${Math.floor(progress/3600)} / ${Math.floor(target/3600)} Часов`;
-    getEl('mega-egg-claim-btn').style.display = (progress >= target) ? 'block' : 'none';
+    let meb = getEl('mega-egg-bar'); if(meb) meb.style.width = `${p}%`;
+    let met = getEl('mega-egg-text'); if(met) met.textContent = `${Math.floor(progress/3600)} / ${Math.floor(target/3600)} Часов`;
+    let mecb = getEl('mega-egg-claim-btn'); if(mecb) mecb.style.display = (progress >= target) ? 'block' : 'none';
     const eggImg = getEl('mega-egg-img-display');
     if (eggImg) {
         if(p > 0 && p < 50) eggImg.className = 'mega-egg-img pulse-slow';
@@ -2479,16 +2571,13 @@ async function claimExpedition() {
     
     let msgBonus = uniqueMutants > 0 ? ` (Мутанты: +${uniqueMutants*5}%)` : '';
     
-    if(droppedShard) {
-        showToast(`Лут: +${reward} монет${msgBonus} и ОСКОЛОК ПЕГАСА! 🧩`, "💰");
+        if(droppedShard) {
+            showToast(`+${reward} монет + 1 Осколок Пегаса! 🧩`, 'img');
+        } else {
+            showToast(`+${reward} монет${msgBonus}!`, 'img');
+        }
+        
         fireConfetti();
-    } else {
-        showToast(`Лут собран: +${reward} монет${msgBonus}!`, "💰");
+        try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
+        closeModal('expedition-modal');
     }
-
-    try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
-    closeModal('expedition-modal');
-    if(isPartyLeader) requestStopMiniGame(); 
-}
-
-window.onload = initGame;
