@@ -6,7 +6,7 @@
     <title>Focus Hatcher</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <script async src="https://gamepush.com/sdk/gamepush.js?projectId=26959&publicToken=3PVGlIWWQ1Cldc3wVDN22SZ68QxJOLxp&callback=onGamePushReady"></script>
+    <script async src="https://gamepush.com/sdk/gamepush.js?projectId=26959&publicToken=3PVGlIWWQ1Cldc3wVDN22SZ68QxJ0Lxp&callback=onGamePushReady"></script>
     <script>
         function onGamePushReady(gp) {
             window.gp = gp;
@@ -14,7 +14,7 @@
         }
     </script>
     
-    <link rel="stylesheet" href="style.css?v=68">
+    <link rel="stylesheet" href="style.css?v=80">
 </head>
 <body>
 
@@ -45,24 +45,19 @@
                 <button class="tab-btn active" onclick="switchForbesTab('global')">Мир 🌍</button>
                 <button class="tab-btn" onclick="switchForbesTab('friends')">Друзья 🤝</button>
             </div>
-            <div id="forbes-list-container" class="forbes-list">
-                </div>
+            <div id="forbes-list-container" class="forbes-list"></div>
         </div>
     </div>
 
     <div id="admin-modal" class="modal" style="display: none; z-index: 6000;">
         <div class="modal-content" style="background: #1c1c1e; border: 2px solid #ff3b30;">
             <div class="modal-header"><h2 style="color: #ff3b30;">Панель Создателя 👑</h2><button class="close-btn" onclick="closeModal('admin-modal')">✖</button></div>
-            
             <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Создание нового промокода</p>
-            
             <input type="password" id="admin-password" class="promo-input" style="margin-bottom: 10px; width: 100%; border-color: #ff3b30;" placeholder="ПАРОЛЬ АДМИНА">
-            
             <div style="display: flex; gap: 5px; margin-bottom: 10px;">
                 <input type="text" id="admin-promo-code" class="promo-input" style="margin: 0; flex: 1;" placeholder="ТЕКСТ КОДА (FH-...)">
                 <button class="btn" style="width: auto; padding: 10px; margin: 0; background: #5856d6;" onclick="generateRandomPromo()">🎲</button>
             </div>
-            
             <select id="admin-promo-type" class="promo-input" style="margin-bottom: 10px; width: 100%;">
                 <option value="money">Монеты 💰</option>
                 <option value="stars">Звезды ⭐️</option>
@@ -70,18 +65,10 @@
                 <option value="speed">Ускорители ⚡️</option>
                 <option value="luck">Бустеры удачи 🧪</option>
             </select>
-            
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <div style="flex: 1;">
-                    <p style="font-size: 10px; color: #888;">Награда (шт):</p>
-                    <input type="number" id="admin-promo-val" class="promo-input" style="margin: 0; width: 100%;" value="1000">
-                </div>
-                <div style="flex: 1;">
-                    <p style="font-size: 10px; color: #888;">Лимит (0 = ∞):</p>
-                    <input type="number" id="admin-promo-limit" class="promo-input" style="margin: 0; width: 100%;" value="100">
-                </div>
+                <div style="flex: 1;"><p style="font-size: 10px; color: #888;">Награда (шт):</p><input type="number" id="admin-promo-val" class="promo-input" style="margin: 0; width: 100%;" value="1000"></div>
+                <div style="flex: 1;"><p style="font-size: 10px; color: #888;">Лимит (0 = ∞):</p><input type="number" id="admin-promo-limit" class="promo-input" style="margin: 0; width: 100%;" value="100"></div>
             </div>
-            
             <button class="btn" style="background: #ff3b30;" onclick="adminSubmitPromo()">Создать код!</button>
         </div>
     </div>
@@ -159,8 +146,8 @@
             <select id="custom-rarity-select" class="promo-input" onchange="updateCustomEggTimes()">
                 <option value="all">Все редкости</option>
                 <option value="common">Только Обычные</option>
-                <option value="rare">Только Редкие</option>
-                <option value="legendary">Только Легенды</option>
+                <option value="rare">Только Редкие (с 10 Ур)</option>
+                <option value="legendary">Только Легенды (с 20 Ур)</option>
             </select>
             <div id="custom-egg-times" style="margin-top: 15px; font-size: 14px; color: #8e8e93; font-weight: bold;">
                 Онлайн: 1 ч | Оффлайн: 5 ч
@@ -321,12 +308,10 @@
                 <div class="stats-grid">
                     <div class="stat-box"><div class="stat-val" id="stat-hatched">0</div><div class="stat-label">Яиц</div></div>
                     <div class="stat-box"><div class="stat-val" id="stat-unique">0</div><div class="stat-label">Видов</div></div>
-                    
                     <div class="stat-box" style="cursor: pointer; border: 1px solid #ffd700; background: rgba(255,215,0,0.1);" onclick="openForbes()">
                         <div class="stat-val" id="stat-earned" style="color: #ffd700;">0</div>
                         <div class="stat-label">Капитал (Forbes 🏆)</div>
                     </div>
-
                     <div class="stat-box"><div class="stat-val" id="stat-invites">0</div><div class="stat-label">Бонусы</div></div>
                 </div>
             </div>
@@ -379,6 +364,7 @@
             <button class="btn" style="background: #007aff; margin-top: 15px;" onclick="activatePromo()">Активировать ✨</button>
         </div>
     </div>
+    
     <div id="tutorial-modal" class="modal" style="display: none; z-index: 3000;">
         <div class="modal-content" style="text-align: left;">
             <div class="modal-header" style="justify-content: center;"><h2>🎓 Как играть?</h2></div>
@@ -387,12 +373,14 @@
             <button class="btn" style="background: #007aff; margin-top: 20px;" onclick="closeTutorial()">Погнали! 🚀</button>
         </div>
     </div>
+    
     <div id="levels-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Путь Фокуса</h2><button class="close-btn" onclick="closeModal('levels-modal')">✖</button></div>
             <div id="levels-list" class="levels-list"></div>
         </div>
     </div>
+    
     <div id="daily-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Бонус</h2></div>
@@ -400,6 +388,7 @@
             <button id="claim-btn" class="btn" style="background: #34c759; margin-top: 15px;" onclick="claimDaily()">Забрать</button>
         </div>
     </div>
+    
     <div id="settings-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Настройки</h2><button class="close-btn" onclick="closeModal('settings-modal')">✖</button></div>
@@ -412,6 +401,7 @@
             </div>
         </div>
     </div>
+    
     <div id="shop-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Магазин</h2><button class="close-btn" onclick="closeModal('shop-modal')">✖</button></div>
@@ -424,6 +414,7 @@
             <div id="shop-items" class="shop-grid"></div>
         </div>
     </div>
+    
     <div id="achievements-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Награды</h2><button class="close-btn" onclick="closeModal('achievements-modal')">✖</button></div>
@@ -434,6 +425,7 @@
             <div id="achievements-list" class="shop-grid" style="display: flex; flex-direction: column; gap: 10px;"></div>
         </div>
     </div>
+    
     <div id="pet-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header"><h2>Питомец</h2><button class="close-btn" onclick="closeModal('pet-modal')">✖</button></div>
@@ -483,6 +475,7 @@
                 <button id="prev-btn" class="arrow-btn" onclick="prevMode()">❮</button>
                 <div id="egg-wrapper">
                     <img id="egg-display" class="egg-img" src="assets/eggs/egg-default.png">
+                    <div id="egg-lock" class="lock-icon-overlay">🔒</div>
                     <div id="crack-overlay" class="crack-overlay"></div>
                 </div>
                 <button id="next-btn" class="arrow-btn" onclick="nextMode()">❯</button>
@@ -522,8 +515,8 @@
             <div id="offline-warning" style="display: none; color: #ff3b30; font-size: 12px; margin-bottom: 5px; font-weight: bold;">Не закрывай приложение!</div>
             
             <div id="start-buttons-container" style="display: flex; gap: 10px; margin-bottom: 5px;">
-                <button class="btn" style="background-color: #ff3b30; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('online')">Фокус<br><span style="font-size: 10px; font-weight: normal;">(Быстро)</span></button>
-                <button class="btn" style="background-color: #007aff; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('offline')">Инкубатор<br><span style="font-size: 10px; font-weight: normal;">(Оффлайн)</span><br><span style="font-size: 9px; color: #ffcc00; font-weight: bold;">Без легенд</span></button>
+                <button id="btn-focus" class="btn" style="background-color: #ff3b30; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('online')">Фокус<br><span style="font-size: 10px; font-weight: normal;">(Быстро)</span></button>
+                <button id="btn-incubator" class="btn" style="background-color: #007aff; flex: 1; padding: 12px 5px; font-size: 16px;" onclick="startTimer('offline')">Инкубатор<br><span style="font-size: 10px; font-weight: normal;">(Оффлайн)</span><br><span style="font-size: 9px; color: #ffcc00; font-weight: bold;">Без легенд</span></button>
             </div>
 
             <button id="main-btn" class="btn stop" style="display: none;" onclick="stopTimer(false)">Сдаться</button>
@@ -535,6 +528,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=75"></script>
+    <script src="script.js?v=90"></script>
 </body>
 </html>
