@@ -364,7 +364,7 @@ window.claimDaily = function() {
 }
 
 // =============================================================
-// 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ
+// 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ (ЗАЩИЩЕННАЯ ВЕРСИЯ)
 // =============================================================
 function initGame() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -373,32 +373,34 @@ function initGame() {
     }
     try {
         localSaveTime = parseInt(localStorage.getItem('lastSaveTime')) || 0;
-        collection = JSON.parse(localStorage.getItem('myCollection')) || [];
-        userXP = parseInt(localStorage.getItem('userXP')) || 0;
-        userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
-        walletBalance = parseInt(localStorage.getItem('walletBalance')) || 0;
-        userStars = parseInt(localStorage.getItem('userStars')) || 0;
-        pegasusShards = parseInt(localStorage.getItem('pegasusShards')) || 0; 
-        userJokers = parseInt(localStorage.getItem('userJokers')) || 0; 
-        ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
-        activeTheme = localStorage.getItem('activeTheme') || 'default';
-        activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
-        selectedAvatar = localStorage.getItem('selectedAvatar') || 'default'; 
-        let s = JSON.parse(localStorage.getItem('userStats')); if(s) userStats = {...userStats, ...s};
-        let b = JSON.parse(localStorage.getItem('myBoosters')); if(b) myBoosters = {luck: b.luck||0, speed: b.speed||0, bio: b.bio||0};
-        claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
-        claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
-        usedCodes = JSON.parse(localStorage.getItem('usedCodes')) || [];
-        isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
-        isSoundOn = localStorage.getItem('isSoundOn') === 'true';
+        let savedLevel = parseInt(localStorage.getItem('userLevel'));
         
-        vipEndTime = parseInt(localStorage.getItem('vipEndTime')) || 0;
-        hasSecondSlot = localStorage.getItem('hasSecondSlot') === 'true';
-        secondSlotEndTime = parseInt(localStorage.getItem('secondSlotEndTime')) || 0;
-        lastRouletteDate = localStorage.getItem('lastRouletteDate') || "";
-        
-        let a = JSON.parse(localStorage.getItem('boxAdsProgress')); if(a) boxAdsProgress = a;
-
+        // Грузим локальные данные ТОЛЬКО если они не битые
+        if (savedLevel && savedLevel >= 1) {
+            userLevel = savedLevel;
+            collection = JSON.parse(localStorage.getItem('myCollection')) || [];
+            userXP = parseInt(localStorage.getItem('userXP')) || 0;
+            walletBalance = parseInt(localStorage.getItem('walletBalance')) || 0;
+            userStars = parseInt(localStorage.getItem('userStars')) || 0;
+            pegasusShards = parseInt(localStorage.getItem('pegasusShards')) || 0; 
+            userJokers = parseInt(localStorage.getItem('userJokers')) || 0; 
+            ownedItems = JSON.parse(localStorage.getItem('ownedItems')) || { themes: ['default'], eggs: ['default'] };
+            activeTheme = localStorage.getItem('activeTheme') || 'default';
+            activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
+            selectedAvatar = localStorage.getItem('selectedAvatar') || 'default'; 
+            let s = JSON.parse(localStorage.getItem('userStats')); if(s) userStats = {...userStats, ...s};
+            let b = JSON.parse(localStorage.getItem('myBoosters')); if(b) myBoosters = {luck: b.luck||0, speed: b.speed||0, bio: b.bio||0};
+            claimedAchievements = JSON.parse(localStorage.getItem('claimedAchievements')) || [];
+            claimedQuests = JSON.parse(localStorage.getItem('claimedQuests')) || [];
+            usedCodes = JSON.parse(localStorage.getItem('usedCodes')) || [];
+            isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
+            isSoundOn = localStorage.getItem('isSoundOn') === 'true';
+            vipEndTime = parseInt(localStorage.getItem('vipEndTime')) || 0;
+            hasSecondSlot = localStorage.getItem('hasSecondSlot') === 'true';
+            secondSlotEndTime = parseInt(localStorage.getItem('secondSlotEndTime')) || 0;
+            lastRouletteDate = localStorage.getItem('lastRouletteDate') || "";
+            let a = JSON.parse(localStorage.getItem('boxAdsProgress')); if(a) boxAdsProgress = a;
+        }
     } catch(e) { console.error("Local Load Error", e); }
 
     let profileBtn = getEl('header-profile-btn');
@@ -433,40 +435,44 @@ function initGame() {
 function loadFromCloud() {
     const keys = ['walletBalance', 'userStars', 'userXP', 'userLevel', 'myCollection', 'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress'];
     Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
-        if (!err && values && values.lastSaveTime) {
+        if (!err && values && values.userLevel) {
+            let cloudLevel = parseInt(values.userLevel) || 1;
             let cloudTime = parseInt(values.lastSaveTime) || 0;
-            if (cloudTime >= localSaveTime) {
-                if (values.walletBalance !== undefined) walletBalance = parseInt(values.walletBalance);
-                if (values.userStars !== undefined) userStars = parseInt(values.userStars);
-                if (values.userXP !== undefined) userXP = parseInt(values.userXP);
-                if (values.userLevel !== undefined) userLevel = parseInt(values.userLevel);
-                if (values.pegasusShards !== undefined) pegasusShards = parseInt(values.pegasusShards);
-                if (values.userJokers !== undefined) userJokers = parseInt(values.userJokers);
-                if (values.myCollection) collection = JSON.parse(values.myCollection);
-                if (values.ownedItems) ownedItems = JSON.parse(values.ownedItems);
-                if (values.activeTheme) activeTheme = values.activeTheme;
-                if (values.activeEggSkin) activeEggSkin = values.activeEggSkin;
-                if (values.selectedAvatar) selectedAvatar = values.selectedAvatar;
-                if (values.userStats) userStats = {...userStats, ...JSON.parse(values.userStats)};
-                if (values.myBoosters) myBoosters = {...myBoosters, ...JSON.parse(values.myBoosters)};
-                if (values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
-                if (values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
-                if (values.vipEndTime !== undefined) vipEndTime = parseInt(values.vipEndTime);
-                if (values.hasSecondSlot !== undefined) hasSecondSlot = values.hasSecondSlot === 'true';
-                if (values.secondSlotEndTime !== undefined) secondSlotEndTime = parseInt(values.secondSlotEndTime);
-                if (values.lastRouletteDate) lastRouletteDate = values.lastRouletteDate;
-                if (values.boxAdsProgress) boxAdsProgress = JSON.parse(values.boxAdsProgress);
-                
+            
+            // ПРОБИВНАЯ ЗАЩИТА: Загружаем из облака ТОЛЬКО если уровень в облаке больше или время новее
+            if (cloudLevel > userLevel || (cloudLevel === userLevel && cloudTime >= localSaveTime)) {
+                walletBalance = parseInt(values.walletBalance) || 0;
+                userStars = parseInt(values.userStars) || 0;
+                userXP = parseInt(values.userXP) || 0;
+                userLevel = cloudLevel;
+                if(values.pegasusShards) pegasusShards = parseInt(values.pegasusShards);
+                if(values.userJokers) userJokers = parseInt(values.userJokers);
+                if(values.myCollection) collection = JSON.parse(values.myCollection);
+                if(values.ownedItems) ownedItems = JSON.parse(values.ownedItems);
+                if(values.activeTheme) activeTheme = values.activeTheme;
+                if(values.activeEggSkin) activeEggSkin = values.activeEggSkin;
+                if(values.selectedAvatar) selectedAvatar = values.selectedAvatar;
+                if(values.userStats) userStats = {...userStats, ...JSON.parse(values.userStats)};
+                if(values.myBoosters) myBoosters = {...myBoosters, ...JSON.parse(values.myBoosters)};
+                if(values.claimedAchievements) claimedAchievements = JSON.parse(values.claimedAchievements);
+                if(values.claimedQuests) claimedQuests = JSON.parse(values.claimedQuests);
+                if(values.vipEndTime) vipEndTime = parseInt(values.vipEndTime);
+                if(values.hasSecondSlot) hasSecondSlot = values.hasSecondSlot === 'true';
+                if(values.secondSlotEndTime) secondSlotEndTime = parseInt(values.secondSlotEndTime);
+                if(values.lastRouletteDate) lastRouletteDate = values.lastRouletteDate;
+                if(values.boxAdsProgress) boxAdsProgress = JSON.parse(values.boxAdsProgress);
+
                 let profileBtn = getEl('header-profile-btn');
                 if (selectedAvatar !== 'default' && profileBtn) { 
                     profileBtn.innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`; 
                 }
-                saveData(true); 
-            } else {
-                saveData(false);
+                saveData(true); // Записываем в локалку
+            } else if (userLevel > cloudLevel) {
+                saveData(false); // Локалка новее, отправляем в облако!
             }
-        } else if (!err && (!values || !values.lastSaveTime)) {
-            saveData(false);
+        } else if (!err && (!values || !values.userLevel)) {
+            // Облако пустое, но локалка есть
+            if(userLevel > 1) saveData(false);
         }
         postInit();
     });
@@ -779,7 +785,8 @@ function handleShare() {
 async function openForbes() {
     playSound('click');
     openModal('forbes-modal');
-    getEl('forbes-list-container').innerHTML = '<div style="text-align:center; color:#888; padding: 20px;">Синхронизация...</div>';
+    let flc = getEl('forbes-list-container');
+    if(flc) flc.innerHTML = '<div style="text-align:center; color:#888; padding: 20px;">Синхронизация...</div>';
     
     await apiSyncGlobalProfile();
     
@@ -788,7 +795,7 @@ async function openForbes() {
         forbesDataCache = await res.json();
         renderForbesList(currentForbesTab);
     } catch(e) {
-        getEl('forbes-list-container').innerHTML = '<div style="text-align:center; color:#ff3b30; padding: 20px;">Ошибка загрузки топа</div>';
+        if(flc) flc.innerHTML = '<div style="text-align:center; color:#ff3b30; padding: 20px;">Ошибка загрузки топа</div>';
     }
 }
 
@@ -1349,7 +1356,7 @@ function openAvatarSelector() {
     uniquePets.forEach(pet => {
         const div = document.createElement('div');
         div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
-        div.innerHTML = `<img src="assets/pets/pet-${pet}.png" onerror="this.src='assets/eggs/egg-default.png'">`;
+        div.innerHTML = `<img src="assets/pets/pet-${pet}.png">`;
         div.onclick = () => {
             selectedAvatar = pet; saveData();
             let pAvatar = getEl('profile-avatar'); if(pAvatar) pAvatar.src = getPetImg(pet);
@@ -2571,13 +2578,16 @@ async function claimExpedition() {
     
     let msgBonus = uniqueMutants > 0 ? ` (Мутанты: +${uniqueMutants*5}%)` : '';
     
-        if(droppedShard) {
-            showToast(`+${reward} монет + 1 Осколок Пегаса! 🧩`, 'img');
-        } else {
-            showToast(`+${reward} монет${msgBonus}!`, 'img');
-        }
-        
+    if(droppedShard) {
+        showToast(`Лут: +${reward} монет${msgBonus} и ОСКОЛОК ПЕГАСА! 🧩`, "💰");
         fireConfetti();
-        try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
-        closeModal('expedition-modal');
+    } else {
+        showToast(`Лут собран: +${reward} монет${msgBonus}!`, "💰");
     }
+
+    try { await fetch(`${API_URL}/party/expedition/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: currentPartyCode }) }); } catch(e) {}
+    closeModal('expedition-modal');
+    if(isPartyLeader) requestStopMiniGame(); 
+}
+
+window.onload = initGame;
