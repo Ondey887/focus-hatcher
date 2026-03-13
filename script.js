@@ -3190,7 +3190,20 @@ function sellPet() {
 // =============================================================
 // МУЛЬТИПЛЕЕР И БОСС-РЕЙД
 // =============================================================
-async function apiCreateParty() {
+function openPartyModal() {
+    let psv = getEl('party-setup-view');
+    let pav = getEl('party-active-view');
+    
+    if (currentPartyCode) {
+        if (psv) psv.style.display = 'none';
+        if (pav) pav.style.display = 'block';
+        startPartyPolling(); 
+    } else {
+        if (psv) psv.style.display = 'block';
+        if (pav) pav.style.display = 'none';
+    }
+    openModal('party-modal');
+}async function apiCreateParty() {
     playSound('click');
     const btn = event.target; 
     btn.textContent = "Создаем сервер...";
