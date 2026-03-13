@@ -14,7 +14,7 @@
         }
     </script>
     
-    <link rel="stylesheet" href="style.css?v=85">
+    <link rel="stylesheet" href="style.css?v=86">
 </head>
 <body>
 
@@ -32,7 +32,7 @@
                     <span style="font-size: 24px;">🎰</span> Колесо Фортуны
                 </button>
                 <button class="btn" style="background: rgba(255, 215, 0, 0.2); border: 1px solid #ffd700; display: flex; align-items: center; justify-content: center; gap: 10px;" onclick="openAch()">
-                    <span style="font-size: 24px;">🏆</span> Награды и Квесты
+                    <span style="font-size: 24px;">🏆</span> Награды и Контракты
                 </button>
             </div>
         </div>
@@ -396,7 +396,7 @@
         <div class="modal-content" style="text-align: left;">
             <div class="modal-header" style="justify-content: center;"><h2>🎓 Как играть?</h2></div>
             <div class="tutorial-step"><div class="tut-icon-wrapper"><img src="assets/ui/booster-speed.png" class="tut-icon-img"></div><div class="tut-text"><div class="tut-title">Фокус vs Инкубатор</div><div class="tut-desc">Фокус быстрее, но нельзя закрывать игру. Оффлайн дольше, но спи спокойно.</div></div></div>
-            <div class="tutorial-step"><div class="tut-icon-wrapper"><img src="assets/ui/icon-trophy.png" class="tut-icon-img"></div><div class="tut-text"><div class="tut-title">Лаборатория</div><div class="tut-desc">Скрещивай 5 одинаковых петов для улучшения редкости!</div></div></div>
+            <div class="tutorial-step"><div class="tut-icon-wrapper"><img src="assets/ui/icon-trophy.png" class="tut-icon-img"></div><div class="tut-text"><div class="tut-title">Лаборатория и Улучшения</div><div class="tut-desc">Скрещивай петов для повышения редкости, а дубликаты трать на прокачку звезд!</div></div></div>
             <button class="btn" style="background: #007aff; margin-top: 20px;" onclick="closeTutorial()">Погнали! 🚀</button>
         </div>
     </div>
@@ -447,7 +447,7 @@
             <div class="modal-header"><h2>Награды</h2><button class="close-btn" onclick="closeModal('achievements-modal')">✖</button></div>
             <div class="shop-tabs">
                 <button class="tab-btn active" onclick="switchAchTab('achievements')">Ачивки</button>
-                <button class="tab-btn" onclick="switchAchTab('quests')">Квесты</button>
+                <button class="tab-btn" onclick="switchAchTab('quests')">Контракты</button>
             </div>
             <div id="achievements-list" class="shop-grid" style="display: flex; flex-direction: column; gap: 10px;"></div>
         </div>
@@ -556,6 +556,6 @@
 
     <canvas id="confetti-canvas"></canvas>
 
-    <script src="script.js?v=95"></script>
+    <script src="script.js?v=99"></script>
 </body>
 </html>
