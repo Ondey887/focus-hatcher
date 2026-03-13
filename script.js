@@ -16,6 +16,7 @@ let audioCtx = new AudioContext();
 
 function playSound(type) {
     if (!isSoundOn) return;
+    
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
@@ -158,6 +159,20 @@ let petStars = {};
 let activeContracts = { date: '', tasks: [] }; 
 
 // =============================================================
+// БЕЗОПАСНЫЙ ПАРСИНГ ДАННЫХ (ЗАЩИТА)
+// =============================================================
+function safeParse(val, def) {
+    if (!val || val === 'undefined' || val === 'null') {
+        return def;
+    }
+    try { 
+        return JSON.parse(val); 
+    } catch(e) { 
+        return def; 
+    }
+}
+
+// =============================================================
 // 3. БАЗЫ ДАННЫХ И КОНСТАНТЫ
 // =============================================================
 const MODES = [
@@ -188,14 +203,37 @@ const RANKS = [
 ];
 
 const PET_NAMES = {
-    "chick": "Цыпленок", "kitten": "Котенок", "puppy": "Щенок", "hamster": "Хомяк", "bunny": "Зайчик",
-    "frog": "Лягушка", "bear": "Мишка", "koala": "Коала", "duck": "Утенок", "caterpillar": "Гусеница",
-    "fox": "Лисенок", "panda": "Панда", "tiger": "Тигренок", "lion": "Львенок", "cow": "Коровка",
-    "pig": "Свинка", "monkey": "Обезьянка", "owl": "Сова",
-    "unicorn": "Единорог", "dragon": "Дракон", "alien": "Пришелец", "robot": "Робот", "dino": "Динозавр",
-    "fireball": "Огонек", "god": "Бог Фокуса", "pegasus": "Мифический Пегас",
-    "cerberus": "Цербер", "dark_dragon": "Темный Дракон",
-    "mutant_cat": "Мутакот ☢️", "mutant_dog": "Токси-Пёс ☢️", "mutant_dragon": "Гамма-Ящер ☢️"
+    "chick": "Цыпленок", 
+    "kitten": "Котенок", 
+    "puppy": "Щенок", 
+    "hamster": "Хомяк", 
+    "bunny": "Зайчик",
+    "frog": "Лягушка", 
+    "bear": "Мишка", 
+    "koala": "Коала", 
+    "duck": "Утенок", 
+    "caterpillar": "Гусеница",
+    "fox": "Лисенок", 
+    "panda": "Панда", 
+    "tiger": "Тигренок", 
+    "lion": "Львенок", 
+    "cow": "Коровка",
+    "pig": "Свинка", 
+    "monkey": "Обезьянка", 
+    "owl": "Сова",
+    "unicorn": "Единорог", 
+    "dragon": "Дракон", 
+    "alien": "Пришелец", 
+    "robot": "Робот", 
+    "dino": "Динозавр",
+    "fireball": "Огонек", 
+    "god": "Бог Фокуса", 
+    "pegasus": "Мифический Пегас",
+    "cerberus": "Цербер", 
+    "dark_dragon": "Темный Дракон",
+    "mutant_cat": "Мутакот ☢️", 
+    "mutant_dog": "Токси-Пёс ☢️", 
+    "mutant_dragon": "Гамма-Ящер ☢️"
 };
 
 const LEVEL_REWARDS = {
@@ -224,7 +262,17 @@ const ALL_PETS_FLAT = [
     ...petDatabase.mutant, 
     "god"
 ];
+
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
+
+function getPetRarity(p) {
+    if (p === "god") return 'legendary';
+    if (petDatabase.mythic.includes(p)) return 'mythic';
+    if (petDatabase.mutant.includes(p)) return 'mutant';
+    if (petDatabase.legendary.includes(p)) return 'legendary';
+    if (petDatabase.rare.includes(p)) return 'rare';
+    return 'common';
+}
 
 const ACHIEVEMENTS_DATA = [
     { id: 'first_hatch', title: 'Первый шаг', desc: 'Вырасти 1 питомца', goal: 1, reward: 100 },
@@ -304,35 +352,17 @@ const ROULETTE_PRIZES = {
 };
 
 // =============================================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ UI
 // =============================================================
-function safeParse(val, def) {
-    if (!val || val === 'undefined' || val === 'null') return def;
-    try { 
-        return JSON.parse(val); 
-    } catch(e) { 
-        return def; 
-    }
-}
-
 function getEl(id) { 
     return document.getElementById(id); 
 }
 
 function formatTime(s) { 
-    if(s >= 3600) {
+    if (s >= 3600) {
         return `${Math.floor(s/3600)}ч ${Math.floor((s%3600)/60).toString().padStart(2,'0')}м`;
     }
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; 
-}
-
-function getPetRarity(p) {
-    if(p === "god") return 'legendary';
-    if(petDatabase.mythic.includes(p)) return 'mythic';
-    if(petDatabase.mutant.includes(p)) return 'mutant';
-    if(petDatabase.legendary.includes(p)) return 'legendary';
-    if(petDatabase.rare.includes(p)) return 'rare';
-    return 'common';
 }
 
 function getPetImg(id) { 
@@ -340,7 +370,7 @@ function getPetImg(id) {
 }
 
 function hardReset() { 
-    if(confirm("Сбросить все?")) { 
+    if (confirm("Сбросить все?")) { 
         localStorage.clear(); 
         location.reload(); 
     } 
@@ -353,8 +383,8 @@ function getTgUser() {
             name: window.Telegram.WebApp.initDataUnsafe.user.first_name 
         };
     }
-    if(!localStorage.getItem('fake_uid')) {
-        localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random()*10000));
+    if (!localStorage.getItem('fake_uid')) {
+        localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random() * 10000));
     }
     return { 
         id: localStorage.getItem('fake_uid'), 
@@ -368,15 +398,15 @@ function isVip() {
 
 function openModal(id) {
     playSound('click');
-    if(modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
+    if (modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
     
     if (modalStack.length > 0) {
         const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
-        if(prevEl) prevEl.style.display = 'none';
+        if (prevEl) prevEl.style.display = 'none';
     }
     
     const el = document.getElementById(id);
-    if(el) { 
+    if (el) { 
         el.style.display = 'flex'; 
         modalStack.push(id); 
     }
@@ -391,13 +421,13 @@ function closeModal(id) {
     
     if (modalStack.length > 0) {
         const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
-        if(prevEl) prevEl.style.display = 'flex';
+        if (prevEl) prevEl.style.display = 'flex';
     }
 }
 
 function showToast(msg, icon='🔔') {
     const c = getEl('toast-container'); 
-    if(!c) return;
+    if (!c) return;
     
     const d = document.createElement('div');
     let content = icon === 'img' ? `<img src="assets/ui/coin.png"> <span>${msg}</span>` : `<span>${icon}</span> <span>${msg}</span>`;
@@ -452,8 +482,10 @@ function fireConfetti() {
         }
     }
     draw();
-}// =============================================================
-// КОНТРАКТЫ 2.0 (ЕЖЕДНЕВНЫЕ ЗАДАНИЯ)
+}
+
+// =============================================================
+// КОНТРАКТЫ И НАГРАДЫ
 // =============================================================
 function checkContracts() {
     const today = new Date().toDateString();
@@ -505,19 +537,22 @@ window.claimContract = function(idx) {
     if (t.r.t === 'money') walletBalance += t.r.v;
     if (t.r.t === 'stars') userStars += t.r.v;
     if (t.r.t === 'joker') userJokers += t.r.v;
-    if (t.r.t === 'luck') myBoosters.luck = (myBoosters.luck || 0) + t.r.v;
-    if (t.r.t === 'speed') myBoosters.speed = (myBoosters.speed || 0) + t.r.v;
+    if (t.r.t === 'luck') {
+        if (!myBoosters.luck) myBoosters.luck = 0;
+        myBoosters.luck += t.r.v;
+    }
+    if (t.r.t === 'speed') {
+        if (!myBoosters.speed) myBoosters.speed = 0;
+        myBoosters.speed += t.r.v;
+    }
     
     saveData(); 
     updateBalanceUI(); 
-    renderQuests(); // Эта функция будет добавлена в следующей части
+    renderQuests();
     showToast(`Награда получена!`, '🎁'); 
     playSound('money');
 };
 
-// =============================================================
-// ГЛОБАЛЬНЫЕ ФУНКЦИИ (ДЛЯ ТУТОРИАЛА И НАГРАД)
-// =============================================================
 function checkTutorial() { 
     if (!localStorage.getItem('tutorialSeen')) {
         openModal('tutorial-modal'); 
@@ -552,6 +587,7 @@ function checkDailyReward() {
 function renderDailyModal(curr) {
     const g = getEl('daily-grid'); 
     if (!g) return;
+    
     g.innerHTML = '';
     
     DAILY_REWARDS.forEach((r, i) => {
@@ -618,149 +654,7 @@ window.claimDaily = function() {
 }
 
 // =============================================================
-// Вспомогательные функции UI
-// =============================================================
-function getEl(id) { 
-    return document.getElementById(id); 
-}
-
-function openModal(id) {
-    playSound('click');
-    if (modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
-    
-    if (modalStack.length > 0) {
-        const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
-        if (prevEl) prevEl.style.display = 'none';
-    }
-    
-    const el = document.getElementById(id);
-    if (el) { 
-        el.style.display = 'flex'; 
-        modalStack.push(id); 
-    }
-}
-
-function closeModal(id) {
-    playSound('click');
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-    
-    modalStack = modalStack.filter(m => m !== id);
-    
-    if (modalStack.length > 0) {
-        const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
-        if (prevEl) prevEl.style.display = 'flex';
-    }
-}
-
-function hardReset() { 
-    if (confirm("Сбросить все?")) { 
-        localStorage.clear(); 
-        location.reload(); 
-    } 
-}
-
-function getTgUser() {
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-        return { 
-            id: String(window.Telegram.WebApp.initDataUnsafe.user.id), 
-            name: window.Telegram.WebApp.initDataUnsafe.user.first_name 
-        };
-    }
-    if (!localStorage.getItem('fake_uid')) {
-        localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random() * 10000));
-    }
-    return { 
-        id: localStorage.getItem('fake_uid'), 
-        name: "Игрок" 
-    };
-}
-
-function isVip() { 
-    return Date.now() < vipEndTime; 
-}
-
-function showToast(msg, icon='🔔') {
-    const c = getEl('toast-container'); 
-    if (!c) return;
-    
-    const d = document.createElement('div');
-    let content = icon === 'img' ? `<img src="assets/ui/coin.png"> <span>${msg}</span>` : `<span>${icon}</span> <span>${msg}</span>`;
-    d.className = 'toast'; 
-    d.innerHTML = content;
-    
-    c.appendChild(d); 
-    setTimeout(() => { 
-        d.classList.add('fade-out'); 
-        setTimeout(() => d.remove(), 300); 
-    }, 3000);
-}
-
-function fireConfetti() {
-    const canvas = document.getElementById('confetti-canvas'); 
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; 
-    canvas.height = window.innerHeight;
-    
-    let particles = [];
-    const colors = ['#ff3b30', '#ffcc00', '#34c759', '#007aff', '#5856d6'];
-    
-    for (let i = 0; i < 100; i++) {
-        particles.push({
-            x: canvas.width / 2, 
-            y: canvas.height / 2, 
-            w: Math.random() * 10 + 5, 
-            h: Math.random() * 10 + 5,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            vx: (Math.random() - 0.5) * 20, 
-            vy: (Math.random() - 0.5) * 20 - 10, 
-            grav: 0.5
-        });
-    }
-    
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach((p, index) => {
-            p.x += p.vx; 
-            p.y += p.vy; 
-            p.vy += p.grav;
-            ctx.fillStyle = p.color; 
-            ctx.fillRect(p.x, p.y, p.w, p.h);
-            if (p.y > canvas.height) particles.splice(index, 1);
-        });
-        if (particles.length > 0) {
-            requestAnimationFrame(draw); 
-        } else {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-    }
-    draw();
-}
-
-function getPetRarity(p) {
-    if (p === "god") return 'legendary';
-    if (petDatabase.mythic.includes(p)) return 'mythic';
-    if (petDatabase.mutant.includes(p)) return 'mutant';
-    if (petDatabase.legendary.includes(p)) return 'legendary';
-    if (petDatabase.rare.includes(p)) return 'rare';
-    return 'common';
-}
-
-function getPetImg(id) { 
-    return id === 'default' ? 'assets/ui/icon-profile.png' : `assets/pets/pet-${id}.png`; 
-}
-
-function formatTime(s) { 
-    if (s >= 3600) {
-        return `${Math.floor(s/3600)}ч ${Math.floor((s%3600)/60).toString().padStart(2,'0')}м`;
-    }
-    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; 
-}
-
-// =============================================================
-// 4. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ 
+// ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЯ 
 // =============================================================
 function initGame() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -997,8 +891,409 @@ function saveData(skipTimeUpdate = false) {
         Telegram.WebApp.CloudStorage.setItem('petStars', JSON.stringify(petStars));
         Telegram.WebApp.CloudStorage.setItem('activeContracts', JSON.stringify(activeContracts));
     }
-}// =============================================================
-// 5. ИНТЕРФЕЙС И БАЗОВЫЕ ОКНА
+}
+
+// =============================================================
+// ПРОФИЛЬ, ДРУЗЬЯ И УРОВНИ
+// =============================================================
+async function apiSyncGlobalProfile() {
+    const user = getTgUser(); 
+    let netWorth = walletBalance; 
+    
+    collection.forEach(pet => {
+        netWorth += PRICES[getPetRarity(pet)] || 0;
+    });
+    
+    let finalName = user.name;
+    if (isVip()) {
+        finalName += ' 👑'; 
+    }
+    
+    try {
+        await fetch(`${API_URL}/users/sync`, {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                user_id: user.id, 
+                name: finalName, 
+                avatar: selectedAvatar, 
+                level: userLevel, 
+                earned: netWorth, 
+                hatched: userStats.hatched || 0 
+            })
+        });
+    } catch(e) {}
+}
+
+function startInvitesPolling() {
+    if (invitesPollingInterval) {
+        clearInterval(invitesPollingInterval);
+    }
+    
+    invitesPollingInterval = setInterval(async () => {
+        try {
+            const res = await fetch(`${API_URL}/invites/check/${getTgUser().id}`);
+            const data = await res.json();
+            
+            if (data.has_invite && !modalStack.includes('incoming-invite-modal')) {
+                currentPendingInviteId = data.invite.id;
+                
+                let isn = getEl('invite-sender-name'); 
+                if (isn) isn.textContent = data.invite.sender_name;
+                
+                let isa = getEl('invite-sender-avatar'); 
+                if (isa) isa.src = getPetImg(data.invite.sender_avatar);
+                
+                let iim = getEl('incoming-invite-modal'); 
+                if (iim) iim.setAttribute('data-party', data.invite.party_code);
+                
+                playSound('win');
+                openModal('incoming-invite-modal');
+            }
+        } catch(e) {}
+    }, 5000);
+}
+
+async function declineInvite() {
+    if (currentPendingInviteId) {
+        try { 
+            await fetch(`${API_URL}/invites/clear`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ code: String(currentPendingInviteId) }) 
+            }); 
+        } catch(e) {}
+    }
+    closeModal('incoming-invite-modal');
+}
+
+async function acceptInvite() {
+    let iim = getEl('incoming-invite-modal');
+    const code = iim ? iim.getAttribute('data-party') : '';
+    
+    await declineInvite(); 
+    if (currentPartyCode) {
+        await apiLeaveParty();
+    }
+    
+    let pci = getEl('party-code-input'); 
+    if (pci) pci.value = code;
+    
+    await apiJoinParty(code);
+    openModal('party-modal');
+}
+
+function switchProfileTab(tab) {
+    document.querySelectorAll('#profile-modal .tab-btn').forEach(b => b.classList.remove('active')); 
+    if (event && event.target) {
+        event.target.classList.add('active'); 
+    }
+    playSound('click');
+    
+    let psv = getEl('profile-stats-view');
+    let pfv = getEl('profile-friends-view');
+    
+    if (tab === 'stats') {
+        if (psv) psv.style.display = 'block'; 
+        if (pfv) pfv.style.display = 'none';
+    } else {
+        if (psv) psv.style.display = 'none'; 
+        if (pfv) pfv.style.display = 'block';
+        
+        let mfc = getEl('my-friend-code'); 
+        if (mfc) mfc.value = getTgUser().id; 
+        
+        apiLoadFriends(); 
+    }
+}
+
+function openProfile() {
+    apiSyncGlobalProfile(); 
+    
+    let pr = getEl('profile-rank'); 
+    if (pr) {
+        pr.textContent = RANKS[Math.floor(userLevel / 5)] || "Создатель";
+        if (isVip()) pr.innerHTML += ' <span style="color:#ffd700">👑 PRO</span>';
+    }
+    
+    let pl = getEl('profile-level'); 
+    if (pl) pl.textContent = `Уровень ${userLevel}`;
+    
+    let sh = getEl('stat-hatched'); 
+    if (sh) sh.textContent = userStats.hatched || 0;
+    
+    let su = getEl('stat-unique'); 
+    if (su) su.textContent = new Set(collection).size;
+    
+    let si = getEl('stat-invites'); 
+    if (si) si.textContent = userStats.invites || 0;
+    
+    let netWorth = walletBalance;
+    collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
+    
+    ownedItems.themes.forEach(t => { 
+        const item = SHOP_DATA.themes.find(x => x.id === t); 
+        if (item) netWorth += item.price; 
+    });
+    ownedItems.eggs.forEach(e => { 
+        const item = SHOP_DATA.eggs.find(x => x.id === e); 
+        if (item) netWorth += item.price; 
+    });
+    
+    let se = getEl('stat-earned'); 
+    if (se) se.textContent = netWorth; 
+    
+    let pa = getEl('profile-avatar'); 
+    if (pa) pa.src = getPetImg(selectedAvatar);
+    
+    let psv = getEl('profile-stats-view'); 
+    if (psv) psv.style.display = 'block'; 
+    
+    let pfv = getEl('profile-friends-view'); 
+    if (pfv) pfv.style.display = 'none';
+    
+    let tabs = document.querySelectorAll('#profile-modal .tab-btn');
+    if (tabs.length >= 2) {
+        tabs[0].classList.add('active');
+        tabs[1].classList.remove('active');
+    }
+    
+    openModal('profile-modal');
+}
+
+function copyMyCode() {
+    let mfc = getEl('my-friend-code');
+    if (!mfc) return;
+    navigator.clipboard.writeText(mfc.value).then(() => showToast("Код скопирован!", "📋"));
+}
+
+async function apiAddFriend() {
+    playSound('click'); 
+    let input = getEl('add-friend-input'); 
+    if (!input) return;
+    
+    const friendId = input.value.trim();
+    if (!friendId || friendId === getTgUser().id) {
+        return showToast("Неверный ID", "❌");
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/friends/add`, {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: getTgUser().id, friend_id: friendId })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') { 
+            showToast("Друг добавлен!", "🤝"); 
+            input.value = ''; 
+            apiLoadFriends(); 
+        } else { 
+            showToast(data.detail || "Ошибка", "❌"); 
+        }
+    } catch(e) { 
+        showToast("Ошибка сети", "❌"); 
+    }
+}
+
+async function apiLoadFriends() {
+    const container = getEl('friends-list-container'); 
+    if (!container) return;
+    
+    container.innerHTML = '<div style="text-align:center; color:#888;">Загрузка...</div>';
+    
+    try {
+        const res = await fetch(`${API_URL}/friends/list/${getTgUser().id}`); 
+        const data = await res.json();
+        
+        container.innerHTML = '';
+        if (data.friends.length === 0) { 
+            container.innerHTML = '<div style="text-align:center; color:#888;">У вас пока нет друзей</div>'; 
+            return; 
+        }
+        
+        data.friends.forEach(f => {
+            const encodedFriend = encodeURIComponent(JSON.stringify(f));
+            container.innerHTML += `
+                <div class="achievement-card" style="cursor: pointer;" onclick="openFriendProfile('${encodedFriend}')">
+                    <img src="${getPetImg(f.avatar)}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #007aff;" onerror="this.src='assets/ui/icon-profile.png'">
+                    <div class="ach-info">
+                        <div class="ach-title">${f.name}</div>
+                        <div class="ach-desc">Уровень ${f.level}</div>
+                    </div>
+                </div>
+            `;
+        });
+    } catch(e) { 
+        container.innerHTML = '<div style="text-align:center; color:red;">Ошибка загрузки</div>'; 
+    }
+}
+
+let currentViewingFriendId = null;
+
+function openFriendProfile(encodedFriend) {
+    playSound('click'); 
+    const f = JSON.parse(decodeURIComponent(encodedFriend)); 
+    currentViewingFriendId = f.user_id;
+    
+    let fpn = getEl('fp-name'); if (fpn) fpn.textContent = f.name; 
+    let fpa = getEl('fp-avatar'); if (fpa) fpa.src = getPetImg(f.avatar);
+    let fpl = getEl('fp-level'); if (fpl) fpl.textContent = `Уровень ${f.level}`; 
+    let fph = getEl('fp-hatched'); if (fph) fph.textContent = f.hatched || 0; 
+    let fpe = getEl('fp-earned'); if (fpe) fpe.textContent = f.earned || 0;
+    
+    let fib = getEl('fp-invite-btn');
+    let fih = getEl('fp-invite-hint');
+    
+    if (currentPartyCode) { 
+        if (fib) fib.style.display = 'block'; 
+        if (fih) fih.style.display = 'none'; 
+    } else { 
+        if (fib) fib.style.display = 'none'; 
+        if (fih) fih.style.display = 'block'; 
+    }
+    openModal('friend-profile-modal');
+}
+
+async function sendInviteToFriend() {
+    playSound('click'); 
+    if (!currentPartyCode || !currentViewingFriendId) return;
+    
+    const btn = getEl('fp-invite-btn'); 
+    if (btn) { 
+        btn.textContent = "Отправляем..."; 
+        btn.disabled = true; 
+    }
+    
+    try {
+        await fetch(`${API_URL}/invites/send`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ sender_id: getTgUser().id, receiver_id: currentViewingFriendId, party_code: currentPartyCode }) 
+        });
+        showToast("Приглашение отправлено!", "💌");
+    } catch(e) { 
+        showToast("Ошибка", "❌"); 
+    }
+    
+    setTimeout(() => { 
+        if (btn) { 
+            btn.textContent = "Позвать в свою Пати 🎮"; 
+            btn.disabled = false; 
+        } 
+        closeModal('friend-profile-modal'); 
+    }, 1000);
+}
+
+function openLevels() {
+    const list = getEl('levels-list'); 
+    if (!list) return;
+    
+    list.innerHTML = '';
+    
+    for (let lvl = 1; lvl <= 100; lvl++) {
+        if (!LEVEL_REWARDS[lvl]) continue;
+        
+        const info = LEVEL_REWARDS[lvl]; 
+        const isReached = userLevel >= lvl;
+        const status = isReached ? `<img src="assets/ui/icon-check.png" style="width:20px">` : `<img src="assets/ui/icon-lock.png" style="width:20px">`;
+        
+        const div = document.createElement('div'); 
+        div.className = `level-item ${isReached ? 'active' : 'locked'}`;
+        
+        let rewardText = info.reward || "Нет";
+        if (rewardText && rewardText.includes("монет")) {
+            rewardText = rewardText.replace("монет", `<img src="assets/ui/coin.png" style="width:16px;vertical-align:middle">`);
+        }
+        
+        div.innerHTML = `<div class="rank-icon">${status}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${rewardText}</div></div>`;
+        list.appendChild(div);
+    }
+    openModal('levels-modal');
+}
+
+function checkAchievements() {
+    let has = false; 
+    let u = new Set(collection).size;
+    
+    ACHIEVEMENTS_DATA.forEach(a => { 
+        if (!claimedAchievements.includes(a.id)) { 
+            if (a.type === 'money' && walletBalance >= a.goal) has = true;
+            if (a.type === 'unique' && u >= a.goal) has = true;
+            if (a.type === 'hatch' && userStats.hatched >= a.goal) has = true;
+            if (!a.type && userStats.hatched >= a.goal) has = true;
+            if (a.type === 'level' && userLevel >= a.goal) has = true;
+            if (a.type === 'craft' && userStats.crafts >= a.goal) has = true;
+        } 
+    });
+    
+    if (activeContracts && activeContracts.tasks) {
+        if (activeContracts.tasks.some(t => t.p >= t.g && !t.c)) {
+            has = true;
+        }
+    }
+    
+    let badge = getEl('ach-badge');
+    if (badge) {
+        badge.style.display = has ? 'block' : 'none';
+    }
+}
+
+function openAvatarSelector() {
+    const list = getEl('avatar-list'); 
+    if (!list) return;
+    
+    list.innerHTML = '';
+    const uniquePets = [...new Set(collection)];
+    
+    if (uniquePets.length === 0) { 
+        list.innerHTML = "<p style='color:#888; grid-column:span 4;'>Сначала выбей питомца!</p>"; 
+    }
+    
+    uniquePets.forEach(pet => {
+        const div = document.createElement('div');
+        div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
+        div.innerHTML = `<img src="assets/pets/pet-${pet}.png" onerror="this.src='assets/eggs/egg-default.png'">`;
+        
+        div.onclick = () => {
+            selectedAvatar = pet; 
+            saveData();
+            
+            let pAvatar = getEl('profile-avatar'); 
+            if (pAvatar) pAvatar.src = getPetImg(pet);
+            
+            let hBtn = getEl('header-profile-btn'); 
+            if (hBtn) hBtn.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`;
+            
+            if (currentPartyCode) {
+                apiUpdatePlayerAvatar();
+            }
+            
+            closeModal('avatar-modal'); 
+            showToast("Аватар изменен!");
+        };
+        list.appendChild(div);
+    });
+    openModal('avatar-modal');
+}
+
+async function apiUpdatePlayerAvatar() {
+    let finalName = getTgUser().name;
+    if (isVip()) {
+        finalName += ' 👑';
+    }
+    try { 
+        await fetch(`${API_URL}/party/join`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin }) 
+        }); 
+    } catch(e) {}
+}
+
+// =============================================================
+// UI, МАГАЗИН И АЧИВКИ
 // =============================================================
 function applyTheme() { 
     if (activeTheme === 'matrix') {
@@ -1051,25 +1346,17 @@ function applyEggSkin() {
 function updateLevelUI() { 
     const max = userLevel * 200; 
     let p = (userXP / max) * 100; 
-    if (p > 100) {
-        p = 100; 
-    }
+    if (p > 100) p = 100; 
     
     let xpBar = getEl('xp-bar'); 
-    if (xpBar) {
-        xpBar.style.width = `${p}%`; 
-    }
+    if (xpBar) xpBar.style.width = `${p}%`; 
     
     let numEl = getEl('level-number'); 
-    if (numEl) {
-        numEl.textContent = `Lvl ${userLevel}`; 
-    }
+    if (numEl) numEl.textContent = `Lvl ${userLevel}`; 
     
     let r = Math.floor(userLevel / 5); 
     let rankEl = getEl('rank-name'); 
-    if (rankEl) {
-        rankEl.textContent = RANKS[Math.min(r, RANKS.length - 1)] || "Создатель"; 
-    }
+    if (rankEl) rankEl.textContent = RANKS[Math.min(r, RANKS.length - 1)] || "Создатель"; 
 }
 
 function switchShopTab(t) { 
@@ -1141,8 +1428,8 @@ function renderShop() {
         
         const d = document.createElement('div'); 
         d.className = 'shop-item';
-        let btnHTML = '';
         
+        let btnHTML = '';
         if (currentShopTab === 'boosters') {
             btnHTML = `<button class="buy-btn" onclick="buyItem('${item.id}', '${item.price}')">${item.price} ${typeof item.price === 'number' ? '<img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">' : ''}</button>`;
             let iconContent = item.icon.includes('.png') ? `<img src="${item.icon}" class="shop-icon-img">` : `<div style="font-size: 50px; margin-bottom: 10px;">${item.icon}</div>`;
@@ -1400,6 +1687,7 @@ function claimAch(id, r) {
     saveData(); 
     updateBalanceUI(); 
     renderAch(); 
+    
     showToast(`Награда +${r}`, 'img'); 
     playSound('money'); 
 }
@@ -1413,6 +1701,7 @@ function claimQuest(id, r) {
     saveData(); 
     updateBalanceUI(); 
     renderQuests(); 
+    
     showToast(`Награда +${r}`, 'img'); 
     playSound('money'); 
 }
@@ -1422,6 +1711,7 @@ function handleShare() {
         userStats.invites = 0; 
     }
     userStats.invites++; 
+    
     saveData(); 
     checkAchievements(); 
     
@@ -1758,303 +2048,10 @@ function spinRoulette(method) {
         updateBalanceUI();
     }, 2000);
 }
-// =============================================================
-// 6. ПРОФИЛЬ И ДРУЗЬЯ
-// =============================================================
-async function apiSyncGlobalProfile() {
-    const user = getTgUser(); 
-    let netWorth = walletBalance; 
-    
-    collection.forEach(pet => {
-        netWorth += PRICES[getPetRarity(pet)] || 0;
-    });
-    
-    let finalName = user.name;
-    if (isVip()) {
-        finalName += ' 👑'; 
-    }
-    
-    try {
-        await fetch(`${API_URL}/users/sync`, {
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                user_id: user.id, 
-                name: finalName, 
-                avatar: selectedAvatar, 
-                level: userLevel, 
-                earned: netWorth, 
-                hatched: userStats.hatched || 0 
-            })
-        });
-    } catch(e) {}
-}
-
-function startInvitesPolling() {
-    if (invitesPollingInterval) {
-        clearInterval(invitesPollingInterval);
-    }
-    
-    invitesPollingInterval = setInterval(async () => {
-        try {
-            const res = await fetch(`${API_URL}/invites/check/${getTgUser().id}`);
-            const data = await res.json();
-            
-            if (data.has_invite && !modalStack.includes('incoming-invite-modal')) {
-                currentPendingInviteId = data.invite.id;
-                
-                let isn = getEl('invite-sender-name'); 
-                if (isn) isn.textContent = data.invite.sender_name;
-                
-                let isa = getEl('invite-sender-avatar'); 
-                if (isa) isa.src = getPetImg(data.invite.sender_avatar);
-                
-                let iim = getEl('incoming-invite-modal'); 
-                if (iim) iim.setAttribute('data-party', data.invite.party_code);
-                
-                playSound('win');
-                openModal('incoming-invite-modal');
-            }
-        } catch(e) {}
-    }, 5000);
-}
-
-async function declineInvite() {
-    if (currentPendingInviteId) {
-        try { 
-            await fetch(`${API_URL}/invites/clear`, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ code: String(currentPendingInviteId) }) 
-            }); 
-        } catch(e) {}
-    }
-    closeModal('incoming-invite-modal');
-}
-
-async function acceptInvite() {
-    let iim = getEl('incoming-invite-modal');
-    const code = iim ? iim.getAttribute('data-party') : '';
-    
-    await declineInvite(); 
-    if (currentPartyCode) {
-        await apiLeaveParty();
-    }
-    
-    let pci = getEl('party-code-input'); 
-    if (pci) pci.value = code;
-    
-    await apiJoinParty(code);
-    openModal('party-modal');
-}
-
-function switchProfileTab(tab) {
-    document.querySelectorAll('#profile-modal .tab-btn').forEach(b => b.classList.remove('active')); 
-    if (event && event.target) {
-        event.target.classList.add('active'); 
-    }
-    playSound('click');
-    
-    let psv = getEl('profile-stats-view');
-    let pfv = getEl('profile-friends-view');
-    
-    if (tab === 'stats') {
-        if (psv) psv.style.display = 'block'; 
-        if (pfv) pfv.style.display = 'none';
-    } else {
-        if (psv) psv.style.display = 'none'; 
-        if (pfv) pfv.style.display = 'block';
-        
-        let mfc = getEl('my-friend-code'); 
-        if (mfc) mfc.value = getTgUser().id; 
-        
-        apiLoadFriends(); 
-    }
-}
-
-function openProfile() {
-    apiSyncGlobalProfile(); 
-    
-    let pr = getEl('profile-rank'); 
-    if (pr) {
-        pr.textContent = RANKS[Math.floor(userLevel / 5)] || "Создатель";
-        if (isVip()) pr.innerHTML += ' <span style="color:#ffd700">👑 PRO</span>';
-    }
-    
-    let pl = getEl('profile-level'); 
-    if (pl) pl.textContent = `Уровень ${userLevel}`;
-    
-    let sh = getEl('stat-hatched'); 
-    if (sh) sh.textContent = userStats.hatched || 0;
-    
-    let su = getEl('stat-unique'); 
-    if (su) su.textContent = new Set(collection).size;
-    
-    let si = getEl('stat-invites'); 
-    if (si) si.textContent = userStats.invites || 0;
-    
-    let netWorth = walletBalance;
-    collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
-    
-    ownedItems.themes.forEach(t => { 
-        const item = SHOP_DATA.themes.find(x => x.id === t); 
-        if (item) netWorth += item.price; 
-    });
-    ownedItems.eggs.forEach(e => { 
-        const item = SHOP_DATA.eggs.find(x => x.id === e); 
-        if (item) netWorth += item.price; 
-    });
-    
-    let se = getEl('stat-earned'); 
-    if (se) se.textContent = netWorth; 
-    
-    let pa = getEl('profile-avatar'); 
-    if (pa) pa.src = getPetImg(selectedAvatar);
-    
-    let psv = getEl('profile-stats-view'); 
-    if (psv) psv.style.display = 'block'; 
-    
-    let pfv = getEl('profile-friends-view'); 
-    if (pfv) pfv.style.display = 'none';
-    
-    let tabs = document.querySelectorAll('#profile-modal .tab-btn');
-    if (tabs.length >= 2) {
-        tabs[0].classList.add('active');
-        tabs[1].classList.remove('active');
-    }
-    
-    openModal('profile-modal');
-}
-
-function copyMyCode() {
-    let mfc = getEl('my-friend-code');
-    if (!mfc) return;
-    navigator.clipboard.writeText(mfc.value).then(() => showToast("Код скопирован!", "📋"));
-}
-
-async function apiAddFriend() {
-    playSound('click'); 
-    let input = getEl('add-friend-input'); 
-    if (!input) return;
-    
-    const friendId = input.value.trim();
-    if (!friendId || friendId === getTgUser().id) {
-        return showToast("Неверный ID", "❌");
-    }
-    
-    try {
-        const res = await fetch(`${API_URL}/friends/add`, {
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: getTgUser().id, friend_id: friendId })
-        });
-        const data = await res.json();
-        
-        if (data.status === 'success') { 
-            showToast("Друг добавлен!", "🤝"); 
-            input.value = ''; 
-            apiLoadFriends(); 
-        } else { 
-            showToast(data.detail || "Ошибка", "❌"); 
-        }
-    } catch(e) { 
-        showToast("Ошибка сети", "❌"); 
-    }
-}
-
-async function apiLoadFriends() {
-    const container = getEl('friends-list-container'); 
-    if (!container) return;
-    
-    container.innerHTML = '<div style="text-align:center; color:#888;">Загрузка...</div>';
-    
-    try {
-        const res = await fetch(`${API_URL}/friends/list/${getTgUser().id}`); 
-        const data = await res.json();
-        
-        container.innerHTML = '';
-        if (data.friends.length === 0) { 
-            container.innerHTML = '<div style="text-align:center; color:#888;">У вас пока нет друзей</div>'; 
-            return; 
-        }
-        
-        data.friends.forEach(f => {
-            const encodedFriend = encodeURIComponent(JSON.stringify(f));
-            container.innerHTML += `
-                <div class="achievement-card" style="cursor: pointer;" onclick="openFriendProfile('${encodedFriend}')">
-                    <img src="${getPetImg(f.avatar)}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #007aff;" onerror="this.src='assets/ui/icon-profile.png'">
-                    <div class="ach-info">
-                        <div class="ach-title">${f.name}</div>
-                        <div class="ach-desc">Уровень ${f.level}</div>
-                    </div>
-                </div>
-            `;
-        });
-    } catch(e) { 
-        container.innerHTML = '<div style="text-align:center; color:red;">Ошибка загрузки</div>'; 
-    }
-}
-
-let currentViewingFriendId = null;
-
-function openFriendProfile(encodedFriend) {
-    playSound('click'); 
-    const f = JSON.parse(decodeURIComponent(encodedFriend)); 
-    currentViewingFriendId = f.user_id;
-    
-    let fpn = getEl('fp-name'); if (fpn) fpn.textContent = f.name; 
-    let fpa = getEl('fp-avatar'); if (fpa) fpa.src = getPetImg(f.avatar);
-    let fpl = getEl('fp-level'); if (fpl) fpl.textContent = `Уровень ${f.level}`; 
-    let fph = getEl('fp-hatched'); if (fph) fph.textContent = f.hatched || 0; 
-    let fpe = getEl('fp-earned'); if (fpe) fpe.textContent = f.earned || 0;
-    
-    let fib = getEl('fp-invite-btn');
-    let fih = getEl('fp-invite-hint');
-    
-    if (currentPartyCode) { 
-        if (fib) fib.style.display = 'block'; 
-        if (fih) fih.style.display = 'none'; 
-    } else { 
-        if (fib) fib.style.display = 'none'; 
-        if (fih) fih.style.display = 'block'; 
-    }
-    openModal('friend-profile-modal');
-}
-
-async function sendInviteToFriend() {
-    playSound('click'); 
-    if (!currentPartyCode || !currentViewingFriendId) return;
-    
-    const btn = getEl('fp-invite-btn'); 
-    if (btn) { 
-        btn.textContent = "Отправляем..."; 
-        btn.disabled = true; 
-    }
-    
-    try {
-        await fetch(`${API_URL}/invites/send`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ sender_id: getTgUser().id, receiver_id: currentViewingFriendId, party_code: currentPartyCode }) 
-        });
-        showToast("Приглашение отправлено!", "💌");
-    } catch(e) { 
-        showToast("Ошибка", "❌"); 
-    }
-    
-    setTimeout(() => { 
-        if (btn) { 
-            btn.textContent = "Позвать в свою Пати 🎮"; 
-            btn.disabled = false; 
-        } 
-        closeModal('friend-profile-modal'); 
-    }, 1000);
-}
 
 // =============================================================
-// 7. ДОПОЛНИТЕЛЬНЫЕ ОКНА И НАГРАДЫ (Покупка звезд, Промокоды, Уровни, Аватар)
+// ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
 // =============================================================
-
 function openBuyStarsModal() {
     openModal('buy-stars-modal');
 }
@@ -2100,6 +2097,9 @@ async function buyStars(amount) {
     btn.disabled = false;
 }
 
+// =============================================================
+// СЕРВЕРНЫЕ ПРОМОКОДЫ
+// =============================================================
 function openPromo() { 
     openModal('promo-modal'); 
 }
@@ -2163,6 +2163,9 @@ async function activatePromo() {
     btn.disabled = false;
 }
 
+// =============================================================
+// АДМИН-ПАНЕЛЬ
+// =============================================================
 function generateRandomPromo() {
     playSound('click');
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -2215,85 +2218,8 @@ async function adminSubmitPromo() {
     btn.disabled = false;
 }
 
-function openLevels() {
-    const list = getEl('levels-list'); 
-    if (!list) return;
-    
-    list.innerHTML = '';
-    
-    for (let lvl = 1; lvl <= 100; lvl++) {
-        if (!LEVEL_REWARDS[lvl]) continue;
-        
-        const info = LEVEL_REWARDS[lvl]; 
-        const isReached = userLevel >= lvl;
-        const status = isReached ? `<img src="assets/ui/icon-check.png" style="width:20px">` : `<img src="assets/ui/icon-lock.png" style="width:20px">`;
-        
-        const div = document.createElement('div'); 
-        div.className = `level-item ${isReached ? 'active' : 'locked'}`;
-        
-        let rewardText = info.reward || "Нет";
-        if (rewardText && rewardText.includes("монет")) {
-            rewardText = rewardText.replace("монет", `<img src="assets/ui/coin.png" style="width:16px;vertical-align:middle">`);
-        }
-        
-        div.innerHTML = `<div class="rank-icon">${status}</div><div class="rank-details"><div class="rank-title">Ур. ${lvl}: ${info.title}</div><div class="rank-desc">Награда: ${rewardText}</div></div>`;
-        list.appendChild(div);
-    }
-    openModal('levels-modal');
-}
-
-function openAvatarSelector() {
-    const list = getEl('avatar-list'); 
-    if (!list) return;
-    
-    list.innerHTML = '';
-    const uniquePets = [...new Set(collection)];
-    
-    if (uniquePets.length === 0) { 
-        list.innerHTML = "<p style='color:#888; grid-column:span 4;'>Сначала выбей питомца!</p>"; 
-    }
-    
-    uniquePets.forEach(pet => {
-        const div = document.createElement('div');
-        div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
-        div.innerHTML = `<img src="assets/pets/pet-${pet}.png" onerror="this.src='assets/eggs/egg-default.png'">`;
-        
-        div.onclick = () => {
-            selectedAvatar = pet; 
-            saveData();
-            
-            let pAvatar = getEl('profile-avatar'); 
-            if (pAvatar) pAvatar.src = getPetImg(pet);
-            
-            let hBtn = getEl('header-profile-btn'); 
-            if (hBtn) hBtn.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`;
-            
-            if (currentPartyCode) {
-                apiUpdatePlayerAvatar();
-            }
-            
-            closeModal('avatar-modal'); 
-            showToast("Аватар изменен!");
-        };
-        list.appendChild(div);
-    });
-    openModal('avatar-modal');
-}
-
-async function apiUpdatePlayerAvatar() {
-    let finalName = getTgUser().name;
-    if (isVip()) {
-        finalName += ' 👑';
-    }
-    try { 
-        await fetch(`${API_URL}/party/join`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin }) 
-        }); 
-    } catch(e) {}
-}// =============================================================
-// 8. БАЗОВЫЙ ТАЙМЕР И ФОКУС
+// =============================================================
+// БАЗОВЫЙ ТАЙМЕР И ФОКУС
 // =============================================================
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isRunning && currentHatchMode === 'online') {
@@ -2445,7 +2371,7 @@ function updateUI() {
 }
 
 // -------------------------------------------------------------
-// 8.5 ВТОРОЙ СЛОТ (ОФФЛАЙН ИНКУБАТОР)
+// ВТОРОЙ СЛОТ (ОФФЛАЙН ИНКУБАТОР)
 // -------------------------------------------------------------
 function updateSecondSlotUI() {
     const panel = getEl('second-slot-panel');
@@ -2760,13 +2686,26 @@ function finishTimer(fromOffline = false) {
     isRunning = false; 
     localStorage.removeItem('hatchEndTime');
     
-    let ow = getEl('offline-warning'); if (ow) ow.style.display = 'none'; 
-    let mb = getEl('main-btn'); if (mb) mb.style.display = 'none';
-    let sbc = getEl('start-buttons-container'); if (sbc) sbc.style.display = 'flex'; 
-    let sb = getEl('share-btn'); if (sb) sb.style.display = 'block'; 
-    let pb = getEl('prev-btn'); if (pb) pb.style.visibility = 'visible'; 
-    let nb = getEl('next-btn'); if (nb) nb.style.visibility = 'visible';
-    let co = getEl('crack-overlay'); if (co) co.className = 'crack-overlay';
+    let ow = getEl('offline-warning'); 
+    if (ow) ow.style.display = 'none'; 
+    
+    let mb = getEl('main-btn'); 
+    if (mb) mb.style.display = 'none';
+    
+    let sbc = getEl('start-buttons-container'); 
+    if (sbc) sbc.style.display = 'flex'; 
+    
+    let sb = getEl('share-btn'); 
+    if (sb) sb.style.display = 'block'; 
+    
+    let pb = getEl('prev-btn'); 
+    if (pb) pb.style.visibility = 'visible'; 
+    
+    let nb = getEl('next-btn'); 
+    if (nb) nb.style.visibility = 'visible';
+    
+    let co = getEl('crack-overlay'); 
+    if (co) co.className = 'crack-overlay';
 
     let vipMult = isVip() ? 1.2 : 1;
     const m = MODES[currentModeIndex] || MODES[0]; 
@@ -2777,6 +2716,7 @@ function finishTimer(fromOffline = false) {
         userLevel++; 
         showToast(`Lvl UP: ${userLevel}`, "🎉"); 
         playSound('win'); 
+        
         if (LEVEL_REWARDS[userLevel] && LEVEL_REWARDS[userLevel].reward && LEVEL_REWARDS[userLevel].reward.includes('Уникальный')) {
             if (userLevel === 50) { 
                 collection.push("god"); 
@@ -2835,11 +2775,14 @@ function finishTimer(fromOffline = false) {
 
         const rnd = Math.random() * 100;
         if (rnd < leg) { 
-            pool = petDatabase.legendary; playSound('legendary'); 
+            pool = petDatabase.legendary; 
+            playSound('legendary'); 
         } else if (rnd < leg + rare) { 
-            pool = petDatabase.rare; playSound('win'); 
+            pool = petDatabase.rare; 
+            playSound('win'); 
         } else { 
-            pool = petDatabase.common; playSound('win'); 
+            pool = petDatabase.common; 
+            playSound('win'); 
         }
     }
     
@@ -2875,7 +2818,7 @@ function finishTimer(fromOffline = false) {
 }
 
 // =============================================================
-// 9. ЛАБОРАТОРИЯ (СИНТЕЗ, ПРОКАЧКА ⭐️ И МИФИКИ)
+// ИНВЕНТАРЬ И ЛАБОРАТОРИЯ (ДНК, ПРОКАЧКА)
 // =============================================================
 function openCraft() {
     let psc = getEl('pegasus-shards-count'); 
@@ -2899,6 +2842,7 @@ function openCraft() {
 
     const c = getEl('craft-list'); 
     if (!c) return;
+    
     c.innerHTML = ''; 
     let canCraft = false;
     
@@ -3151,6 +3095,7 @@ function openInventory() {
         if (count > 0) {
             d.className = `pet-slot ${r}`; 
             d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">${starBadge}`;
+            
             if (count > 1) { 
                 const b = document.createElement('div'); 
                 b.className = 'slot-count'; 
@@ -3243,24 +3188,8 @@ function sellPet() {
 }
 
 // =============================================================
-// 10. МУЛЬТИПЛЕЕР И БОСС-РЕЙД (С УЧЕТОМ ЗВЕЗДНЫХ УРОВНЕЙ)
+// МУЛЬТИПЛЕЕР И БОСС-РЕЙД
 // =============================================================
-
-function openPartyModal() {
-    let psv = getEl('party-setup-view');
-    let pav = getEl('party-active-view');
-    
-    if (currentPartyCode) {
-        if (psv) psv.style.display = 'none';
-        if (pav) pav.style.display = 'block';
-        startPartyPolling(); 
-    } else {
-        if (psv) psv.style.display = 'block';
-        if (pav) pav.style.display = 'none';
-    }
-    openModal('party-modal');
-}
-
 async function apiCreateParty() {
     playSound('click');
     const btn = event.target; 
@@ -3789,7 +3718,7 @@ function handleBossRaidEnd() {
 }
 
 // =============================================================
-// 12. МИНИ-ИГРА: МЕГА-ЯЙЦО
+// МИНИ-ИГРА: МЕГА-ЯЙЦО И ЭКСПЕДИЦИЯ
 // =============================================================
 async function apiAddMegaEggTime(seconds) {
     try { 
@@ -3844,9 +3773,6 @@ async function claimMegaEgg() {
     closeModal('mega-egg-modal');
 }
 
-// =============================================================
-// 13. МИНИ-ИГРА: ЭКСПЕДИЦИЯ 2.0 
-// =============================================================
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
     document.querySelectorAll('#leader-location-selector .tab-btn').forEach(b => b.classList.remove('active'));
@@ -4161,7 +4087,6 @@ async function claimExpedition() {
     let uniqueMutants = new Set(collection.filter(p => petDatabase.mutant.includes(p))).size; 
     let mutantBonus = 1 + (uniqueMutants * 0.05);
     
-    // БОНУС ЗВЕЗД В ЭКСПЕДИЦИИ
     let stars = petStars[selectedAvatar] || 1;
     let starBonus = 1 + ((stars - 1) * 0.1); 
 
