@@ -4151,7 +4151,242 @@ async function claimExpedition() {
         requestStopMiniGame(); 
     }
 }
+// =============================================================
+// 13. ГЛОБАЛЬНЫЙ РЫНОК (MARKET)
+// =============================================================
+let currentMarketTab = 'all';
+let selectedPetForSale = null;
 
+async function openMarketModal() {
+    openModal('market-modal');
+    switchMarketTab('all');
+    await loadMarket();
+}
+
+function switchMarketTab(tab) {
+    currentMarketTab = tab;
+    document.querySelectorAll('#market-modal .tab-btn').forEach(b => b.classList.remove('active'));
+    let activeBtn = getEl(`market-tab-${tab}`);
+    if (activeBtn) activeBtn.classList.add('active');
+    loadMarket();
+}
+
+async function loadMarket() {
+    const grid = getEl('market-items-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="text-align:center; color:#888; grid-column: 1 / -1; padding: 20px;">Загрузка товаров... ⏳</div>';
+    
+    try {
+        const res = await fetch(`${API_URL}/api/market/list`);
+        const data = await res.json();
+        let lots = data.lots || [];
+        
+        if (currentMarketTab !== 'all') {
+            lots = lots.filter(l => l.currency === currentMarketTab);
+        }
+        
+        if (lots.length === 0) {
+            grid.innerHTML = '<div style="text-align:center; color:#888; grid-column: 1 / -1; padding: 20px;">Рынок пуст. Стань первым продавцом! 💸</div>';
+            return;
+        }
+        
+        grid.innerHTML = '';
+        lots.forEach(lot => {
+            const r = getPetRarity(lot.pet_id);
+            const p = PRICES[r] || 0;
+            const petName = PET_NAMES[lot.pet_id] || "Питомец";
+            const stars = lot.pet_stars || 1;
+            let starStr = stars > 1 ? `<div class="star-badge" style="top:5px; right:5px; left:auto;">⭐️${stars}</div>` : '';
+            
+            const isMyLot = lot.seller_id === String(getTgUser().id);
+            let btnHtml = '';
+            
+            if (isMyLot) {
+                btnHtml = `<button class="btn locked" style="padding: 8px; font-size: 12px; margin-top: 10px;">Твой лот</button>`;
+            } else {
+                const currIcon = lot.currency === 'coins' ? '💰' : '⭐️';
+                btnHtml = `<button class="btn" style="background: #00A3FF; padding: 8px; font-size: 12px; margin-top: 10px; box-shadow:0 2px 10px rgba(0,163,255,0.4);" onclick="buyMarketLot('${lot.lot_id}', ${lot.price}, '${lot.currency}')">Купить за ${lot.price} ${currIcon}</button>`;
+            }
+
+            const d = document.createElement('div');
+            d.className = `pet-slot ${r}`;
+            d.style.display = 'flex';
+            d.style.flexDirection = 'column';
+            d.style.height = 'auto';
+            d.style.padding = '15px 10px';
+            
+            d.innerHTML = `
+                <div style="position:relative; width:100%; display:flex; justify-content:center;">
+                    <img src="assets/pets/pet-${lot.pet_id}.png" style="width: 70px; height: 70px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));" onerror="this.src='assets/eggs/egg-default.png'">
+                    ${starStr}
+                </div>
+                <div style="font-size: 13px; font-weight: bold; margin-top: 10px; text-align:center;">${petName}</div>
+                <div style="font-size: 10px; color: #888; text-align:center; margin-top: 4px;">Продавец: ${lot.seller_name}</div>
+                ${btnHtml}
+            `;
+            grid.appendChild(d);
+        });
+    } catch(e) {
+        grid.innerHTML = '<div style="text-align:center; color:#ff3b30; grid-column: 1 / -1; padding: 20px;">Ошибка сети. Сервер недоступен.</div>';
+    }
+}
+
+async function buyMarketLot(lotId, price, currency) {
+    if (currency === 'coins' && walletBalance < price) return showToast("Мало монет!", "❌");
+    if (currency === 'stars' && userStars < price) return showToast("Мало звезд!", "❌");
+    
+    playSound('click');
+    
+    try {
+        const res = await fetch(`${API_URL}/api/market/buy`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lot_id: lotId, buyer_id: String(getTgUser().id) })
+        });
+        
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            if (currency === 'coins') walletBalance -= price;
+            if (currency === 'stars') userStars -= price;
+            
+            const boughtPet = data.lot.pet_id;
+            const boughtStars = data.lot.pet_stars || 1;
+            
+            collection.push(boughtPet);
+            
+            // Если мы купили пета с более высоким звездным уровнем, обновляем его
+            if (!petStars[boughtPet] || petStars[boughtPet] < boughtStars) {
+                petStars[boughtPet] = boughtStars;
+            }
+            
+            saveData();
+            updateBalanceUI();
+            loadMarket(); // Обновляем витрину
+            
+            showToast(`Успешная покупка: ${PET_NAMES[boughtPet]}!`, "🎉");
+            playSound('win');
+            fireConfetti();
+        } else {
+            showToast(data.detail, "❌");
+            loadMarket();
+        }
+    } catch(e) {
+        showToast("Ошибка транзакции", "❌");
+    }
+}
+
+function openSellModal() {
+    selectedPetForSale = null;
+    const sel = getEl('sell-pet-selector');
+    if (!sel) return;
+    sel.innerHTML = '';
+    
+    const uniquePets = [...new Set(collection)];
+    if (uniquePets.length === 0) {
+        sel.innerHTML = '<div style="color:#888; font-size:12px;">У вас нет питомцев для продажи.</div>';
+    } else {
+        uniquePets.forEach(pet => {
+            const r = getPetRarity(pet);
+            const stars = petStars[pet] || 1;
+            const d = document.createElement('div');
+            d.className = `pet-slot ${r}`;
+            d.style.minWidth = '65px';
+            d.style.height = '65px';
+            d.style.borderRadius = '12px';
+            d.style.cursor = 'pointer';
+            
+            let starStr = stars > 1 ? `<div class="star-badge" style="font-size:8px;">⭐️${stars}</div>` : '';
+            
+            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width:70%;height:70%;object-fit:contain;" onerror="this.src='assets/eggs/egg-default.png'">${starStr}`;
+            d.onclick = () => selectPetToSell(pet, stars);
+            sel.appendChild(d);
+        });
+    }
+    
+    getEl('selected-pet-to-sell').style.display = 'none';
+    getEl('confirm-sell-btn').disabled = true;
+    getEl('sell-price-input').value = '';
+    
+    openModal('sell-pet-modal');
+}
+
+function selectPetToSell(pet, stars) {
+    selectedPetForSale = pet;
+    playSound('click');
+    
+    getEl('selected-pet-to-sell').style.display = 'block';
+    getEl('sell-preview-img').src = `assets/pets/pet-${pet}.png`;
+    getEl('sell-preview-name').textContent = PET_NAMES[pet] || "Питомец";
+    getEl('sell-preview-stars').textContent = stars > 1 ? `Уровень: ⭐️${stars}` : '';
+    
+    getEl('confirm-sell-btn').disabled = false;
+}
+
+async function submitSellPet() {
+    if (!selectedPetForSale) return;
+    
+    const priceInput = getEl('sell-price-input').value;
+    const price = parseInt(priceInput);
+    const currency = getEl('sell-currency-select').value;
+    
+    if (!price || price <= 0) return showToast("Укажите корректную цену!", "❌");
+    
+    const user = getTgUser();
+    let finalName = user.name;
+    if (isVip()) finalName += ' 👑'; // Добавляем корону продавцу, если он VIP
+    
+    const stars = petStars[selectedPetForSale] || 1;
+    
+    const btn = getEl('confirm-sell-btn');
+    const origText = btn.textContent;
+    btn.textContent = "Публикация...";
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`${API_URL}/api/market/sell`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                seller_id: user.id,
+                seller_name: finalName,
+                pet_id: selectedPetForSale,
+                pet_stars: stars,
+                price: price,
+                currency: currency
+            })
+        });
+        
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            // Изымаем пета из коллекции игрока
+            const idx = collection.indexOf(selectedPetForSale);
+            if (idx > -1) collection.splice(idx, 1);
+            
+            // Если мы продали последнюю копию этого пета, сбрасываем его звезды у нас
+            if (!collection.includes(selectedPetForSale)) {
+                delete petStars[selectedPetForSale];
+            }
+            
+            saveData();
+            updateBalanceUI();
+            closeModal('sell-pet-modal');
+            showToast("Питомец выставлен на продажу!", "✅");
+            playSound('money');
+            
+            // Обновляем витрину, чтобы лот сразу появился
+            loadMarket();
+        } else {
+            showToast("Ошибка при создании лота", "❌");
+        }
+    } catch(e) {
+        showToast("Сбой сети", "❌");
+    }
+    
+    btn.textContent = origText;
+    btn.disabled = false;
+}
 // =============================================================
 // ЗАПУСК ИГРЫ
 // =============================================================
