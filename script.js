@@ -23,46 +23,28 @@ function playSound(type) {
     const now = audioCtx.currentTime;
 
     if (type === 'click') {
-        osc.type = 'sine'; 
-        osc.frequency.setValueAtTime(800, now); 
-        osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
-        gainNode.gain.setValueAtTime(0.1, now); 
-        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now); 
-        osc.stop(now + 0.1);
+        osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+        gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
     } else if (type === 'money') {
-        osc.type = 'sine'; 
-        osc.frequency.setValueAtTime(1200, now); 
-        osc.frequency.setValueAtTime(1600, now + 0.1);
-        gainNode.gain.setValueAtTime(0.1, now); 
-        gainNode.gain.linearRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now); 
-        osc.stop(now + 0.3);
+        osc.type = 'sine'; osc.frequency.setValueAtTime(1200, now); osc.frequency.setValueAtTime(1600, now + 0.1);
+        gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.linearRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
     } else if (type === 'win') {
-        playNote(523.25, now, 0.1); 
-        playNote(659.25, now + 0.1, 0.1); 
-        playNote(783.99, now + 0.2, 0.4);
+        playNote(523.25, now, 0.1); playNote(659.25, now + 0.1, 0.1); playNote(783.99, now + 0.2, 0.4);
     } else if (type === 'legendary') {
-        osc.type = 'triangle'; 
-        osc.frequency.setValueAtTime(200, now); 
-        osc.frequency.linearRampToValueAtTime(600, now + 1);
-        gainNode.gain.setValueAtTime(0.3, now); 
-        gainNode.gain.linearRampToValueAtTime(0.01, now + 1.5);
-        osc.start(now); 
-        osc.stop(now + 1.5);
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(600, now + 1);
+        gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.linearRampToValueAtTime(0.01, now + 1.5);
+        osc.start(now); osc.stop(now + 1.5);
     }
 }
 
 function playNote(freq, time, duration) {
-    const osc = audioCtx.createOscillator(); 
-    const gain = audioCtx.createGain();
-    osc.connect(gain); 
-    gain.connect(audioCtx.destination);
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
     osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.1, time); 
-    gain.gain.linearRampToValueAtTime(0.01, time + duration);
-    osc.start(time); 
-    osc.stop(time + duration);
+    gain.gain.setValueAtTime(0.1, time); gain.gain.linearRampToValueAtTime(0.01, time + duration);
+    osc.start(time); osc.stop(time + duration);
 }
 
 // =============================================================
@@ -72,39 +54,24 @@ const API_URL = "https://focushatcher-ondey.amvera.io/api";
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game"; 
 let modalStack = [];
 
-let collection = [];
-let userXP = 0;
-let userLevel = 1;
-let walletBalance = 0;
-let userStars = 0;
-let pegasusShards = 0;
+let collection = [], userXP = 0, userLevel = 1, walletBalance = 0, userStars = 0, pegasusShards = 0;
 let userJokers = 0; 
 let ownedItems = { themes: ['default'], eggs: ['default'] };
-let activeTheme = 'default';
-let activeEggSkin = 'default';
-let selectedAvatar = 'default';
+let activeTheme = 'default', activeEggSkin = 'default', selectedAvatar = 'default';
 let userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0 };
 let myBoosters = { luck: 0, speed: 0, bio: 0 };
-let claimedAchievements = [];
-let claimedQuests = [];
-let usedCodes = [];
-let isVibrationOn = true;
-let isSoundOn = false;
+let claimedAchievements = [], claimedQuests = [], usedCodes = [];
+let isVibrationOn = true, isSoundOn = false;
 
 let vipEndTime = 0;
 let hasSecondSlot = false;
 let secondSlotEndTime = 0;
 let localSaveTime = 0; 
 
-let currentModeIndex = 0;
-let timerInterval = null;
-let isRunning = false;
-let timeLeft = 10;
+let currentModeIndex = 0, timerInterval = null, isRunning = false, timeLeft = 10;
 let activeBoosters = { luck: false, speed: false, bio: false };
 let currentHatchMode = 'none'; 
-let currentShopTab = 'themes';
-let currentAchTab = 'achievements';
-let selectedPet = null;
+let currentShopTab = 'themes', currentAchTab = 'achievements', selectedPet = null;
 let customEggConfig = { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 };
 let resurrectCountdownInterval = null;
 let secondSlotInterval = null;
@@ -133,24 +100,17 @@ let currentBoxType = 'base';
 
 let secretTaps = 0;
 let secretTapTimer = null;
+
 let forbesDataCache = null;
 let currentForbesTab = 'global';
 
-// НОВЫЕ ПЕРЕМЕННЫЕ (ДНК И ПАРАЗИТЫ)
 let dnaGrid = [];
 let isStunned = false;
 let parasiteInterval = null;
 
-// =============================================================
-// БЕЗОПАСНЫЙ ПАРСИНГ ДАННЫХ (ЗАЩИТА ОТ ПОТЕРИ СОХРАНЕНИЙ)
-// =============================================================
 function safeParse(val, def) {
     if (!val || val === 'undefined' || val === 'null') return def;
-    try { 
-        return JSON.parse(val); 
-    } catch(e) { 
-        return def; 
-    }
+    try { return JSON.parse(val); } catch(e) { return def; }
 }
 
 function openModal(id) {
@@ -161,10 +121,7 @@ function openModal(id) {
         if(prevEl) prevEl.style.display = 'none';
     }
     const el = document.getElementById(id);
-    if(el) { 
-        el.style.display = 'flex'; 
-        modalStack.push(id); 
-    }
+    if(el) { el.style.display = 'flex'; modalStack.push(id); }
 }
 
 function closeModal(id) {
@@ -179,69 +136,43 @@ function closeModal(id) {
 }
 
 function fireConfetti() {
-    const canvas = document.getElementById('confetti-canvas'); 
-    if (!canvas) return;
+    const canvas = document.getElementById('confetti-canvas'); if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; 
-    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     let particles = [];
     const colors = ['#ff3b30', '#ffcc00', '#34c759', '#007aff', '#5856d6'];
     for (let i = 0; i < 100; i++) {
         particles.push({
-            x: canvas.width / 2, 
-            y: canvas.height / 2, 
-            w: Math.random() * 10 + 5, 
-            h: Math.random() * 10 + 5,
+            x: canvas.width / 2, y: canvas.height / 2, w: Math.random() * 10 + 5, h: Math.random() * 10 + 5,
             color: colors[Math.floor(Math.random() * colors.length)],
-            vx: (Math.random() - 0.5) * 20, 
-            vy: (Math.random() - 0.5) * 20 - 10, 
-            grav: 0.5
+            vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20 - 10, grav: 0.5
         });
     }
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles.forEach((p, index) => {
-            p.x += p.vx; 
-            p.y += p.vy; 
-            p.vy += p.grav;
-            ctx.fillStyle = p.color; 
-            ctx.fillRect(p.x, p.y, p.w, p.h);
+            p.x += p.vx; p.y += p.vy; p.vy += p.grav;
+            ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.w, p.h);
             if (p.y > canvas.height) particles.splice(index, 1);
         });
-        if (particles.length > 0) {
-            requestAnimationFrame(draw); 
-        } else {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        if (particles.length > 0) requestAnimationFrame(draw); else ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     draw();
 }
 
-function getEl(id) { 
-    return document.getElementById(id); 
-}
-
+function getEl(id) { return document.getElementById(id); }
 function showToast(msg, icon='🔔') {
     const c = getEl('toast-container'); 
     if(!c) return;
     const d = document.createElement('div');
     let content = icon === 'img' ? `<img src="assets/ui/coin.png"> <span>${msg}</span>` : `<span>${icon}</span> <span>${msg}</span>`;
-    d.className = 'toast'; 
-    d.innerHTML = content;
-    c.appendChild(d); 
-    setTimeout(() => { 
-        d.classList.add('fade-out'); 
-        setTimeout(() => d.remove(), 300); 
-    }, 3000);
+    d.className = 'toast'; d.innerHTML = content;
+    c.appendChild(d); setTimeout(() => { d.classList.add('fade-out'); setTimeout(()=>d.remove(), 300); }, 3000);
 }
-
 function formatTime(s) { 
-    if(s >= 3600) {
-        return `${Math.floor(s/3600)}ч ${Math.floor((s%3600)/60).toString().padStart(2,'0')}м`;
-    }
+    if(s >= 3600) return `${Math.floor(s/3600)}ч ${Math.floor((s%3600)/60).toString().padStart(2,'0')}м`;
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; 
 }
-
 function getPetRarity(p) {
     if(p === "god") return 'legendary';
     if(petDatabase.mythic.includes(p)) return 'mythic';
@@ -250,37 +181,18 @@ function getPetRarity(p) {
     if(petDatabase.rare.includes(p)) return 'rare';
     return 'common';
 }
-
-function getPetImg(id) { 
-    return id === 'default' ? 'assets/ui/icon-profile.png' : `assets/pets/pet-${id}.png`; 
-}
-
-function hardReset() { 
-    if(confirm("Сбросить все?")) { 
-        localStorage.clear(); 
-        location.reload(); 
-    } 
-}
+function getPetImg(id) { return id === 'default' ? 'assets/ui/icon-profile.png' : `assets/pets/pet-${id}.png`; }
+function hardReset() { if(confirm("Сбросить все?")) { localStorage.clear(); location.reload(); } }
 
 function getTgUser() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-        return { 
-            id: String(window.Telegram.WebApp.initDataUnsafe.user.id), 
-            name: window.Telegram.WebApp.initDataUnsafe.user.first_name 
-        };
+        return { id: String(window.Telegram.WebApp.initDataUnsafe.user.id), name: window.Telegram.WebApp.initDataUnsafe.user.first_name };
     }
-    if(!localStorage.getItem('fake_uid')) {
-        localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random()*10000));
-    }
-    return { 
-        id: localStorage.getItem('fake_uid'), 
-        name: "Игрок" 
-    };
+    if(!localStorage.getItem('fake_uid')) localStorage.setItem('fake_uid', 'user_' + Math.floor(Math.random()*10000));
+    return { id: localStorage.getItem('fake_uid'), name: "Игрок" };
 }
 
-function isVip() { 
-    return Date.now() < vipEndTime; 
-}
+function isVip() { return Date.now() < vipEndTime; }
 
 // =============================================================
 // 3. БАЗЫ ДАННЫХ И КОНСТАНТЫ
@@ -368,13 +280,8 @@ const SHOP_DATA = {
 };
 
 const DAILY_REWARDS = [
-    { day: 1, type: 'money', val: 100 }, 
-    { day: 2, type: 'money', val: 250 }, 
-    { day: 3, type: 'money', val: 500 },
-    { day: 4, type: 'money', val: 1000 }, 
-    { day: 5, type: 'money', val: 2000 }, 
-    { day: 6, type: 'booster', id: 'speed', val: 1 }, 
-    { day: 7, type: 'mixed', money: 5000, booster: 'luck' }
+    { day: 1, type: 'money', val: 100 }, { day: 2, type: 'money', val: 250 }, { day: 3, type: 'money', val: 500 },
+    { day: 4, type: 'money', val: 1000 }, { day: 5, type: 'money', val: 2000 }, { day: 6, type: 'booster', id: 'speed', val: 1 }, { day: 7, type: 'mixed', money: 5000, booster: 'luck' }
 ];
 
 const ROULETTE_PRIZES = {
@@ -421,14 +328,9 @@ function checkDailyReward() {
     const today = new Date().toDateString();
     const lastLogin = localStorage.getItem('lastLoginDate');
     let streak = parseInt(localStorage.getItem('dailyStreak')) || 0;
-    
     if (lastLogin === today) return; 
-    
-    const yesterday = new Date(); 
-    yesterday.setDate(yesterday.getDate() - 1);
-    
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
     if (lastLogin !== yesterday.toDateString()) streak = 0;
-    
     renderDailyModal(streak); 
     openModal('daily-modal'); 
     playSound('win'); 
@@ -438,20 +340,15 @@ function renderDailyModal(curr) {
     const g = getEl('daily-grid'); 
     if(!g) return;
     g.innerHTML = '';
-    
     DAILY_REWARDS.forEach((r, i) => {
         const d = document.createElement('div');
-        let st = ''; 
-        if(i < curr) st = 'claimed'; 
-        if(i === curr) st = 'active';
-        
+        let st = ''; if(i<curr) st='claimed'; if(i===curr) st='active';
         d.className = `daily-item ${st}`;
         let iconHTML = '';
         if (r.type === 'money') iconHTML = `<img src="assets/ui/coin.png" class="daily-icon-img">`;
         else if (r.type === 'booster' && r.id === 'speed') iconHTML = `<img src="assets/ui/booster-speed.png" class="daily-icon-img">`;
         else if (r.type === 'mixed') iconHTML = `<img src="assets/ui/icon-trophy.png" class="daily-icon-img">`; 
-        
-        let v = (r.type==='money' || r.type==='mixed') ? `+${r.money||r.val}` : '+1 Буст';
+        let v = (r.type==='money'||r.type==='mixed') ? `+${r.money||r.val}` : '+1 Буст';
         d.innerHTML = `<div class="daily-day">День ${r.day}</div>${iconHTML}<div class="daily-val">${v}</div>`;
         g.appendChild(d);
     });
@@ -461,36 +358,18 @@ window.claimDaily = function() {
     let s = parseInt(localStorage.getItem('dailyStreak')) || 0;
     const t = new Date().toDateString();
     const l = localStorage.getItem('lastLoginDate');
-    const y = new Date(); 
-    y.setDate(y.getDate() - 1);
-    
+    const y = new Date(); y.setDate(y.getDate() - 1);
     if (l && l !== y.toDateString()) s = 0;
     const r = DAILY_REWARDS[s];
     
     let bonusMult = isVip() ? 1.2 : 1;
     
-    if (r.type === 'money') {
-        walletBalance += Math.floor(r.val * bonusMult);
-    } else if (r.type === 'booster') { 
-        if (!myBoosters[r.id]) myBoosters[r.id] = 0; 
-        myBoosters[r.id]++; 
-    } else if (r.type === 'mixed') { 
-        walletBalance += Math.floor(r.money * bonusMult); 
-        if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; 
-        myBoosters[r.booster]++; 
-    }
-    
-    s++; 
-    if (s >= 7) s = 0;
-    
-    localStorage.setItem('dailyStreak', s); 
-    localStorage.setItem('lastLoginDate', t);
-    
-    saveData(); 
-    updateBalanceUI(); 
-    showToast("Награда получена!", "📅"); 
-    closeModal('daily-modal'); 
-    playSound('money');
+    if (r.type === 'money') walletBalance += Math.floor(r.val * bonusMult);
+    else if (r.type === 'booster') { if (!myBoosters[r.id]) myBoosters[r.id] = 0; myBoosters[r.id]++; } 
+    else if (r.type === 'mixed') { walletBalance += Math.floor(r.money * bonusMult); if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; myBoosters[r.booster]++; }
+    s++; if (s >= 7) s = 0;
+    localStorage.setItem('dailyStreak', s); localStorage.setItem('lastLoginDate', t);
+    saveData(); updateBalanceUI(); showToast("Награда получена!", "📅"); closeModal('daily-modal'); playSound('money');
 }
 
 // =============================================================
@@ -498,11 +377,12 @@ window.claimDaily = function() {
 // =============================================================
 function initGame() {
     if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.expand(); 
-        window.Telegram.WebApp.enableClosingConfirmation();
-        window.Telegram.WebApp.setHeaderColor('#1c1c1e'); 
-        window.Telegram.WebApp.setBackgroundColor('#1c1c1e');
+        window.Telegram.WebApp.expand(); window.Telegram.WebApp.enableClosingConfirmation();
+        window.Telegram.WebApp.setHeaderColor('#1c1c1e'); window.Telegram.WebApp.setBackgroundColor('#1c1c1e');
     }
+    
+    // ВЫРЕЗАН ADSGRAM, ОСТАЛСЯ ТОЛЬКО GAMEPUSH ИЗ HTML!
+
     try {
         localSaveTime = parseInt(localStorage.getItem('lastSaveTime')) || 0;
         let savedLevel = parseInt(localStorage.getItem('userLevel'));
@@ -519,10 +399,8 @@ function initGame() {
             activeTheme = localStorage.getItem('activeTheme') || 'default';
             activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
             selectedAvatar = localStorage.getItem('selectedAvatar') || 'default'; 
-            let s = safeParse(localStorage.getItem('userStats'), {}); 
-            userStats = {...userStats, ...s};
-            let b = safeParse(localStorage.getItem('myBoosters'), {}); 
-            myBoosters = {luck: b.luck||0, speed: b.speed||0, bio: b.bio||0};
+            let s = safeParse(localStorage.getItem('userStats'), {}); userStats = {...userStats, ...s};
+            let b = safeParse(localStorage.getItem('myBoosters'), {}); myBoosters = {luck: b.luck||0, speed: b.speed||0, bio: b.bio||0};
             claimedAchievements = safeParse(localStorage.getItem('claimedAchievements'), []);
             claimedQuests = safeParse(localStorage.getItem('claimedQuests'), []);
             usedCodes = safeParse(localStorage.getItem('usedCodes'), []);
@@ -542,16 +420,10 @@ function initGame() {
     }
     
     let vibToggle = getEl('vibration-toggle');
-    if(vibToggle) { 
-        vibToggle.checked = isVibrationOn; 
-        vibToggle.onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; 
-    }
+    if(vibToggle) { vibToggle.checked = isVibrationOn; vibToggle.onchange = (e) => { isVibrationOn = e.target.checked; localStorage.setItem('isVibrationOn', isVibrationOn); playSound('click'); }; }
     
     let soundToggle = getEl('sound-toggle');
-    if(soundToggle) { 
-        soundToggle.checked = isSoundOn; 
-        soundToggle.onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; 
-    }
+    if(soundToggle) { soundToggle.checked = isSoundOn; soundToggle.onchange = (e) => { isSoundOn = e.target.checked; localStorage.setItem('isSoundOn', isSoundOn); if(isSoundOn) playSound('click'); }; }
     
     const titleEl = getEl('main-title-secret');
     if (titleEl) {
@@ -2246,8 +2118,14 @@ function craftMythicReal() {
         ms.className = 'mythic-silhouette spinning'; 
         ms.src = 'assets/eggs/egg-default.png'; 
     }
+
+    // НОВОЕ: Вспышки конфетти во время крафта
+    let pulseInterval = setInterval(() => {
+        fireConfetti();
+    }, 800);
     
     setTimeout(() => {
+        clearInterval(pulseInterval);
         let pool = petDatabase.mythic; 
         let dropped = pool[Math.floor(Math.random() * pool.length)]; 
         collection.push(dropped);
@@ -2255,12 +2133,17 @@ function craftMythicReal() {
         updateBalanceUI();
         
         if(ms) { 
-            ms.className = 'mythic-silhouette revealed'; 
+            // НОВОЕ: Эпичная вспышка
+            ms.className = 'mythic-silhouette epic-flash'; 
             ms.src = `assets/pets/pet-${dropped}.png`; 
         }
         
         showToast(`МИФИК СОЗДАН: ${PET_NAMES[dropped]}! 🦄`, "🌟"); 
-        fireConfetti();
+        
+        // НОВОЕ: Огромный залп конфетти
+        for(let i=0; i<5; i++) {
+            setTimeout(fireConfetti, i*300);
+        }
         
         setTimeout(() => { 
             closeModal('mythic-craft-modal'); 
@@ -2691,7 +2574,7 @@ function forceCloseMiniGame(gameType) {
 }
 
 // =============================================================
-// 11. БОСС-РЕЙД (ЗАРАЖЕННОЕ ЯЙЦО С ПАРАЗИТАМИ)
+// 11. БОСС-РЕЙД (ЗАРАЖЕННОЕ ЯЙЦО С ПАРАЗИТАМИ И VFX)
 // =============================================================
 function spawnParasite() {
     if(bossTimeLeft <= 0 || bossIsDead || isStunned) return;
@@ -2736,10 +2619,15 @@ function triggerStun() {
     
     const overlay = getEl('stun-overlay'); 
     if(overlay) overlay.style.display = 'flex';
+
+    // НОВОЕ: Тряска экрана при оглушении
+    const modalContent = document.querySelector('#boss-raid-modal .modal-content');
+    if(modalContent) modalContent.classList.add('shake-hard');
     
     setTimeout(() => { 
         isStunned = false; 
         if(overlay) overlay.style.display = 'none'; 
+        if(modalContent) modalContent.classList.remove('shake-hard');
     }, 3000);
 }
 
@@ -2748,11 +2636,15 @@ async function tapRaidBoss(event) {
     if (isStunned) return showToast("Ты оглушен!", "❌");
     
     playSound('click');
-    let damage = 1; 
+    let baseDamage = 1; 
     const r = getPetRarity(selectedAvatar); 
-    if(r === 'rare') damage = 5; 
-    if(r === 'legendary') damage = 20; 
-    if(r === 'mythic' || r === 'mutant') damage = 50;
+    if(r === 'rare') baseDamage = 5; 
+    if(r === 'legendary') baseDamage = 20; 
+    if(r === 'mythic' || r === 'mutant') baseDamage = 50;
+
+    // НОВОЕ: Шанс крита (15%)
+    let isCrit = Math.random() < 0.15;
+    let damage = isCrit ? baseDamage * 2 : baseDamage;
 
     const img = getEl('raid-boss-img');
     if(img) { 
@@ -2765,14 +2657,28 @@ async function tapRaidBoss(event) {
         const ft = document.createElement('div'); 
         ft.textContent = `-${damage}`; 
         ft.style.position = 'fixed';
-        ft.style.left = `${event.clientX}px`; 
-        ft.style.top = `${event.clientY}px`; 
-        ft.style.color = '#39ff14';
+        
+        // НОВОЕ: Разлет цифр урона
+        let offsetX = (Math.random() - 0.5) * 60;
+        let offsetY = (Math.random() - 0.5) * 60;
+        ft.style.left = `${event.clientX + offsetX}px`; 
+        ft.style.top = `${event.clientY + offsetY}px`; 
         ft.style.fontWeight = 'bold'; 
-        ft.style.fontSize = '24px'; 
         ft.style.pointerEvents = 'none'; 
         ft.style.zIndex = '9999';
-        ft.style.animation = 'flyBonus 1s ease-out forwards'; 
+
+        if (isCrit) {
+            ft.style.color = '#ff3b30'; // Красный крит
+            ft.style.fontSize = '36px';
+            ft.style.textShadow = '0 0 10px #ff0000';
+            ft.style.animation = 'critFly 1s ease-out forwards';
+        } else {
+            ft.style.color = '#ffd700'; // Обычный урон
+            ft.style.fontSize = '24px';
+            ft.style.textShadow = '0 0 5px #000';
+            ft.style.animation = 'damageFly 1s ease-out forwards';
+        }
+        
         document.body.appendChild(ft);
         setTimeout(() => ft.remove(), 1000);
     }
