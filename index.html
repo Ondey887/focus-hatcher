@@ -35,8 +35,11 @@
         .coin-img { width: 16px; height: 16px; }
         .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; }
 
-        /* ЦЕНТРИРУЕМ И УБИРАЕМ ДЫРЫ */
-        .main-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px 130px 20px; min-height: 100vh; gap: 15px; }
+        /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ === */
+        .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; }
+        
+        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: calc(100vh - 170px); padding: 10px 20px; gap: 15px; }
+        
         h1 { font-size: 26px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin: 0; }
         
         .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; }
@@ -45,10 +48,8 @@
         #mode-title { font-weight: bold; font-size: 16px; }
         #mode-subtitle { font-size: 12px; color: #888; }
         
-        /* ОГРОМНОЕ ЯЙЦО */
         .egg-container { position: relative; width: 280px; height: 280px; display: flex; justify-content: center; align-items: center; margin: 5px auto; }
-        .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.7)); z-index: 2; }
-        
+        .egg-img { width: 220px; height: 220px; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.7)); z-index: 2; }
         .egg-locked { filter: brightness(0.2) grayscale(100%); }
         .holo-egg { opacity: 0.8; filter: hue-rotate(180deg) drop-shadow(0 0 20px #00ffff); animation: holoFloat 3s ease-in-out infinite; }
         @keyframes holoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
@@ -67,7 +68,6 @@
         .crack-stage-1 { opacity: 0.3; } .crack-stage-2 { opacity: 0.6; } .crack-stage-3 { opacity: 1; }
         .egg-lock-icon { position: absolute; font-size: 60px; z-index: 4; text-shadow: 0 0 20px rgba(0,0,0,0.9); }
         
-        /* ОГРОМНЫЙ ТАЙМЕР ВПЛОТНУЮ К ЯЙЦУ */
         .timer-display { font-size: 68px; font-weight: 900; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.6); letter-spacing: -2px; margin: 0; line-height: 1; }
         
         .boosters-container { display: flex; gap: 15px; margin: 5px 0; }
@@ -77,34 +77,32 @@
         .booster-slot.empty { opacity: 0.4; filter: grayscale(100%); }
         .booster-slot.active { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 163, 255, 0.4); background: rgba(0, 163, 255, 0.1); transform: scale(1.05); }
 
-        .buttons-wrapper { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; align-items: center; }
-        .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
         .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 17px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .btn:active { transform: scale(0.96); }
         .btn.primary { background: linear-gradient(135deg, #00A3FF 0%, #007aff 100%); }
         .btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
         .btn.stop { background: var(--danger); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); }
-        .btn.share { background: #8a2be2; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); margin-bottom: 5px; }
+        .btn.share { background: #8a2be2; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); }
         .btn.small { padding: 8px 12px; font-size: 13px; border-radius: 10px; background: var(--primary); }
         .btn.success { background: var(--success); }
         .btn:disabled, .btn.locked { background: #333; color: #666; box-shadow: none; pointer-events: none; border-color: transparent; }
 
+        /* ИНДИКАТОР СКРОЛЛА */
+        .scroll-indicator { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 15px 0; color: rgba(255,255,255,0.4); animation: scrollBounce 2s infinite; }
+        @keyframes scrollBounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+        .arrow-down { font-size: 20px; margin-top: 4px; }
+
+        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; padding: 10px 20px 120px 20px; gap: 15px; }
+        
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
         .second-slot > div { display: flex; justify-content: space-between; align-items: center; }
 
-        /* ИСПРАВЛЕНИЕ: НИЖНЕЕ МЕНЮ С УЧЕТОМ ЧЕЛКИ IPHONE (safe-area) */
-        .bottom-nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; 
-            background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); 
-            border-top: 1px solid rgba(255,255,255,0.1); 
-            display: grid; grid-template-columns: repeat(4, 1fr); 
-            /* Здесь кроется магия: мы отступаем снизу на системную зону телефона */
-            padding: 10px 5px calc(15px + env(safe-area-inset-bottom)); 
-            z-index: 100; align-items: center; 
-        }
-        .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 8px 0; transition: all 0.2s; }
+        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ (Адаптивное под iPhone) */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 12px 5px calc(12px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; }
+        .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 5px 0; transition: all 0.2s; }
         .bottom-nav button:active { color: white; transform: scale(0.95); }
-        .nav-icon { font-size: 24px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .nav-icon { font-size: 26px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .bottom-nav button:active .nav-icon { transform: scale(1.15); }
         .badge { position: absolute; top: 0px; right: 15%; background: var(--danger); color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
 
@@ -178,10 +176,6 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes popScale { 0% { transform: scale(0.5); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
         
-        .pulse-slow { animation: pulse 2s infinite; }
-        .pulse-fast { animation: pulse 0.5s infinite; filter: hue-rotate(45deg); }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        
         .expedition-scene { background-size: cover; background-position: bottom; border-radius: 16px; border: 2px solid #333; overflow: hidden; display: flex; align-items: flex-end; padding-bottom: 20px; transition: background 1s ease; }
         .forest-bg { background-image: url('assets/bg/bg-forest.jpg'); }
         .mountains-bg { background-image: url('assets/bg/bg-mountains.jpg'); }
@@ -191,10 +185,7 @@
         .expedition-pet { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); z-index: 2; transition: transform 0.2s; }
         .walking-pet { animation: walk 0.5s infinite alternate; }
         @keyframes walk { from { transform: translateY(0); } to { transform: translateY(-5px); } }
-        .wolf-hit { animation: bossHit 0.2s ease-out; }
-        .flying-bonus { position: absolute; right: -50px; font-size: 24px; animation: flyAcross 4s linear; cursor: pointer; z-index: 5; }
-        @keyframes flyAcross { from { transform: translateX(0) rotate(0deg); } to { transform: translateX(-400px) rotate(-360deg); } }
-
+        
         .tap-cell { background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); width: calc(33.33% - 5px); aspect-ratio: 1; }
         .tap-cell.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,163,255,0.2); }
         .forbes-item { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
@@ -204,12 +195,7 @@
         .forbes-rank.top-2 { color: #C0C0C0; text-shadow: 0 0 10px rgba(192,192,192,0.5); font-size: 20px; }
         .forbes-rank.top-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); font-size: 20px; }
         .forbes-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; background: #333; border: 1px solid #555; }
-        .forbes-info { flex: 1; }
-        .forbes-name { font-weight: bold; font-size: 14px; }
-        .forbes-lvl { font-size: 11px; color: #888; }
-        .forbes-val { font-weight: bold; color: #ffd700; display: flex; align-items: center; gap: 4px; }
-        .forbes-val img { width: 14px; }
-
+        
         .roulette-box { width: 120px; height: 120px; background: rgba(0,0,0,0.5); border-radius: 20px; border: 2px solid #fff; margin: 0 auto 20px auto; display: flex; justify-content: center; align-items: center; font-size: 50px; transition: all 0.3s; }
         .roulette-spinning { animation: spinRouletteAnim 0.2s linear infinite; filter: blur(2px); }
         @keyframes spinRouletteAnim { 0% { transform: scale(1) rotate(0deg); } 50% { transform: scale(0.9) rotate(180deg); } 100% { transform: scale(1) rotate(360deg); } }
@@ -231,7 +217,6 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(22px); }
-        .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 16px; font-weight: 500; }
         
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
@@ -258,42 +243,52 @@
     </header>
 
     <main class="main-screen">
-        <h1 id="main-title-secret">Focus Hatcher</h1>
         
-        <div class="mode-selector">
-            <button id="prev-btn" onclick="prevMode()">◀</button>
-            <div class="mode-info">
-                <div id="mode-title">Базовое Яйцо</div>
-                <div id="mode-subtitle">Шанс 1%</div>
-                <div id="offline-warning" style="display:none; color:#ff3b30; font-size:12px; margin-top:5px; font-weight:bold; text-shadow: 0 0 5px #000;">Не закрывай приложение!</div>
+        <div class="top-focus-area">
+            <h1 id="main-title-secret">Focus Hatcher</h1>
+            
+            <div class="mode-selector">
+                <button id="prev-btn" onclick="prevMode()">◀</button>
+                <div class="mode-info">
+                    <div id="mode-title">Базовое Яйцо</div>
+                    <div id="mode-subtitle">Шанс 1%</div>
+                    <div id="offline-warning" style="display:none; color:#ff3b30; font-size:12px; margin-top:5px; font-weight:bold; text-shadow: 0 0 5px #000;">Не закрывай приложение!</div>
+                </div>
+                <button id="next-btn" onclick="nextMode()">▶</button>
             </div>
-            <button id="next-btn" onclick="nextMode()">▶</button>
-        </div>
-        <button id="custom-egg-btn" class="btn small" style="display:none; margin-bottom:10px; background:#333;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
+            
+            <button id="custom-egg-btn" class="btn small" style="display:none; background:#333;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
 
-        <div class="egg-container">
-            <img id="egg-display" src="assets/eggs/egg-default.png" class="egg-img">
-            <div id="crack-overlay" class="crack-overlay"></div>
-            <div id="egg-lock" class="egg-lock-icon" style="display:none;">🔒</div>
-            <div id="stun-overlay"></div>
-            <div id="parasites-container"></div>
-        </div>
+            <div class="egg-container">
+                <img id="egg-display" src="assets/eggs/egg-default.png" class="egg-img">
+                <div id="crack-overlay" class="crack-overlay"></div>
+                <div id="egg-lock" class="egg-lock-icon" style="display:none;">🔒</div>
+                <div id="stun-overlay"></div>
+                <div id="parasites-container"></div>
+            </div>
 
-        <div id="timer" class="timer-display">25:00</div>
+            <div id="timer" class="timer-display">25:00</div>
 
-        <div id="hatched-info" style="display:none; margin-bottom: 10px;">
-            <h2 id="hatched-name">Питомец</h2>
-            <div id="hatched-rarity" class="pet-rarity">Common</div>
-        </div>
+            <div id="hatched-info" style="display:none;">
+                <h2 id="hatched-name">Питомец</h2>
+                <div id="hatched-rarity" class="pet-rarity">Common</div>
+            </div>
 
-        <div id="boosters-panel" class="boosters-container"></div>
+            <div id="boosters-panel" class="boosters-container"></div>
 
-        <div class="buttons-wrapper">
             <div id="start-buttons-container" class="action-buttons">
                 <button id="btn-focus" class="btn primary" onclick="startTimer('online')">Начать Фокус</button>
                 <button id="btn-incubator" class="btn secondary" onclick="startTimer('offline')">В Инкубатор (Оффлайн)</button>
             </div>
             <button id="main-btn" class="btn stop" style="display:none;" onclick="stopTimer()">Сдаться</button>
+        </div>
+
+        <div class="scroll-indicator">
+            <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Дополнительно</span>
+            <span class="arrow-down">▼</span>
+        </div>
+
+        <div class="bottom-extra-area">
             <button id="share-btn" class="btn share" style="display:none;" onclick="handleShare()">Поделиться успехом 🚀</button>
 
             <div id="second-slot-panel" class="second-slot" style="display:none;">
@@ -310,6 +305,7 @@
                 </div>
             </div>
         </div>
+
     </main>
 
     <nav class="bottom-nav">
