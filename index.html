@@ -744,5 +744,25 @@
     </div>
 
     <script src="script.js"></script>
+<div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('settings-modal')">×</span>
+            <h2>Настройки ⚙️</h2>
+            
+            <div style="background:rgba(0,0,0,0.2); border-radius:16px; padding:10px 20px; margin:20px 0;">
+                <div class="settings-option">
+                    <span>Вибрация 📳</span>
+                    <label class="switch"><input type="checkbox" id="vibration-toggle" checked><span class="slider"></span></label>
+                </div>
+                <div class="settings-option" style="border-bottom:none;">
+                    <span>Звуки 🔊</span>
+                    <label class="switch"><input type="checkbox" id="sound-toggle"><span class="slider"></span></label>
+                </div>
+            </div>
+            
+            <button class="btn" style="width:100%; margin-bottom:15px; background:linear-gradient(90deg, #8a2be2, #00A3FF);" onclick="openPromo()">Ввести Промокод 🎁</button>
+            <button class="btn stop" style="width:100%; background:transparent; border:1px solid #ff3b30; color:#ff3b30;" onclick="hardReset()">Сбросить прогресс (Опасно)</button>
+        </div>
+    </div>
 </body>
 </html>
