@@ -4386,7 +4386,59 @@ async function submitSellPet() {
     
     btn.textContent = origText;
     btn.disabled = false;
+}// =============================================================
+// ЖЕЛЕЗОБЕТОННЫЙ ФИКС НАСТРОЕК И РЫНКА
+// =============================================================
+
+// 1. Принудительно возвращаем функцию настроек
+window.openSettings = function() {
+    openModal('settings-modal');
+    playSound('click');
+};
+
+// 2. Агрессивная проверка почтового ящика (денег с рынка)
+async function checkMarketSales() {
+    try {
+        const uid = String(getTgUser().id);
+        
+        // Стучимся на сервер за деньгами (проверяем сразу оба варианта пути)
+        let res = await fetch(`${API_URL}/api/market/rewards/${uid}`);
+        if (!res.ok) {
+            res = await fetch(`${API_URL}/api/api/market/rewards/${uid}`);
+        }
+        
+        const data = await res.json();
+        
+        if (data.rewards && data.rewards.length > 0) {
+            let gotCoins = 0;
+            let gotStars = 0;
+            
+            data.rewards.forEach(r => {
+                if (r.currency === 'coins') gotCoins += r.amount;
+                if (r.currency === 'stars') gotStars += r.amount;
+            });
+            
+            if (gotCoins > 0) { 
+                walletBalance += gotCoins; 
+                showToast(`Вашего пета купили! +${gotCoins} 💰`, "🎉"); 
+            }
+            if (gotStars > 0) { 
+                userStars += gotStars; 
+                showToast(`Вашего пета купили! +${gotStars} ⭐️`, "🎉"); 
+            }
+            
+            saveData();
+            updateBalanceUI();
+            playSound('money');
+        }
+    } catch(e) {
+        // Ошибку сети скрываем, чтобы не спамить
+    }
 }
+
+// Заставляем игру проверять рынок каждые 5 секунд!
+setInterval(checkMarketSales, 5000);
+setTimeout(checkMarketSales, 1000);
 // =============================================================
 // ЗАПУСК ИГРЫ
 // =============================================================
