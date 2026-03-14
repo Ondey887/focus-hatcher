@@ -39,16 +39,16 @@
         .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; pointer-events: auto; }
 
         /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ === */
-        /* Навигация теперь внутри .main-screen и появляется при скролле */
-        .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; overflow-y: auto; overflow-x: hidden; height: calc(100vh - 80px); }
+        /* Экран жестко скроллится внутри, обрезая горизонталь */
+        .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
         
-        /* Главный экран занимает 100% высоты минус шапка */
-        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; min-height: calc(100vh - 80px); padding: 10px 20px 20px 20px; box-sizing: border-box; }
+        /* Главный фокус-экран занимает ровно 100% высоты первого скролла */
+        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; min-height: 100%; padding: 10px 20px 20px 20px; box-sizing: border-box; }
         
-        h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 20px; text-align: center; }
+        h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 10px; text-align: center; }
         
-        /* УВЕЛИЧЕННОЕ ЯЙЦО - ТЕПЕРЬ СВЕРХУ */
-        .egg-container { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
+        /* УВЕЛИЧЕННОЕ ЯЙЦО */
+        .egg-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
         .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); z-index: 2; transform: scale(1.4); } 
         
         .egg-locked { filter: brightness(0.2) grayscale(100%); }
@@ -68,7 +68,7 @@
         .egg-lock-icon { position: absolute; font-size: 60px; z-index: 4; text-shadow: 0 0 20px rgba(0,0,0,0.9); pointer-events: none; }
         #stun-overlay { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 10; pointer-events: none; display: none; background: rgba(57,255,20,0.2); }
         
-        /* ОПИСАНИЕ И НАЗВАНИЕ ТЕПЕРЬ ПОД ЯЙЦОМ */
+        /* ОПИСАНИЕ И НАЗВАНИЕ (ПОД ЯЙЦОМ) */
         .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-bottom: 20px; }
         .mode-selector button { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 16px; cursor: pointer; backdrop-filter: blur(5px); }
         .mode-info { text-align: center; flex: 1; }
@@ -76,7 +76,7 @@
         #mode-subtitle { font-size: 13px; color: #888; }
 
         /* ИЗЯЩНЫЙ ТАЙМЕР */
-        .timer-display { font-size: 58px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin-bottom: 20px; line-height: 1; text-align: center; }
+        .timer-display { font-size: 56px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin-bottom: 15px; line-height: 1; text-align: center; }
         
         .boosters-container { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; width: 100%; }
         .booster-slot { width: 50px; height: 50px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(5px); }
@@ -86,8 +86,6 @@
         .booster-slot.active { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 163, 255, 0.4); background: rgba(0, 163, 255, 0.1); transform: scale(1.05); }
 
         .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; align-items: center; margin-bottom: 10px; }
-        .action-buttons > div { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-        
         .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 17px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; text-align: center; }
         .btn:active { transform: scale(0.96); }
         .btn.primary { background: linear-gradient(135deg, #00A3FF 0%, #007aff 100%); }
@@ -103,39 +101,39 @@
         @keyframes scrollBounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 60% { transform: translateY(-4px); } }
         .arrow-down { font-size: 18px; display: block; margin-top: 2px; }
 
-        /* НИЖНЯЯ ЧАСТЬ ЭКРАНА (ПОЯВЛЯЕТСЯ ПРИ СКРОЛЛЕ) */
-        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 20px; padding-bottom: 30px; }
+        /* НИЖНЯЯ ЧАСТЬ ЭКРАНА (ПОЯВЛЯЕТСЯ ТОЛЬКО ПРИ СКРОЛЛЕ) */
+        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 30px; }
         
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
         .second-slot > div { display: flex; justify-content: space-between; align-items: center; }
 
-        /* НИЖНЕЕ МЕНЮ (ТЕПЕРЬ НЕ ФИКСИРОВАННОЕ, СКРОЛЛИТСЯ ВМЕСТЕ СО СТРАНИЦЕЙ) */
-        .bottom-nav { position: relative; width: 100%; background: rgba(28, 28, 30, 0.95); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(20px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; margin-top: auto; }
+        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ (ПРИКРЕПЛЕНО К КОНЦУ СКРОЛЛА) */
+        .bottom-nav { position: relative; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(20px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; margin-top: 20px; flex-shrink: 0; box-sizing: border-box; }
         .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 5px 0; transition: all 0.2s; }
         .bottom-nav button:active { color: white; transform: scale(0.95); }
         .nav-icon { font-size: 24px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .bottom-nav button:active .nav-icon { transform: scale(1.15); }
         .badge { position: absolute; top: 0px; right: 15%; background: var(--danger); color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: none; }
 
-        /* Модальные окна */
+        /* Модальные окна (ЗАЩИТА ОТ ГОРИЗОНТАЛЬНОГО СКРОЛЛА) */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--panel); width: 90%; max-width: 400px; border-radius: 24px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; overflow-x: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-content { background: var(--panel); width: 90%; max-width: 400px; border-radius: 24px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 28px; color: #888; cursor: pointer; line-height: 1; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; z-index: 10; }
         
-        .tabs { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
+        .tabs { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
         .tab-btn { flex: 1; background: none; border: none; color: #888; padding: 10px; font-size: 14px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: 0.2s; }
         .tab-btn.active { background: var(--panel); color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
-        .shop-item { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); position: relative; }
+        .shop-item { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); position: relative; box-sizing: border-box; }
         .shop-icon-img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); pointer-events: none; }
         .shop-item-name { font-weight: bold; font-size: 14px; margin-bottom: 10px; flex: 1; }
-        .buy-btn { width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: bold; background: var(--primary); color: white; font-size: 14px; cursor: pointer; }
+        .buy-btn { width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: bold; background: var(--primary); color: white; font-size: 14px; cursor: pointer; box-sizing: border-box; }
         .buy-btn.owned { background: var(--success); }
         .buy-btn.locked { background: #333; color: #888; }
 
         /* ЗАТЕМНЕНИЕ ЗАКРЫТЫХ ПЕТОВ */
-        .pet-slot { background: rgba(0,0,0,0.3); border-radius: 16px; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; position: relative; border: 2px solid transparent; cursor: pointer; overflow: hidden; }
+        .pet-slot { background: rgba(0,0,0,0.3); border-radius: 16px; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; position: relative; border: 2px solid transparent; cursor: pointer; overflow: hidden; width: 100%; box-sizing: border-box; }
         .pet-img-slot { width: 70%; height: 70%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); pointer-events: none; transition: 0.3s; }
         .slot-count { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; }
         .star-badge { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.8); color: #ffd700; font-size: 9px; font-weight: bold; padding: 2px 4px; border-radius: 6px; border: 1px solid #ffd700; pointer-events: none; }
@@ -144,8 +142,6 @@
         .pet-slot.legendary { border-color: #ffd700; background: linear-gradient(180deg, rgba(255,215,0,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 15px rgba(255,215,0,0.3); }
         .pet-slot.mythic { border-color: #8a2be2; background: linear-gradient(180deg, rgba(138,43,226,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(138,43,226,0.4); animation: mythicPulse 2s infinite; }
         .pet-slot.mutant { border-color: #39ff14; background: linear-gradient(180deg, rgba(57,255,20,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(57,255,20,0.4); animation: mutantPulse 2s infinite; }
-        @keyframes mythicPulse { 0%, 100% { border-color: rgba(138,43,226,0.5); } 50% { border-color: rgba(138,43,226,1); } }
-        @keyframes mutantPulse { 0%, 100% { border-color: rgba(57,255,20,0.5); } 50% { border-color: rgba(57,255,20,1); } }
         
         .pet-slot.locked { border-color: #444; background: rgba(0,0,0,0.5); border: 1px dashed #555; animation: none; box-shadow: none; }
         .pet-slot.locked .pet-img-slot { filter: brightness(0); opacity: 0.3; }
@@ -173,7 +169,8 @@
         .rank-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
         .rank-desc { font-size: 12px; color: #ffd700; }
         
-        .avatar-item { width: 70px; height: 70px; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid transparent; overflow: hidden; }
+        /* ИСПРАВЛЕНИЕ СКРОЛЛА АВАТАРОВ */
+        .avatar-item { width: 100%; aspect-ratio: 1; height: auto; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid transparent; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
         .avatar-item img { width: 80%; height: 80%; object-fit: contain; pointer-events: none; }
         .avatar-item.selected { border-color: var(--primary); box-shadow: 0 0 15px rgba(0,163,255,0.5); }
 
@@ -204,18 +201,18 @@
         .tap-cell.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,163,255,0.2); }
         
         /* ИСПРАВЛЕННЫЙ ТОП ФОРБС (КОМПАКТНЫЙ) */
-        .forbes-item { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .forbes-item { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px; }
         .forbes-item.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); }
-        .forbes-rank { font-weight: 800; font-size: 15px; color: #888; width: 22px; text-align: center; }
-        .forbes-rank.top-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); font-size: 18px; }
-        .forbes-rank.top-2 { color: #C0C0C0; text-shadow: 0 0 10px rgba(192,192,192,0.5); font-size: 16px; }
-        .forbes-rank.top-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); font-size: 16px; }
-        .forbes-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: contain; background: #333; border: 1px solid #555; pointer-events: none; }
-        .forbes-info { flex: 1; }
-        .forbes-name { font-weight: bold; font-size: 13px; margin-bottom: 2px; }
+        .forbes-rank { font-weight: 800; font-size: 14px; color: #888; width: 20px; text-align: center; }
+        .forbes-rank.top-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); font-size: 16px; }
+        .forbes-rank.top-2 { color: #C0C0C0; text-shadow: 0 0 10px rgba(192,192,192,0.5); font-size: 15px; }
+        .forbes-rank.top-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); font-size: 15px; }
+        .forbes-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: contain; background: #333; border: 1px solid #555; pointer-events: none; flex-shrink: 0; }
+        .forbes-info { flex: 1; min-width: 0; overflow: hidden; }
+        .forbes-name { font-weight: bold; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .forbes-lvl { font-size: 10px; color: #888; }
-        .forbes-val { font-weight: bold; font-size: 13px; color: #ffd700; display: flex; align-items: center; gap: 4px; }
-        .forbes-val img { width: 12px; }
+        .forbes-val { font-weight: bold; font-size: 12px; color: #ffd700; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .forbes-val img { width: 12px; height: 12px; }
         
         .roulette-box { width: 120px; height: 120px; background: rgba(0,0,0,0.5); border-radius: 20px; border: 2px solid #fff; margin: 0 auto 20px auto; display: flex; justify-content: center; align-items: center; font-size: 50px; transition: all 0.3s; }
         .roulette-spinning { animation: spinRouletteAnim 0.2s linear infinite; filter: blur(2px); }
@@ -238,7 +235,7 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(22px); }
-        .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 16px; font-weight: bold; gap: 20px; }
+        .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 16px; font-weight: bold; gap: 20px; box-sizing: border-box; width: 100%; }
         
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
@@ -262,7 +259,7 @@
             <div id="total-money" class="balance-badge">💰 0</div>
             <div id="total-stars" class="balance-badge" onclick="openBuyStarsModal()">⭐️ 0 <span style="background:rgba(255,255,255,0.2); border-radius:50%; padding:0 5px; margin-left:4px;">+</span></div>
         </div>
-        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+        <button class="settings-btn" onclick="if(typeof openSettings === 'function') openSettings(); else openModal('settings-modal');">⚙️</button>
     </header>
 
     <main class="main-screen">
@@ -270,7 +267,7 @@
         <div class="top-focus-area">
             <h1 id="main-title-secret" onclick="if(typeof triggerAdmin === 'function') triggerAdmin()">Focus Hatcher</h1>
             
-            <button id="custom-egg-btn" class="btn small" style="display:none; background:#333; margin-bottom:15px;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
+            <button id="custom-egg-btn" class="btn small" style="display:none; background:#333; margin-bottom:10px;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
 
             <div class="egg-container">
                 <img id="egg-display" src="assets/eggs/egg-default.png" class="egg-img">
@@ -308,7 +305,7 @@
             </div>
 
             <div class="scroll-indicator">
-                <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Дополнительно</span>
+                <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Свайпни вниз</span>
                 <span class="arrow-down">▼</span>
             </div>
         </div>
@@ -354,13 +351,13 @@
                 <button class="btn" style="background: #333; flex: 0.5; font-size: 14px;" onclick="loadMarket()">🔄 Обновить</button>
             </div>
 
-            <div class="tabs" style="margin-bottom: 15px; display: flex; gap: 5px; background: #1c1c1e; padding: 5px; border-radius: 12px;">
+            <div class="tabs" style="margin-bottom: 15px; display: flex; gap: 5px; background: #1c1c1e; padding: 5px; border-radius: 12px; width: 100%; box-sizing: border-box;">
                 <button class="tab-btn active" id="market-tab-all" onclick="switchMarketTab('all')" style="flex: 1;">Все</button>
                 <button class="tab-btn" id="market-tab-coins" onclick="switchMarketTab('coins')" style="flex: 1;">За 💰</button>
                 <button class="tab-btn" id="market-tab-stars" onclick="switchMarketTab('stars')" style="flex: 1;">За ⭐️</button>
             </div>
 
-            <div id="market-items-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; max-height: 55vh; overflow-y: auto; padding: 5px;">
+            <div id="market-items-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; max-height: 55vh; overflow-y: auto; overflow-x: hidden; padding: 5px; box-sizing: border-box;">
                 <div style="text-align:center; color:#888; grid-column: 1 / -1; padding: 20px;">Нажмите "Обновить", чтобы загрузить рынок...</div>
             </div>
         </div>
@@ -371,7 +368,7 @@
             <span class="close-btn" onclick="closeModal('sell-pet-modal')">×</span>
             <h2>Создание Лота 🏷️</h2>
             <p style="font-size: 13px; color: #aaa; margin-bottom: 10px;">1. Выберите питомца:</p>
-            <div id="sell-pet-selector" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #333;"></div>
+            <div id="sell-pet-selector" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #333; width: 100%; box-sizing: border-box;"></div>
             
             <div id="selected-pet-to-sell" style="text-align: center; margin-bottom: 15px; display: none; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px;">
                 <img id="sell-preview-img" src="" style="width: 60px; height: 60px; object-fit: contain;">
@@ -380,9 +377,9 @@
             </div>
 
             <p style="font-size: 13px; color: #aaa; margin-bottom: 5px;">2. Укажите цену:</p>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="number" id="sell-price-input" placeholder="Цена" style="flex: 2; padding: 12px; border-radius: 8px; border: none; background: #2c2c2e; color: white; font-size: 16px; outline: none;">
-                <select id="sell-currency-select" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background: #2c2c2e; color: white; font-size: 16px; outline: none; cursor: pointer;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+                <input type="number" id="sell-price-input" placeholder="Цена" style="flex: 2; padding: 12px; border-radius: 8px; border: none; background: #2c2c2e; color: white; font-size: 16px; outline: none; box-sizing: border-box;">
+                <select id="sell-currency-select" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background: #2c2c2e; color: white; font-size: 16px; outline: none; cursor: pointer; box-sizing: border-box;">
                     <option value="coins">💰</option>
                     <option value="stars">⭐️</option>
                 </select>
@@ -396,7 +393,7 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('inventory-modal')">×</span>
             <h2>Коллекция</h2>
-            <div id="collection-container" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:15px; padding-bottom:10px;"></div>
+            <div id="collection-container" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:15px; padding-bottom:10px; width:100%; box-sizing: border-box;"></div>
         </div>
     </div>
     
@@ -417,7 +414,7 @@
             </div>
             <button id="craft-mythic-btn" class="btn locked" onclick="startDnaPuzzle()">Скрафтить Мифика (10 🧩)</button>
             <h3 style="margin-top:20px; font-size:14px; color:#888;">Синтез обычных петов:</h3>
-            <div id="craft-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;"></div>
+            <div id="craft-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px; width:100%; box-sizing: border-box;"></div>
         </div>
     </div>
     
@@ -426,7 +423,7 @@
             <span class="close-btn" onclick="closeModal('dna-modal')">×</span>
             <h2>Взлом ДНК 🧬</h2>
             <p style="text-align:center; font-size:12px; color:#888;">Зажги все узлы, чтобы создать Мифика!</p>
-            <div id="dna-grid" style="display:grid; grid-template-columns: repeat(3, 80px); gap:10px; justify-content:center; margin:20px 0;"></div>
+            <div id="dna-grid" style="display:grid; grid-template-columns: repeat(3, 80px); gap:10px; justify-content:center; margin:20px 0; width: 100%; box-sizing: border-box;"></div>
         </div>
     </div>
 
@@ -441,13 +438,13 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('shop-modal')">×</span>
             <h2>Магазин 🛍</h2>
-            <div class="tabs">
+            <div class="tabs" style="width: 100%; box-sizing: border-box;">
                 <button class="tab-btn active" onclick="switchShopTab('themes')">Фон</button>
                 <button class="tab-btn" onclick="switchShopTab('eggs')">Скины</button>
                 <button class="tab-btn" onclick="switchShopTab('boosters')">Бусты</button>
                 <button class="tab-btn" onclick="switchShopTab('premium')" style="color:#ffd700;">PRO ⭐️</button>
             </div>
-            <div id="shop-items" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px; padding-bottom:10px;"></div>
+            <div id="shop-items" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px; padding-bottom:10px; width: 100%; box-sizing: border-box;"></div>
         </div>
     </div>
 
@@ -455,11 +452,11 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('achievements-modal')">×</span>
             <h2>Задания 📜</h2>
-            <div class="tabs">
+            <div class="tabs" style="width: 100%; box-sizing: border-box;">
                 <button class="tab-btn active" onclick="switchAchTab('achievements')">Достижения</button>
                 <button class="tab-btn" onclick="switchAchTab('quests')">Контракты</button>
             </div>
-            <div id="achievements-list" style="margin-top:15px; display:flex; flex-direction:column; gap:10px; padding-bottom:10px;"></div>
+            <div id="achievements-list" style="margin-top:15px; display:flex; flex-direction:column; gap:10px; padding-bottom:10px; width:100%; box-sizing: border-box;"></div>
         </div>
     </div>
 
@@ -473,12 +470,12 @@
                 <div id="profile-level" style="color:#00A3FF; font-weight:bold; margin-top:5px;"></div>
             </div>
             
-            <div class="tabs" style="margin-top:20px;">
+            <div class="tabs" style="margin-top:20px; width: 100%; box-sizing: border-box;">
                 <button class="tab-btn active" onclick="switchProfileTab('stats')">Статистика</button>
                 <button class="tab-btn" onclick="switchProfileTab('friends')">Друзья 🤝</button>
             </div>
 
-            <div id="profile-stats-view" style="margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:16px;">
+            <div id="profile-stats-view" style="margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:16px; width:100%; box-sizing: border-box;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Вылуплено:</span> <span id="stat-hatched" style="font-weight:bold;">0</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Уникальных:</span> <span id="stat-unique" style="font-weight:bold;">0</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Заработано:</span> <span id="stat-earned" style="font-weight:bold; color:#ffd700;">0</span></div>
@@ -487,16 +484,16 @@
                 <button class="btn" style="width:100%; margin-top:10px; background:#00A3FF;" onclick="openAvatarSelector()">Выбрать Аватар</button>
             </div>
 
-            <div id="profile-friends-view" style="display:none; margin-top:15px;">
+            <div id="profile-friends-view" style="display:none; margin-top:15px; width:100%; box-sizing: border-box;">
                 <p style="font-size:12px; color:#888; margin-bottom:5px;">Мой ID (скопируй и отправь другу):</p>
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="text" id="my-friend-code" readonly style="flex:1; padding:12px; border-radius:10px; background:#222; color:#00A3FF; font-weight:bold; border:none; text-align:center;">
-                    <button class="btn small" style="background:#333;" onclick="copyMyCode()">Копия</button>
+                <div style="display:flex; gap:10px; margin-bottom:15px; width:100%; box-sizing: border-box;">
+                    <input type="text" id="my-friend-code" readonly style="flex:1; padding:12px; border-radius:10px; background:#222; color:#00A3FF; font-weight:bold; border:none; text-align:center; min-width: 0;">
+                    <button class="btn small" style="background:#333; flex-shrink: 0;" onclick="copyMyCode()">Копия</button>
                 </div>
                 <p style="font-size:12px; color:#888; margin-bottom:5px;">Добавить друга по ID:</p>
-                <div style="display:flex; gap:10px; margin-bottom:20px;">
-                    <input type="text" id="add-friend-input" placeholder="Вставь ID" style="flex:1; padding:12px; border-radius:10px; background:#222; color:#fff; border:1px solid #444; outline:none;">
-                    <button class="btn small" style="background:#34c759;" onclick="apiAddFriend()">Добавить</button>
+                <div style="display:flex; gap:10px; margin-bottom:20px; width:100%; box-sizing: border-box;">
+                    <input type="text" id="add-friend-input" placeholder="Вставь ID" style="flex:1; padding:12px; border-radius:10px; background:#222; color:#fff; border:1px solid #444; outline:none; min-width: 0;">
+                    <button class="btn small" style="background:#34c759; flex-shrink: 0;" onclick="apiAddFriend()">Добавить</button>
                 </div>
                 <h3 style="font-size:14px; margin-bottom:10px;">Список друзей:</h3>
                 <div id="friends-list-container" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -511,23 +508,23 @@
             
             <div id="party-setup-view">
                 <p style="font-size:13px; color:#888; text-align:center; margin:15px 0;">Играй с друзьями в мини-игры и рейды на боссов!</p>
-                <input type="text" id="party-code-input" placeholder="Код комнаты" style="width:100%; padding:15px; text-align:center; font-size:18px; font-weight:bold; background:#222; border:1px solid #444; color:#fff; border-radius:12px; margin-bottom:15px; outline:none;">
-                <div style="display:flex; gap:10px;">
+                <input type="text" id="party-code-input" placeholder="Код комнаты" style="width:100%; padding:15px; text-align:center; font-size:18px; font-weight:bold; background:#222; border:1px solid #444; color:#fff; border-radius:12px; margin-bottom:15px; outline:none; box-sizing: border-box;">
+                <div style="display:flex; gap:10px; width: 100%; box-sizing: border-box;">
                     <button class="btn" style="flex:1; background:#34c759;" onclick="apiJoinParty()">Войти</button>
                     <button class="btn" style="flex:1; background:#00A3FF;" onclick="apiCreateParty()">Создать</button>
                 </div>
             </div>
             
-            <div id="party-active-view" style="display:none;">
+            <div id="party-active-view" style="display:none; width: 100%; box-sizing: border-box;">
                 <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; text-align:center; margin-bottom:15px;">
                     <p style="font-size:12px; color:#888;">Код вашей комнаты:</p>
                     <h3 id="current-party-code" style="color:#00A3FF; letter-spacing:2px;">----</h3>
                 </div>
                 
                 <h3 style="font-size:14px; margin-bottom:10px;">Игроки:</h3>
-                <div id="party-players-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; max-height:150px; overflow-y:auto;"></div>
+                <div id="party-players-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; max-height:150px; overflow-y:auto; overflow-x:hidden; width: 100%; box-sizing: border-box;"></div>
                 
-                <div id="party-leader-controls">
+                <div id="party-leader-controls" style="width: 100%; box-sizing: border-box;">
                     <p style="font-size:12px; color:#ffd700; text-align:center; margin-bottom:10px;">Вы лидер. Выберите игру:</p>
                     <button class="btn" style="width:100%; margin-bottom:10px; background:linear-gradient(90deg, #ff3b30, #ff9500);" onclick="requestStartMiniGame('tap_boss')">Рейд: Босс-Паразит 🦠</button>
                     <button class="btn" style="width:100%; margin-bottom:10px; background:linear-gradient(90deg, #ffd700, #ff9500); color:#000;" onclick="requestStartMiniGame('mega_egg')">Мега-Яйцо 🥚</button>
@@ -574,7 +571,7 @@
             
             <img id="mega-egg-img-display" src="assets/eggs/egg-gold.png" style="width:180px; height:180px; margin:30px auto; filter:drop-shadow(0 0 30px rgba(255,215,0,0.3));">
             
-            <div style="width:100%; height:24px; background:#222; border-radius:12px; overflow:hidden; margin:10px 0; border:1px solid #444; position:relative;">
+            <div style="width:100%; height:24px; background:#222; border-radius:12px; overflow:hidden; margin:10px 0; border:1px solid #444; position:relative; box-sizing: border-box;">
                 <div id="mega-egg-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #ffd700, #fff); transition:width 0.5s; box-shadow:0 0 10px #ffd700;"></div>
                 <div id="mega-egg-text" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#000; font-size:12px; font-weight:bold;">0 / 0 Часов</div>
             </div>
@@ -584,7 +581,7 @@
     </div>
 
     <div id="expedition-modal" class="modal" style="z-index:1001;">
-        <div class="modal-content" style="padding:0; overflow-y:auto; overflow-x:hidden; border-radius:24px;">
+        <div class="modal-content" style="padding:0; overflow-y:auto; overflow-x:hidden; border-radius:24px; position:relative;">
             <span class="close-btn" onclick="closeModal('expedition-modal')" style="position:absolute; top:10px; right:10px; font-size:24px; background:rgba(0,0,0,0.5); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#fff; z-index:100;">×</span>
             
             <div id="expedition-scene" class="expedition-scene forest-bg" style="position:relative; width:100%; height:280px;">
@@ -652,10 +649,10 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('forbes-modal')">×</span>
             <h2>Forbes 🏆</h2>
-            <div class="tabs" style="margin-bottom:15px;">
+            <div class="tabs" style="margin-bottom:15px; width: 100%; box-sizing: border-box;">
                 <button class="tab-btn active" onclick="switchForbesTab('global')">Мировой Топ-100</button>
             </div>
-            <div id="forbes-list-container" style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; padding-right:5px;"></div>
+            <div id="forbes-list-container" style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; overflow-x:hidden; width: 100%; box-sizing: border-box;"></div>
         </div>
     </div>
 
@@ -663,14 +660,14 @@
         <div class="modal-content" style="text-align:center;">
             <span class="close-btn" onclick="closeModal('roulette-modal')">×</span>
             <h2>Колесо Фортуны 🎰</h2>
-            <div class="tabs" style="margin:20px 0; display:flex; gap:5px;">
+            <div class="tabs" style="margin:20px 0; display:flex; gap:5px; width: 100%; box-sizing: border-box;">
                 <button id="r-tab-base" class="tab-btn active" onclick="switchRouletteBox('base')">Дерево</button>
                 <button id="r-tab-epic" class="tab-btn" style="color:#00A3FF; border-color:#00A3FF;" onclick="switchRouletteBox('epic')">Эпик</button>
                 <button id="r-tab-mythic" class="tab-btn" style="color:#ffd700; border-color:#ffd700;" onclick="switchRouletteBox('mythic')">Мифик</button>
             </div>
             <div id="roulette-box" class="roulette-box" style="font-size:60px; margin-bottom:30px;">🎁</div>
             <div id="roulette-result-text" style="height:30px; font-weight:bold; color:#fff; font-size:18px; margin-bottom:20px; text-shadow:0 0 10px rgba(255,255,255,0.5);"></div>
-            <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; flex-direction:column; gap:10px; width: 100%; box-sizing: border-box;">
                 <button id="roulette-free-btn" class="btn" style="background:#34c759;" onclick="spinRoulette('free')">Ежедневная крутка</button>
                 <button id="roulette-ad-btn" class="btn" style="background:#00A3FF;" onclick="spinRouletteAd()">Крутить за рекламу 📺</button>
                 <button id="roulette-paid-btn" class="btn" style="background:transparent; border:2px solid #ffd700; color:#ffd700;" onclick="spinRoulette('stars')">Крутить за ⭐️</button>
@@ -683,7 +680,7 @@
             <span class="close-btn" onclick="closeModal('buy-stars-modal')">×</span>
             <h2 style="color:#ffd700;">Банк Звезд ⭐️</h2>
             <p style="color:#888; font-size:13px; margin-bottom:20px;">Официальная и безопасная покупка через Telegram (XTR)</p>
-            <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; flex-direction:column; gap:12px; width: 100%; box-sizing: border-box;">
                 <button class="btn" style="background:linear-gradient(90deg, #2c2c2e, #333); border:1px solid #ffd700; display:flex; justify-content:space-between; align-items:center;" onclick="buyStars(50)">
                     <span>50 ⭐️</span> <span style="color:#00A3FF;">Купить</span>
                 </button>
@@ -701,8 +698,8 @@
         <div class="modal-content" style="text-align:center;">
             <span class="close-btn" onclick="closeModal('promo-modal')">×</span>
             <h2>Секретный код 🎁</h2>
-            <input type="text" id="promo-input" placeholder="ВВЕДИТЕ КОД" style="width:100%; padding:15px; margin:20px 0; border-radius:12px; border:2px solid #444; background:#111; color:#fff; text-align:center; font-size:20px; text-transform:uppercase; font-weight:bold; letter-spacing:2px; outline:none;">
-            <button class="btn" style="width:100%; background:#00A3FF;" onclick="activatePromo()">Активировать</button>
+            <input type="text" id="promo-input" placeholder="ВВЕДИТЕ КОД" style="width:100%; padding:15px; margin:20px 0; border-radius:12px; border:2px solid #444; background:#111; color:#fff; text-align:center; font-size:20px; text-transform:uppercase; font-weight:bold; letter-spacing:2px; outline:none; box-sizing: border-box;">
+            <button class="btn" style="width:100%; background:#00A3FF; box-sizing: border-box;" onclick="activatePromo()">Активировать</button>
         </div>
     </div>
 
@@ -710,25 +707,25 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('admin-modal')">×</span>
             <h2 style="color:#ff3b30; text-align:center; margin-bottom:20px;">Панель Создателя 👁‍🗨</h2>
-            <input type="password" id="admin-password" placeholder="Секретный пароль" style="width:100%; padding:12px; margin-bottom:15px; background:#111; border:1px solid #444; color:#ff3b30; border-radius:8px; outline:none; text-align:center; font-family:monospace;">
-            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px;">
+            <input type="password" id="admin-password" placeholder="Секретный пароль" style="width:100%; padding:12px; margin-bottom:15px; background:#111; border:1px solid #444; color:#ff3b30; border-radius:8px; outline:none; text-align:center; font-family:monospace; box-sizing: border-box;">
+            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px; width: 100%; box-sizing: border-box;">
                 <h3 style="font-size:14px; margin-bottom:10px; color:#ccc;">Генератор Промокодов:</h3>
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <input type="text" id="admin-promo-code" placeholder="Код (FREE-123)" style="flex:2; padding:10px; background:#222; border:none; color:#fff; border-radius:8px; text-transform:uppercase;">
-                    <button class="btn small" style="background:#5856d6;" onclick="generateRandomPromo()">🎲</button>
+                <div style="display:flex; gap:10px; margin-bottom:10px; width: 100%; box-sizing: border-box;">
+                    <input type="text" id="admin-promo-code" placeholder="Код (FREE-123)" style="flex:2; padding:10px; background:#222; border:none; color:#fff; border-radius:8px; text-transform:uppercase; min-width:0; box-sizing: border-box;">
+                    <button class="btn small" style="background:#5856d6; flex-shrink:0; box-sizing: border-box;" onclick="generateRandomPromo()">🎲</button>
                 </div>
-                <select id="admin-promo-type" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:none; color:#fff; border-radius:8px; outline:none;">
+                <select id="admin-promo-type" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:none; color:#fff; border-radius:8px; outline:none; box-sizing: border-box;">
                     <option value="money">Монеты 💰</option>
                     <option value="stars">Звезды ⭐️</option>
                     <option value="luck">Бустер: Удача 🧪</option>
                     <option value="speed">Бустер: Ускоритель ⚡️</option>
                     <option value="joker">Ген Мутации 🧬</option>
                 </select>
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="number" id="admin-promo-val" placeholder="Кол-во" style="flex:1; padding:10px; background:#222; border:none; color:#fff; border-radius:8px;">
-                    <input type="number" id="admin-promo-limit" placeholder="Лимит" style="flex:1; padding:10px; background:#222; border:none; color:#fff; border-radius:8px;">
+                <div style="display:flex; gap:10px; margin-bottom:15px; width: 100%; box-sizing: border-box;">
+                    <input type="number" id="admin-promo-val" placeholder="Кол-во" style="flex:1; padding:10px; background:#222; border:none; color:#fff; border-radius:8px; min-width:0; box-sizing: border-box;">
+                    <input type="number" id="admin-promo-limit" placeholder="Лимит" style="flex:1; padding:10px; background:#222; border:none; color:#fff; border-radius:8px; min-width:0; box-sizing: border-box;">
                 </div>
-                <button class="btn" style="background:#ff3b30; width:100%;" onclick="adminSubmitPromo()">Загрузить в БД</button>
+                <button class="btn" style="background:#ff3b30; width:100%; box-sizing: border-box;" onclick="adminSubmitPromo()">Загрузить в БД</button>
             </div>
         </div>
     </div>
@@ -738,7 +735,7 @@
             <span class="close-btn" onclick="closeModal('levels-modal')">×</span>
             <h2>Путь Развития 🧗‍♂️</h2>
             <p style="font-size:12px; color:#888; text-align:center; margin-bottom:15px;">Прокачивай уровень, чтобы получать уникальные титулы и награды.</p>
-            <div id="levels-list" style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; padding-right:5px;"></div>
+            <div id="levels-list" style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; overflow-x:hidden; width: 100%; box-sizing: border-box;"></div>
         </div>
     </div>
     
@@ -747,7 +744,7 @@
             <span class="close-btn" onclick="closeModal('avatar-modal')">×</span>
             <h2>Галерея Аватаров 🖼</h2>
             <p style="font-size:12px; color:#888; text-align:center; margin-bottom:15px;">Выбери питомца, который будет представлять тебя в Пати и топе Forbes.</p>
-            <div id="avatar-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:60vh; overflow-y:auto; padding-bottom:10px;"></div>
+            <div id="avatar-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:60vh; overflow-y:auto; overflow-x:hidden; padding-bottom:10px; width:100%; box-sizing: border-box;"></div>
         </div>
     </div>
     
@@ -755,8 +752,29 @@
         <div class="modal-content" style="text-align: center; background:linear-gradient(180deg, #2c2c2e 0%, #111 100%);">
             <h2 style="color: #ffd700; margin-bottom: 5px; text-shadow:0 0 10px rgba(255,215,0,0.5);">Ежедневный Бонус 🎁</h2>
             <p style="color: #888; font-size: 13px; margin-bottom: 25px;">Заходи 7 дней подряд, чтобы забрать джекпот!</p>
-            <div id="daily-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 25px;"></div>
-            <button class="btn" style="width: 100%; background: #34c759; font-size:18px; padding:18px; box-shadow:0 0 20px rgba(52,199,89,0.4);" onclick="claimDaily()">Забрать!</button>
+            <div id="daily-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 25px; width: 100%; box-sizing: border-box;"></div>
+            <button class="btn" style="width: 100%; background: #34c759; font-size:18px; padding:18px; box-shadow:0 0 20px rgba(52,199,89,0.4); box-sizing: border-box;" onclick="claimDaily()">Забрать!</button>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('settings-modal')">×</span>
+            <h2>Настройки ⚙️</h2>
+            
+            <div style="background:rgba(0,0,0,0.2); border-radius:16px; padding:10px 20px; margin:20px 0; width: 100%; box-sizing: border-box;">
+                <div class="settings-option">
+                    <span>Вибрация 📳</span>
+                    <label class="switch"><input type="checkbox" id="vibration-toggle" checked><span class="slider"></span></label>
+                </div>
+                <div class="settings-option" style="border-bottom:none;">
+                    <span>Звуки 🔊</span>
+                    <label class="switch"><input type="checkbox" id="sound-toggle"><span class="slider"></span></label>
+                </div>
+            </div>
+            
+            <button class="btn" style="width:100%; margin-bottom:15px; background:linear-gradient(90deg, #8a2be2, #00A3FF); box-sizing: border-box;" onclick="openPromo()">Ввести Промокод 🎁</button>
+            <button class="btn stop" style="width:100%; background:transparent; border:1px solid #ff3b30; color:#ff3b30; box-sizing: border-box;" onclick="hardReset()">Сбросить прогресс (Опасно)</button>
         </div>
     </div>
 
