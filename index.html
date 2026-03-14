@@ -9,14 +9,20 @@
         :root { --bg: #1c1c1e; --panel: #2c2c2e; --text: #ffffff; --primary: #00A3FF; --success: #34c759; --danger: #ff3b30; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; background-size: cover; background-position: center; background-attachment: fixed; transition: background 0.5s ease; }
+        body { 
+            background-color: var(--bg); color: var(--text); overflow-x: hidden; 
+            background-size: cover; background-position: center; background-attachment: fixed; 
+            transition: background 0.5s ease; 
+            display: flex; flex-direction: column; height: 100vh; margin: 0; 
+        }
+        
         body.theme-matrix { background: black; background-image: linear-gradient(0deg, rgba(0,255,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,255,0,0.1) 50%, rgba(0,255,0,0.1) 75%, transparent 75%, transparent); background-size: 100% 4px; animation: matrixScroll 20s linear infinite; }
         @keyframes matrixScroll { 100% { background-position: 0 1000px; } }
         
         #debug-console { position: fixed; top: 0; left: 0; width: 100%; max-height: 50vh; overflow-y: auto; background: rgba(0,0,0,0.9); z-index: 10000; display: none; padding: 10px; font-family: monospace; border-bottom: 2px solid #ff3b30; pointer-events: none; }
         .error-msg { color: #ff3b30; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 5px; font-size: 12px; pointer-events: auto; }
 
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 300px; pointer-events: none; }
+        #toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 300px; pointer-events: none; }
         .toast { background: rgba(0,0,0,0.85); color: #fff; padding: 12px 20px; border-radius: 15px; font-weight: 500; font-size: 14px; text-align: center; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: slideDown 0.3s ease forwards; pointer-events: auto; }
         .toast.fade-out { animation: fadeOut 0.3s ease forwards; }
         .toast img { width: 18px; height: 18px; }
@@ -24,7 +30,7 @@
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%); position: sticky; top: 0; z-index: 100; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(28,28,30, 0.8); backdrop-filter: blur(10px); flex-shrink: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .profile-section { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .avatar-wrapper { width: 45px; height: 45px; border-radius: 50%; overflow: hidden; border: 2px solid var(--primary); background: #333; display: flex; align-items: center; justify-content: center; }
         .header-avatar { width: 100%; height: 100%; object-fit: contain; }
@@ -38,71 +44,74 @@
         .coin-img { width: 16px; height: 16px; }
         .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; }
 
-        /* ИДЕАЛЬНАЯ СЕТКА ГЛАВНОГО ЭКРАНА */
-        .main-screen { display: block; width: 100%; }
+        /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ === */
+        .main-screen { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; width: 100%; padding-bottom: 100px; }
         
-        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 100%; min-height: calc(100vh - 120px); padding: 10px 20px 0 20px; }
+        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; min-height: 100%; padding: 20px; box-sizing: border-box; }
         
-        h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin: 0; }
+        h1 { font-size: 26px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 20px; text-align: center; }
         
-        .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-top: 5px; }
+        /* ОПИСАНИЕ НАД ЯЙЦОМ */
+        .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-bottom: 30px; }
         .mode-selector button { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 16px; cursor: pointer; backdrop-filter: blur(5px); }
         .mode-info { text-align: center; flex: 1; }
-        #mode-title { font-weight: bold; font-size: 18px; margin-bottom: 2px; }
+        #mode-title { font-weight: bold; font-size: 18px; margin-bottom: 4px; }
         #mode-subtitle { font-size: 13px; color: #888; }
         
-        .egg-container { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; margin: 10px auto; }
-        .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6)); z-index: 2; transform: scale(1.4); } /* Увеличил яйцо! */
+        /* ОГРОМНОЕ ЯЙЦО */
+        .egg-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin: 10px auto 40px auto; }
+        .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); z-index: 2; transform: scale(1.5); } 
+        
         .egg-locked { filter: brightness(0.2) grayscale(100%); }
         .holo-egg { opacity: 0.8; filter: hue-rotate(180deg) drop-shadow(0 0 20px #00ffff); animation: holoFloat 3s ease-in-out infinite; }
-        @keyframes holoFloat { 0%, 100% { transform: translateY(0) scale(1.4); } 50% { transform: translateY(-15px) scale(1.4); } }
+        @keyframes holoFloat { 0%, 100% { transform: translateY(0) scale(1.5); } 50% { transform: translateY(-15px) scale(1.5); } }
         .shaking { animation: shake 0.5s infinite; }
         .shake-crazy { animation: shakeCrazy 0.2s infinite; }
         .shake-hard { animation: shakeHard 0.1s infinite; }
-        @keyframes shake { 0% { transform: scale(1.4) translate(1px, 1px) rotate(0deg); } 25% { transform: scale(1.4) translate(-1px, -2px) rotate(-1deg); } 50% { transform: scale(1.4) translate(-3px, 0px) rotate(1deg); } 75% { transform: scale(1.4) translate(3px, 2px) rotate(0deg); } 100% { transform: scale(1.4) translate(1px, -1px) rotate(-1deg); } }
-        @keyframes shakeCrazy { 0% { transform: scale(1.5) translate(3px, 3px) rotate(0deg); } 25% { transform: scale(1.5) translate(-3px, -3px) rotate(-3deg); } 50% { transform: scale(1.5) translate(-5px, 0px) rotate(3deg); } 75% { transform: scale(1.5) translate(5px, 3px) rotate(0deg); } 100% { transform: scale(1.5) translate(3px, -3px) rotate(-3deg); } }
-        @keyframes shakeHard { 0% { transform: scale(1.4) translate(5px, 5px) rotate(0deg); } 25% { transform: scale(1.4) translate(-5px, -5px) rotate(-2deg); } 50% { transform: scale(1.4) translate(-5px, 5px) rotate(2deg); } 75% { transform: scale(1.4) translate(5px, -5px) rotate(0deg); } 100% { transform: scale(1.4) translate(5px, 5px) rotate(-2deg); } }
+        @keyframes shake { 0% { transform: scale(1.5) translate(1px, 1px) rotate(0deg); } 25% { transform: scale(1.5) translate(-1px, -2px) rotate(-1deg); } 50% { transform: scale(1.5) translate(-3px, 0px) rotate(1deg); } 75% { transform: scale(1.5) translate(3px, 2px) rotate(0deg); } 100% { transform: scale(1.5) translate(1px, -1px) rotate(-1deg); } }
+        @keyframes shakeCrazy { 0% { transform: scale(1.6) translate(3px, 3px) rotate(0deg); } 25% { transform: scale(1.6) translate(-3px, -3px) rotate(-3deg); } 50% { transform: scale(1.6) translate(-5px, 0px) rotate(3deg); } 75% { transform: scale(1.6) translate(5px, 3px) rotate(0deg); } 100% { transform: scale(1.6) translate(3px, -3px) rotate(-3deg); } }
+        @keyframes shakeHard { 0% { transform: scale(1.5) translate(5px, 5px) rotate(0deg); } 25% { transform: scale(1.5) translate(-5px, -5px) rotate(-2deg); } 50% { transform: scale(1.5) translate(-5px, 5px) rotate(2deg); } 75% { transform: scale(1.5) translate(5px, -5px) rotate(0deg); } 100% { transform: scale(1.5) translate(5px, 5px) rotate(-2deg); } }
         .boss-hit-anim { animation: bossHit 0.2s ease-out; }
-        @keyframes bossHit { 0% { transform: scale(1.4); filter: brightness(1); } 50% { transform: scale(1.3); filter: brightness(2) invert(1) hue-rotate(180deg); } 100% { transform: scale(1.4); filter: brightness(1); } }
+        @keyframes bossHit { 0% { transform: scale(1.5); filter: brightness(1); } 50% { transform: scale(1.4); filter: brightness(2) invert(1) hue-rotate(180deg); } 100% { transform: scale(1.5); filter: brightness(1); } }
         
-        .crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/ui/crack.png'); background-size: cover; z-index: 3; opacity: 0; pointer-events: none; transition: opacity 0.5s; transform: scale(1.4); }
+        .crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/ui/crack.png'); background-size: cover; z-index: 3; opacity: 0; pointer-events: none; transition: opacity 0.5s; transform: scale(1.5); }
         .crack-stage-1 { opacity: 0.3; } .crack-stage-2 { opacity: 0.6; } .crack-stage-3 { opacity: 1; }
         .egg-lock-icon { position: absolute; font-size: 60px; z-index: 4; text-shadow: 0 0 20px rgba(0,0,0,0.9); pointer-events: none; }
         #stun-overlay { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 10; pointer-events: none; display: none; background: rgba(57,255,20,0.2); }
         
-        /* ТАЙМЕР - БОЛЕЕ ТОНКИЙ */
-        .timer-display { font-size: 58px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin: 10px 0; line-height: 1; text-align: center; }
+        /* ИЗЯЩНЫЙ ТАЙМЕР */
+        .timer-display { font-size: 60px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin-bottom: 20px; line-height: 1; text-align: center; }
         
-        .boosters-container { display: flex; gap: 15px; margin-bottom: 15px; justify-content: center; }
+        .boosters-container { display: flex; gap: 15px; margin-bottom: 25px; justify-content: center; width: 100%; }
         .booster-slot { width: 50px; height: 50px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(5px); }
         .booster-slot img { width: 30px; height: 30px; }
         .booster-count { position: absolute; bottom: -8px; right: -8px; background: var(--primary); color: white; font-size: 11px; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid var(--bg); box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .booster-slot.empty { opacity: 0.4; filter: grayscale(100%); }
         .booster-slot.active { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 163, 255, 0.4); background: rgba(0, 163, 255, 0.1); transform: scale(1.05); }
 
-        .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; align-items: center; }
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; align-items: center; margin-top: auto; }
         .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 17px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; text-align: center; }
         .btn:active { transform: scale(0.96); }
         .btn.primary { background: linear-gradient(135deg, #00A3FF 0%, #007aff 100%); }
         .btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
-        .btn.stop { background: var(--danger); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); max-width: 320px; }
+        .btn.stop { background: var(--danger); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); max-width: 320px; margin: 0 auto; }
         .btn.share { background: #8a2be2; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); margin-bottom: 10px; }
         .btn.small { padding: 8px 12px; font-size: 13px; border-radius: 10px; background: var(--primary); }
         .btn.success { background: var(--success); }
         .btn:disabled, .btn.locked { background: #333; color: #666; box-shadow: none; pointer-events: none; border-color: transparent; }
 
         /* ИНДИКАТОР СКРОЛЛА */
-        .scroll-indicator { text-align: center; margin-bottom: 5px; color: rgba(255,255,255,0.4); animation: scrollBounce 2s infinite; font-size: 12px; }
+        .scroll-indicator { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.4); animation: scrollBounce 2s infinite; font-size: 12px; }
         @keyframes scrollBounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 60% { transform: translateY(-4px); } }
         .arrow-down { font-size: 18px; display: block; margin-top: 2px; }
 
-        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 15px; padding-bottom: 120px; }
+        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 30px; }
         
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
         .second-slot > div { display: flex; justify-content: space-between; align-items: center; }
 
-        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ (Адаптивное под iPhone) */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(10px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; }
+        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(10px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; flex-shrink: 0; }
         .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 5px 0; transition: all 0.2s; }
         .bottom-nav button:active { color: white; transform: scale(0.95); }
         .nav-icon { font-size: 24px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
@@ -126,7 +135,7 @@
         .buy-btn.owned { background: var(--success); }
         .buy-btn.locked { background: #333; color: #888; }
 
-        /* ВОССТАНОВЛЕНО: ЗАТЕМНЕНИЕ ЗАКРЫТЫХ ПЕТОВ КАК БЫЛО */
+        /* ЗАТЕМНЕНИЕ ЗАКРЫТЫХ ПЕТОВ КАК В ОРИГИНАЛЕ */
         .pet-slot { background: rgba(0,0,0,0.3); border-radius: 16px; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; position: relative; border: 2px solid transparent; cursor: pointer; overflow: hidden; }
         .pet-img-slot { width: 70%; height: 70%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); pointer-events: none; transition: 0.3s; }
         .slot-count { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; }
@@ -139,7 +148,7 @@
         @keyframes mythicPulse { 0%, 100% { border-color: rgba(138,43,226,0.5); } 50% { border-color: rgba(138,43,226,1); } }
         @keyframes mutantPulse { 0%, 100% { border-color: rgba(57,255,20,0.5); } 50% { border-color: rgba(57,255,20,1); } }
         
-        .pet-slot.locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); box-shadow: none; animation: none; }
+        .pet-slot.locked { border-color: #444; background: rgba(0,0,0,0.5); border: 1px dashed #555; animation: none; box-shadow: none; }
         .pet-slot.locked .pet-img-slot { filter: brightness(0); opacity: 0.3; }
 
         .pet-img-big { width: 120px; height: 120px; object-fit: contain; margin: 0 auto 15px auto; display: block; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
@@ -217,14 +226,13 @@
         .daily-item:nth-child(7) .daily-icon-img { width: 40px; height: 40px; }
         .daily-item:nth-child(7) .daily-val { font-size: 14px; color: #ffd700; }
         
-        /* ИСПРАВЛЕННЫЕ НАСТРОЙКИ */
-        .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 16px; font-weight: 500; }
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(22px); }
+        .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 16px; font-weight: bold; gap: 20px; }
         
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
@@ -232,6 +240,7 @@
 <body>
     <div id="toast-container"></div>
     <canvas id="confetti-canvas"></canvas>
+    <div id="debug-console"></div>
 
     <header class="top-bar">
         <div class="profile-section" onclick="openProfile()">
@@ -252,7 +261,7 @@
     <main class="main-screen">
         
         <div class="top-focus-area">
-            <h1 id="main-title-secret" onclick="triggerAdmin()">Focus Hatcher</h1>
+            <h1 id="main-title-secret" onclick="if(typeof triggerAdmin === 'function') triggerAdmin()">Focus Hatcher</h1>
             
             <div class="mode-selector">
                 <button id="prev-btn" onclick="prevMode()">◀</button>
@@ -283,8 +292,8 @@
 
             <div id="boosters-panel" class="boosters-container"></div>
 
-            <div class="action-buttons" style="width:100%; max-width:320px;">
-                <div id="start-buttons-container" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="action-buttons">
+                <div id="start-buttons-container" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                     <button id="btn-focus" class="btn primary" onclick="startTimer('online')">Начать Фокус</button>
                     <button id="btn-incubator" class="btn secondary" onclick="startTimer('offline')">В Инкубатор (Оффлайн)</button>
                 </div>
@@ -314,7 +323,6 @@
                 </div>
             </div>
         </div>
-
     </main>
 
     <nav class="bottom-nav">
@@ -704,141 +712,6 @@
         </div>
     </div>
 
-    <div id="forbes-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('forbes-modal')">×</span>
-            <h2>Forbes 🏆</h2>
-            <div class="tabs" style="margin-bottom:15px;">
-                <button class="tab-btn active" onclick="switchForbesTab('global')">Мировой Топ-100</button>
-            </div>
-            <div id="forbes-list-container" style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; padding-right:5px;"></div>
-        </div>
-    </div>
-
-    <div id="roulette-modal" class="modal">
-        <div class="modal-content" style="text-align:center;">
-            <span class="close-btn" onclick="closeModal('roulette-modal')">×</span>
-            <h2>Колесо Фортуны 🎰</h2>
-            <div class="tabs" style="margin:20px 0; display:flex; gap:5px;">
-                <button id="r-tab-base" class="tab-btn active" onclick="switchRouletteBox('base')">Дерево</button>
-                <button id="r-tab-epic" class="tab-btn" style="color:#00A3FF; border-color:#00A3FF;" onclick="switchRouletteBox('epic')">Эпик</button>
-                <button id="r-tab-mythic" class="tab-btn" style="color:#ffd700; border-color:#ffd700;" onclick="switchRouletteBox('mythic')">Мифик</button>
-            </div>
-            <div id="roulette-box" class="roulette-box" style="font-size:60px; margin-bottom:30px;">🎁</div>
-            <div id="roulette-result-text" style="height:30px; font-weight:bold; color:#fff; font-size:18px; margin-bottom:20px; text-shadow:0 0 10px rgba(255,255,255,0.5);"></div>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <button id="roulette-free-btn" class="btn" style="background:#34c759;" onclick="spinRoulette('free')">Ежедневная крутка</button>
-                <button id="roulette-ad-btn" class="btn" style="background:#00A3FF;" onclick="spinRouletteAd()">Крутить за рекламу 📺</button>
-                <button id="roulette-paid-btn" class="btn" style="background:transparent; border:2px solid #ffd700; color:#ffd700;" onclick="spinRoulette('stars')">Крутить за ⭐️</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="buy-stars-modal" class="modal" style="z-index: 1050;">
-        <div class="modal-content" style="text-align:center;">
-            <span class="close-btn" onclick="closeModal('buy-stars-modal')">×</span>
-            <h2 style="color:#ffd700;">Банк Звезд ⭐️</h2>
-            <p style="color:#888; font-size:13px; margin-bottom:20px;">Официальная и безопасная покупка через Telegram (XTR)</p>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <button class="btn" style="background:linear-gradient(90deg, #2c2c2e, #333); border:1px solid #ffd700; display:flex; justify-content:space-between; align-items:center;" onclick="buyStars(50)">
-                    <span>50 ⭐️</span> <span style="color:#00A3FF;">Купить</span>
-                </button>
-                <button class="btn" style="background:linear-gradient(90deg, #2c2c2e, #333); border:1px solid #ffd700; display:flex; justify-content:space-between; align-items:center;" onclick="buyStars(250)">
-                    <span>250 ⭐️</span> <span style="color:#00A3FF;">Купить</span>
-                </button>
-                <button class="btn" style="background:linear-gradient(90deg, #ffd700, #ff9500); color:#000; border:none; display:flex; justify-content:space-between; align-items:center; box-shadow:0 0 15px rgba(255,215,0,0.4);" onclick="buyStars(1000)">
-                    <span style="font-weight:900;">1000 ⭐️</span> <span style="font-weight:900;">СУПЕР ЦЕНА</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="promo-modal" class="modal" style="z-index:1050;">
-        <div class="modal-content" style="text-align:center;">
-            <span class="close-btn" onclick="closeModal('promo-modal')">×</span>
-            <h2>Секретный код 🎁</h2>
-            <input type="text" id="promo-input" placeholder="ВВЕДИТЕ КОД" style="width:100%; padding:15px; margin:20px 0; border-radius:12px; border:2px solid #444; background:#111; color:#fff; text-align:center; font-size:20px; text-transform:uppercase; font-weight:bold; letter-spacing:2px; outline:none;">
-            <button class="btn" style="width:100%; background:#00A3FF;" onclick="activatePromo()">Активировать</button>
-        </div>
-    </div>
-
-    <div id="admin-modal" class="modal" style="z-index:3000;">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('admin-modal')">×</span>
-            <h2 style="color:#ff3b30; text-align:center; margin-bottom:20px;">Панель Создателя 👁‍🗨</h2>
-            <input type="password" id="admin-password" placeholder="Секретный пароль" style="width:100%; padding:12px; margin-bottom:15px; background:#111; border:1px solid #444; color:#ff3b30; border-radius:8px; outline:none; text-align:center; font-family:monospace;">
-            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px;">
-                <h3 style="font-size:14px; margin-bottom:10px; color:#ccc;">Генератор Промокодов:</h3>
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <input type="text" id="admin-promo-code" placeholder="Код (FREE-123)" style="flex:2; padding:10px; background:#222; border:none; color:#fff; border-radius:8px; text-transform:uppercase;">
-                    <button class="btn small" style="background:#5856d6;" onclick="generateRandomPromo()">🎲</button>
-                </div>
-                <select id="admin-promo-type" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:none; color:#fff; border-radius:8px; outline:none;">
-                    <option value="money">Монеты 💰</option>
-                    <option value="stars">Звезды ⭐️</option>
-                    <option value="luck">Бустер: Удача 🧪</option>
-                    <option value="speed">Бустер: Ускоритель ⚡️</option>
-                    <option value="joker">Ген Мутации 🧬</option>
-                </select>
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="number" id="admin-promo-val" placeholder="Кол-во" style="flex:1; padding:10px; background:#222; border:none; color:#fff; border-radius:8px;">
-                    <input type="number" id="admin-promo-limit" placeholder="Лимит" style="flex:1; padding:10px; background:#222; border:none; color:#fff; border-radius:8px;">
-                </div>
-                <button class="btn" style="background:#ff3b30; width:100%;" onclick="adminSubmitPromo()">Загрузить в БД</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="levels-modal" class="modal" style="z-index: 1050;">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('levels-modal')">×</span>
-            <h2>Путь Развития 🧗‍♂️</h2>
-            <p style="font-size:12px; color:#888; text-align:center; margin-bottom:15px;">Прокачивай уровень, чтобы получать уникальные титулы и награды.</p>
-            <div id="levels-list" style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; padding-right:5px;"></div>
-        </div>
-    </div>
-    
-    <div id="avatar-modal" class="modal" style="z-index: 1050;">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('avatar-modal')">×</span>
-            <h2>Галерея Аватаров 🖼</h2>
-            <p style="font-size:12px; color:#888; text-align:center; margin-bottom:15px;">Выбери питомца, который будет представлять тебя в Пати и топе Forbes.</p>
-            <div id="avatar-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:60vh; overflow-y:auto; padding-bottom:10px;"></div>
-        </div>
-    </div>
-    
-    <div id="daily-modal" class="modal" style="z-index: 1000;">
-        <div class="modal-content" style="text-align: center; background:linear-gradient(180deg, #2c2c2e 0%, #111 100%);">
-            <h2 style="color: #ffd700; margin-bottom: 5px; text-shadow:0 0 10px rgba(255,215,0,0.5);">Ежедневный Бонус 🎁</h2>
-            <p style="color: #888; font-size: 13px; margin-bottom: 25px;">Заходи 7 дней подряд, чтобы забрать джекпот!</p>
-            <div id="daily-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 25px;"></div>
-            <button class="btn" style="width: 100%; background: #34c759; font-size:18px; padding:18px; box-shadow:0 0 20px rgba(52,199,89,0.4);" onclick="claimDaily()">Забрать!</button>
-        </div>
-    </div>
-
-    <script>
-        let secretTaps = 0;
-        let secretTapTimer = null;
-        function triggerAdmin() {
-            secretTaps++;
-            if (secretTapTimer) clearTimeout(secretTapTimer);
-            secretTapTimer = setTimeout(() => { secretTaps = 0; }, 1500);
-            if (secretTaps >= 7) {
-                secretTaps = 0;
-                if (typeof playSound === 'function') playSound('win');
-                document.getElementById('admin-modal').style.display = 'flex';
-            }
-        }
-        
-        window.addEventListener('unhandledrejection', function(event) {
-            const debugConsole = document.getElementById('debug-console');
-            if (debugConsole) {
-                debugConsole.style.display = 'block';
-                debugConsole.innerHTML += `<div class="error-msg">⚠️ Promise Error: ${event.reason}</div>`;
-            }
-        });
-    </script>
-    
     <script src="script.js"></script>
 </body>
 </html>
