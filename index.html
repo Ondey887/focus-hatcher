@@ -13,7 +13,10 @@
         body.theme-matrix { background: black; background-image: linear-gradient(0deg, rgba(0,255,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,255,0,0.1) 50%, rgba(0,255,0,0.1) 75%, transparent 75%, transparent); background-size: 100% 4px; animation: matrixScroll 20s linear infinite; }
         @keyframes matrixScroll { 100% { background-position: 0 1000px; } }
         
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 300px; pointer-events: none; }
+        #debug-console { position: fixed; top: 0; left: 0; width: 100%; max-height: 50vh; overflow-y: auto; background: rgba(0,0,0,0.9); z-index: 10000; display: none; padding: 10px; font-family: monospace; border-bottom: 2px solid #ff3b30; pointer-events: none; }
+        .error-msg { color: #ff3b30; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 5px; font-size: 12px; pointer-events: auto; }
+
+        #toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 300px; pointer-events: none; }
         .toast { background: rgba(0,0,0,0.85); color: #fff; padding: 12px 20px; border-radius: 15px; font-weight: 500; font-size: 14px; text-align: center; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: slideDown 0.3s ease forwards; pointer-events: auto; }
         .toast.fade-out { animation: fadeOut 0.3s ease forwards; }
         .toast img { width: 18px; height: 18px; }
@@ -33,24 +36,20 @@
         .balances { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
         .balance-badge { background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 12px; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
         .coin-img { width: 16px; height: 16px; }
-        .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; }
+        .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; pointer-events: auto; }
 
-        /* === ГЛАВНЫЙ ЭКРАН === */
-        .main-screen { display: block; width: 100%; padding-bottom: 120px; }
+        /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ === */
+        /* Навигация теперь внутри .main-screen и появляется при скролле */
+        .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; overflow-y: auto; overflow-x: hidden; height: calc(100vh - 80px); }
         
-        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; min-height: calc(100vh - 120px); padding: 10px 20px 0 20px; }
+        /* Главный экран занимает 100% высоты минус шапка */
+        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; min-height: calc(100vh - 80px); padding: 10px 20px 20px 20px; box-sizing: border-box; }
         
-        h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 10px; text-align: center; }
+        h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 20px; text-align: center; }
         
-        .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-bottom: 15px; }
-        .mode-selector button { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 16px; cursor: pointer; backdrop-filter: blur(5px); }
-        .mode-info { text-align: center; flex: 1; }
-        #mode-title { font-weight: bold; font-size: 16px; margin-bottom: 2px; }
-        #mode-subtitle { font-size: 12px; color: #888; }
-        
-        /* УВЕЛИЧЕННОЕ ЯЙЦО */
-        .egg-container { position: relative; width: 240px; height: 240px; display: flex; justify-content: center; align-items: center; margin: 10px auto 30px auto; }
-        .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6)); z-index: 2; transform: scale(1.4); } 
+        /* УВЕЛИЧЕННОЕ ЯЙЦО - ТЕПЕРЬ СВЕРХУ */
+        .egg-container { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
+        .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); z-index: 2; transform: scale(1.4); } 
         
         .egg-locked { filter: brightness(0.2) grayscale(100%); }
         .holo-egg { opacity: 0.8; filter: hue-rotate(180deg) drop-shadow(0 0 20px #00ffff); animation: holoFloat 3s ease-in-out infinite; }
@@ -69,17 +68,24 @@
         .egg-lock-icon { position: absolute; font-size: 60px; z-index: 4; text-shadow: 0 0 20px rgba(0,0,0,0.9); pointer-events: none; }
         #stun-overlay { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 10; pointer-events: none; display: none; background: rgba(57,255,20,0.2); }
         
+        /* ОПИСАНИЕ И НАЗВАНИЕ ТЕПЕРЬ ПОД ЯЙЦОМ */
+        .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-bottom: 20px; }
+        .mode-selector button { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 16px; cursor: pointer; backdrop-filter: blur(5px); }
+        .mode-info { text-align: center; flex: 1; }
+        #mode-title { font-weight: bold; font-size: 18px; margin-bottom: 4px; }
+        #mode-subtitle { font-size: 13px; color: #888; }
+
         /* ИЗЯЩНЫЙ ТАЙМЕР */
-        .timer-display { font-size: 56px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin-bottom: 15px; line-height: 1; text-align: center; }
+        .timer-display { font-size: 58px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin-bottom: 20px; line-height: 1; text-align: center; }
         
-        .boosters-container { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; }
+        .boosters-container { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; width: 100%; }
         .booster-slot { width: 50px; height: 50px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(5px); }
         .booster-slot img { width: 30px; height: 30px; }
         .booster-count { position: absolute; bottom: -8px; right: -8px; background: var(--primary); color: white; font-size: 11px; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid var(--bg); box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .booster-slot.empty { opacity: 0.4; filter: grayscale(100%); }
         .booster-slot.active { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 163, 255, 0.4); background: rgba(0, 163, 255, 0.1); transform: scale(1.05); }
 
-        .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; align-items: center; margin-top: auto; margin-bottom: 10px; }
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; align-items: center; margin-bottom: 10px; }
         .action-buttons > div { width: 100%; display: flex; flex-direction: column; gap: 12px; }
         
         .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 17px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; text-align: center; }
@@ -87,23 +93,24 @@
         .btn.primary { background: linear-gradient(135deg, #00A3FF 0%, #007aff 100%); }
         .btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
         .btn.stop { background: var(--danger); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); max-width: 320px; margin: 0 auto; }
-        .btn.share { background: #8a2be2; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); margin-bottom: 5px; }
+        .btn.share { background: #8a2be2; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); margin-bottom: 10px; }
         .btn.small { padding: 8px 12px; font-size: 13px; border-radius: 10px; background: var(--primary); }
         .btn.success { background: var(--success); }
         .btn:disabled, .btn.locked { background: #333; color: #666; box-shadow: none; pointer-events: none; border-color: transparent; }
 
-        /* ИНДИКАТОР СКРОЛЛА */
-        .scroll-indicator { text-align: center; margin-bottom: 10px; color: rgba(255,255,255,0.4); animation: scrollBounce 2s infinite; font-size: 12px; }
+        /* ИНДИКАТОР СКРОЛЛА ПРИЖАТ К НИЗУ ПЕРВОГО ЭКРАНА */
+        .scroll-indicator { text-align: center; margin-top: auto; margin-bottom: 10px; color: rgba(255,255,255,0.4); animation: scrollBounce 2s infinite; font-size: 12px; }
         @keyframes scrollBounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 60% { transform: translateY(-4px); } }
         .arrow-down { font-size: 18px; display: block; margin-top: 2px; }
 
-        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-bottom: 20px; }
+        /* НИЖНЯЯ ЧАСТЬ ЭКРАНА (ПОЯВЛЯЕТСЯ ПРИ СКРОЛЛЕ) */
+        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 20px; padding-bottom: 30px; }
         
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
         .second-slot > div { display: flex; justify-content: space-between; align-items: center; }
 
-        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(10px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; }
+        /* НИЖНЕЕ МЕНЮ (ТЕПЕРЬ НЕ ФИКСИРОВАННОЕ, СКРОЛЛИТСЯ ВМЕСТЕ СО СТРАНИЦЕЙ) */
+        .bottom-nav { position: relative; width: 100%; background: rgba(28, 28, 30, 0.95); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(20px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; margin-top: auto; }
         .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 5px 0; transition: all 0.2s; }
         .bottom-nav button:active { color: white; transform: scale(0.95); }
         .nav-icon { font-size: 24px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
@@ -112,7 +119,7 @@
 
         /* Модальные окна */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--panel); width: 90%; max-width: 400px; border-radius: 24px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-content { background: var(--panel); width: 90%; max-width: 400px; border-radius: 24px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; overflow-x: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 28px; color: #888; cursor: pointer; line-height: 1; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; z-index: 10; }
         
@@ -141,7 +148,7 @@
         @keyframes mutantPulse { 0%, 100% { border-color: rgba(57,255,20,0.5); } 50% { border-color: rgba(57,255,20,1); } }
         
         .pet-slot.locked { border-color: #444; background: rgba(0,0,0,0.5); border: 1px dashed #555; animation: none; box-shadow: none; }
-        .pet-slot.locked .pet-img-slot { filter: brightness(0) opacity(0.3); opacity: 0.3; }
+        .pet-slot.locked .pet-img-slot { filter: brightness(0); opacity: 0.3; }
 
         .pet-img-big { width: 120px; height: 120px; object-fit: contain; margin: 0 auto 15px auto; display: block; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
         .pet-name { text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 5px; }
@@ -195,13 +202,20 @@
         
         .tap-cell { background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); width: calc(33.33% - 5px); aspect-ratio: 1; pointer-events: none; }
         .tap-cell.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,163,255,0.2); }
-        .forbes-item { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* ИСПРАВЛЕННЫЙ ТОП ФОРБС (КОМПАКТНЫЙ) */
+        .forbes-item { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .forbes-item.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); }
-        .forbes-rank { font-weight: 800; font-size: 18px; color: #888; width: 25px; text-align: center; }
-        .forbes-rank.top-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); font-size: 22px; }
-        .forbes-rank.top-2 { color: #C0C0C0; text-shadow: 0 0 10px rgba(192,192,192,0.5); font-size: 20px; }
-        .forbes-rank.top-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); font-size: 20px; }
-        .forbes-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; background: #333; border: 1px solid #555; pointer-events: none; }
+        .forbes-rank { font-weight: 800; font-size: 15px; color: #888; width: 22px; text-align: center; }
+        .forbes-rank.top-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); font-size: 18px; }
+        .forbes-rank.top-2 { color: #C0C0C0; text-shadow: 0 0 10px rgba(192,192,192,0.5); font-size: 16px; }
+        .forbes-rank.top-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); font-size: 16px; }
+        .forbes-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: contain; background: #333; border: 1px solid #555; pointer-events: none; }
+        .forbes-info { flex: 1; }
+        .forbes-name { font-weight: bold; font-size: 13px; margin-bottom: 2px; }
+        .forbes-lvl { font-size: 10px; color: #888; }
+        .forbes-val { font-weight: bold; font-size: 13px; color: #ffd700; display: flex; align-items: center; gap: 4px; }
+        .forbes-val img { width: 12px; }
         
         .roulette-box { width: 120px; height: 120px; background: rgba(0,0,0,0.5); border-radius: 20px; border: 2px solid #fff; margin: 0 auto 20px auto; display: flex; justify-content: center; align-items: center; font-size: 50px; transition: all 0.3s; }
         .roulette-spinning { animation: spinRouletteAnim 0.2s linear infinite; filter: blur(2px); }
@@ -232,6 +246,8 @@
 <body>
     <div id="toast-container"></div>
     <canvas id="confetti-canvas"></canvas>
+    
+    <div id="debug-console"></div>
 
     <header class="top-bar">
         <div class="profile-section" onclick="openProfile()">
@@ -254,16 +270,6 @@
         <div class="top-focus-area">
             <h1 id="main-title-secret" onclick="if(typeof triggerAdmin === 'function') triggerAdmin()">Focus Hatcher</h1>
             
-            <div class="mode-selector">
-                <button id="prev-btn" onclick="prevMode()">◀</button>
-                <div class="mode-info">
-                    <div id="mode-title">Базовое Яйцо</div>
-                    <div id="mode-subtitle">Шанс 1%</div>
-                    <div id="offline-warning" style="display:none; color:#ff3b30; font-size:12px; margin-top:5px; font-weight:bold; text-shadow: 0 0 5px #000;">Не закрывай приложение!</div>
-                </div>
-                <button id="next-btn" onclick="nextMode()">▶</button>
-            </div>
-            
             <button id="custom-egg-btn" class="btn small" style="display:none; background:#333; margin-bottom:15px;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
 
             <div class="egg-container">
@@ -272,6 +278,16 @@
                 <div id="egg-lock" class="egg-lock-icon" style="display:none;">🔒</div>
                 <div id="stun-overlay"></div>
                 <div id="parasites-container" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></div>
+            </div>
+
+            <div class="mode-selector">
+                <button id="prev-btn" onclick="prevMode()">◀</button>
+                <div class="mode-info">
+                    <div id="mode-title">Базовое Яйцо</div>
+                    <div id="mode-subtitle">Шанс 1%</div>
+                    <div id="offline-warning" style="display:none; color:#ff3b30; font-size:12px; margin-top:5px; font-weight:bold; text-shadow: 0 0 5px #000;">Не закрывай приложение!</div>
+                </div>
+                <button id="next-btn" onclick="nextMode()">▶</button>
             </div>
 
             <div id="hatched-info" style="display:none;">
@@ -314,20 +330,19 @@
                 </div>
             </div>
         </div>
-
-    </main>
-
-    <nav class="bottom-nav">
-        <button onclick="openInventory()"><span class="nav-icon">🐾</span>Коллекция <span id="ach-badge" class="badge" style="display:none;">!</span></button>
-        <button onclick="openShop()"><span class="nav-icon">🛍</span>Магазин</button>
-        <button onclick="openCraft()"><span class="nav-icon">🧬</span>Лаба</button>
-        <button onclick="openPartyModal()"><span class="nav-icon">🎮</span>Пати</button>
         
-        <button onclick="openAch()"><span class="nav-icon">📜</span>Контракты</button>
-        <button onclick="openMarketModal()" style="color:#ff9500;"><span class="nav-icon">🛒</span>Рынок</button>
-        <button onclick="openForbes()"><span class="nav-icon">🏆</span>Топ</button>
-        <button onclick="openRouletteModal()"><span class="nav-icon">🎰</span>Рулетка</button>
-    </nav>
+        <nav class="bottom-nav">
+            <button onclick="openInventory()"><span class="nav-icon">🐾</span>Коллекция <span id="ach-badge" class="badge" style="display:none;">!</span></button>
+            <button onclick="openShop()"><span class="nav-icon">🛍</span>Магазин</button>
+            <button onclick="openCraft()"><span class="nav-icon">🧬</span>Лаба</button>
+            <button onclick="openPartyModal()"><span class="nav-icon">🎮</span>Пати</button>
+            
+            <button onclick="openAch()"><span class="nav-icon">📜</span>Контракты</button>
+            <button onclick="openMarketModal()" style="color:#ff9500;"><span class="nav-icon">🛒</span>Рынок</button>
+            <button onclick="openForbes()"><span class="nav-icon">🏆</span>Топ</button>
+            <button onclick="openRouletteModal()"><span class="nav-icon">🎰</span>Рулетка</button>
+        </nav>
+    </main>
 
     <div id="market-modal" class="modal">
         <div class="modal-content" style="max-width: 500px; width: 95%;">
@@ -569,9 +584,11 @@
     </div>
 
     <div id="expedition-modal" class="modal" style="z-index:1001;">
-        <div class="modal-content" style="padding:0; overflow:hidden; border-radius:24px;">
+        <div class="modal-content" style="padding:0; overflow-y:auto; overflow-x:hidden; border-radius:24px;">
+            <span class="close-btn" onclick="closeModal('expedition-modal')" style="position:absolute; top:10px; right:10px; font-size:24px; background:rgba(0,0,0,0.5); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#fff; z-index:100;">×</span>
+            
             <div id="expedition-scene" class="expedition-scene forest-bg" style="position:relative; width:100%; height:280px;">
-                <div id="mega-radar-badge" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.7); padding:5px 10px; border-radius:8px; font-size:12px; color:#39ff14; border:1px solid #39ff14; display:none;">📡 x2 ЛУТ</div>
+                <div id="mega-radar-badge" style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.7); padding:5px 10px; border-radius:8px; font-size:12px; color:#39ff14; border:1px solid #39ff14; display:none;">📡 x2 ЛУТ</div>
                 <div id="wolf-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; justify-content:center; align-items:center; background:rgba(0,0,0,0.6); z-index:3;">
                     <h3 style="color:#ff3b30; margin-bottom:15px; font-size:24px; text-shadow:0 0 10px #000;">ЗАЩИЩАЙТЕСЬ!</h3>
                     <img id="wolf-img" src="assets/ui/wolf.png" style="width:120px; height:120px; cursor:pointer; filter:drop-shadow(0 0 20px #ff3b30);" onclick="tapWolf()">
@@ -743,26 +760,27 @@
         </div>
     </div>
 
+    <script>
+        function triggerAdmin() {
+            if (typeof window.secretTaps === 'undefined') window.secretTaps = 0;
+            window.secretTaps++;
+            if (window.secretTapTimer) clearTimeout(window.secretTapTimer);
+            window.secretTapTimer = setTimeout(() => { window.secretTaps = 0; }, 1500);
+            if (window.secretTaps >= 7) {
+                window.secretTaps = 0;
+                if (typeof playSound === 'function') playSound('win');
+                document.getElementById('admin-modal').style.display = 'flex';
+            }
+        }
+        
+        window.addEventListener('unhandledrejection', function(event) {
+            const debugConsole = document.getElementById('debug-console');
+            if (debugConsole) {
+                debugConsole.style.display = 'block';
+                debugConsole.innerHTML += `<div class="error-msg">⚠️ Promise Error: ${event.reason}</div>`;
+            }
+        });
+    </script>
     <script src="script.js"></script>
-<div id="settings-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('settings-modal')">×</span>
-            <h2>Настройки ⚙️</h2>
-            
-            <div style="background:rgba(0,0,0,0.2); border-radius:16px; padding:10px 20px; margin:20px 0;">
-                <div class="settings-option">
-                    <span>Вибрация 📳</span>
-                    <label class="switch"><input type="checkbox" id="vibration-toggle" checked><span class="slider"></span></label>
-                </div>
-                <div class="settings-option" style="border-bottom:none;">
-                    <span>Звуки 🔊</span>
-                    <label class="switch"><input type="checkbox" id="sound-toggle"><span class="slider"></span></label>
-                </div>
-            </div>
-            
-            <button class="btn" style="width:100%; margin-bottom:15px; background:linear-gradient(90deg, #8a2be2, #00A3FF);" onclick="openPromo()">Ввести Промокод 🎁</button>
-            <button class="btn stop" style="width:100%; background:transparent; border:1px solid #ff3b30; color:#ff3b30;" onclick="hardReset()">Сбросить прогресс (Опасно)</button>
-        </div>
-    </div>
 </body>
 </html>
