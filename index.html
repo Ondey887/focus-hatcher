@@ -13,10 +13,6 @@
         body.theme-matrix { background: black; background-image: linear-gradient(0deg, rgba(0,255,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,255,0,0.1) 50%, rgba(0,255,0,0.1) 75%, transparent 75%, transparent); background-size: 100% 4px; animation: matrixScroll 20s linear infinite; }
         @keyframes matrixScroll { 100% { background-position: 0 1000px; } }
         
-        /* КОНСОЛЬ ОШИБОК */
-        #debug-console { position: fixed; top: 0; left: 0; width: 100%; max-height: 50vh; overflow-y: auto; background: rgba(0,0,0,0.9); z-index: 10000; display: none; padding: 10px; font-family: monospace; border-bottom: 2px solid #ff3b30; pointer-events: none; }
-        .error-msg { color: #ff3b30; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 5px; font-size: 12px; pointer-events: auto; }
-
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 300px; pointer-events: none; }
         .toast { background: rgba(0,0,0,0.85); color: #fff; padding: 12px 20px; border-radius: 15px; font-weight: 500; font-size: 14px; text-align: center; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: slideDown 0.3s ease forwards; pointer-events: auto; }
         .toast.fade-out { animation: fadeOut 0.3s ease forwards; }
@@ -39,44 +35,42 @@
         .coin-img { width: 16px; height: 16px; }
         .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; }
 
-        /* === ГЛАВНЫЙ ЭКРАН === */
-        /* Отступ снизу нужен, чтобы меню не перекрывало контент при полном скролле */
-        .main-screen { display: flex; flex-direction: column; width: 100%; padding-bottom: 120px; }
+        /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ === */
+        /* Отступ 130px снизу защищает от перекрытия навигационным меню */
+        .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px 20px 130px 20px; overflow-y: auto; }
         
-        /* Первый блок (помещается на экран) */
-        .top-focus-area { display: flex; flex-direction: column; align-items: center; width: 100%; min-height: calc(100vh - 160px); padding: 10px 20px 0 20px; }
+        h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 20px; text-align: center; }
         
-        h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 10px; text-align: center; }
-        
-        .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-bottom: 15px; }
+        /* ОПИСАНИЕ НАД ЯЙЦОМ */
+        .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-bottom: 20px; }
         .mode-selector button { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 16px; cursor: pointer; backdrop-filter: blur(5px); }
         .mode-info { text-align: center; flex: 1; }
-        #mode-title { font-weight: bold; font-size: 16px; margin-bottom: 2px; }
-        #mode-subtitle { font-size: 12px; color: #888; }
+        #mode-title { font-weight: bold; font-size: 18px; margin-bottom: 4px; }
+        #mode-subtitle { font-size: 13px; color: #888; }
         
-        /* ОГРОМНОЕ ЯЙЦО */
-        .egg-container { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
-        .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6)); z-index: 2; transform: scale(1.3); }
+        /* УВЕЛИЧЕННОЕ ЯЙЦО */
+        .egg-container { position: relative; width: 240px; height: 240px; display: flex; justify-content: center; align-items: center; margin: 10px auto 30px auto; }
+        .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6)); z-index: 2; transform: scale(1.4); } /* Масштабирование самого яйца */
         
         .egg-locked { filter: brightness(0.2) grayscale(100%); }
         .holo-egg { opacity: 0.8; filter: hue-rotate(180deg) drop-shadow(0 0 20px #00ffff); animation: holoFloat 3s ease-in-out infinite; }
-        @keyframes holoFloat { 0%, 100% { transform: translateY(0) scale(1.3); } 50% { transform: translateY(-15px) scale(1.3); } }
+        @keyframes holoFloat { 0%, 100% { transform: translateY(0) scale(1.4); } 50% { transform: translateY(-15px) scale(1.4); } }
         .shaking { animation: shake 0.5s infinite; }
         .shake-crazy { animation: shakeCrazy 0.2s infinite; }
         .shake-hard { animation: shakeHard 0.1s infinite; }
-        @keyframes shake { 0% { transform: scale(1.3) translate(1px, 1px) rotate(0deg); } 25% { transform: scale(1.3) translate(-1px, -2px) rotate(-1deg); } 50% { transform: scale(1.3) translate(-3px, 0px) rotate(1deg); } 75% { transform: scale(1.3) translate(3px, 2px) rotate(0deg); } 100% { transform: scale(1.3) translate(1px, -1px) rotate(-1deg); } }
-        @keyframes shakeCrazy { 0% { transform: scale(1.4) translate(3px, 3px) rotate(0deg); } 25% { transform: scale(1.4) translate(-3px, -3px) rotate(-3deg); } 50% { transform: scale(1.4) translate(-5px, 0px) rotate(3deg); } 75% { transform: scale(1.4) translate(5px, 3px) rotate(0deg); } 100% { transform: scale(1.4) translate(3px, -3px) rotate(-3deg); } }
-        @keyframes shakeHard { 0% { transform: scale(1.3) translate(5px, 5px) rotate(0deg); } 25% { transform: scale(1.3) translate(-5px, -5px) rotate(-2deg); } 50% { transform: scale(1.3) translate(-5px, 5px) rotate(2deg); } 75% { transform: scale(1.3) translate(5px, -5px) rotate(0deg); } 100% { transform: scale(1.3) translate(5px, 5px) rotate(-2deg); } }
+        @keyframes shake { 0% { transform: scale(1.4) translate(1px, 1px) rotate(0deg); } 25% { transform: scale(1.4) translate(-1px, -2px) rotate(-1deg); } 50% { transform: scale(1.4) translate(-3px, 0px) rotate(1deg); } 75% { transform: scale(1.4) translate(3px, 2px) rotate(0deg); } 100% { transform: scale(1.4) translate(1px, -1px) rotate(-1deg); } }
+        @keyframes shakeCrazy { 0% { transform: scale(1.5) translate(3px, 3px) rotate(0deg); } 25% { transform: scale(1.5) translate(-3px, -3px) rotate(-3deg); } 50% { transform: scale(1.5) translate(-5px, 0px) rotate(3deg); } 75% { transform: scale(1.5) translate(5px, 3px) rotate(0deg); } 100% { transform: scale(1.5) translate(3px, -3px) rotate(-3deg); } }
+        @keyframes shakeHard { 0% { transform: scale(1.4) translate(5px, 5px) rotate(0deg); } 25% { transform: scale(1.4) translate(-5px, -5px) rotate(-2deg); } 50% { transform: scale(1.4) translate(-5px, 5px) rotate(2deg); } 75% { transform: scale(1.4) translate(5px, -5px) rotate(0deg); } 100% { transform: scale(1.4) translate(5px, 5px) rotate(-2deg); } }
         .boss-hit-anim { animation: bossHit 0.2s ease-out; }
-        @keyframes bossHit { 0% { transform: scale(1.3); filter: brightness(1); } 50% { transform: scale(1.2); filter: brightness(2) invert(1) hue-rotate(180deg); } 100% { transform: scale(1.3); filter: brightness(1); } }
+        @keyframes bossHit { 0% { transform: scale(1.4); filter: brightness(1); } 50% { transform: scale(1.3); filter: brightness(2) invert(1) hue-rotate(180deg); } 100% { transform: scale(1.4); filter: brightness(1); } }
         
-        .crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/ui/crack.png'); background-size: cover; z-index: 3; opacity: 0; pointer-events: none; transition: opacity 0.5s; transform: scale(1.3); }
+        .crack-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/ui/crack.png'); background-size: cover; z-index: 3; opacity: 0; pointer-events: none; transition: opacity 0.5s; transform: scale(1.4); }
         .crack-stage-1 { opacity: 0.3; } .crack-stage-2 { opacity: 0.6; } .crack-stage-3 { opacity: 1; }
         .egg-lock-icon { position: absolute; font-size: 60px; z-index: 4; text-shadow: 0 0 20px rgba(0,0,0,0.9); pointer-events: none; }
         #stun-overlay { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 10; pointer-events: none; display: none; background: rgba(57,255,20,0.2); }
         
         /* ИЗЯЩНЫЙ ТАЙМЕР */
-        .timer-display { font-size: 56px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin-bottom: 15px; line-height: 1; text-align: center; }
+        .timer-display { font-size: 54px; font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin-bottom: 20px; line-height: 1; text-align: center; }
         
         .boosters-container { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; }
         .booster-slot { width: 50px; height: 50px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(5px); }
@@ -85,30 +79,28 @@
         .booster-slot.empty { opacity: 0.4; filter: grayscale(100%); }
         .booster-slot.active { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 163, 255, 0.4); background: rgba(0, 163, 255, 0.1); transform: scale(1.05); }
 
-        .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; margin-top: auto; margin-bottom: 10px; align-items: center; }
-        .action-buttons > div { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-        
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; align-items: center; margin-bottom: 10px; }
         .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 17px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; text-align: center; }
         .btn:active { transform: scale(0.96); }
         .btn.primary { background: linear-gradient(135deg, #00A3FF 0%, #007aff 100%); }
         .btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
-        .btn.stop { background: var(--danger); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); max-width: 320px; margin: 0 auto; }
-        .btn.share { background: #8a2be2; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); }
+        .btn.stop { background: var(--danger); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); max-width: 320px; }
+        .btn.share { background: #8a2be2; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); margin-bottom: 10px; }
         .btn.small { padding: 8px 12px; font-size: 13px; border-radius: 10px; background: var(--primary); }
         .btn.success { background: var(--success); }
         .btn:disabled, .btn.locked { background: #333; color: #666; box-shadow: none; pointer-events: none; border-color: transparent; }
 
         /* ИНДИКАТОР СКРОЛЛА */
-        .scroll-indicator { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 20px 0 10px 0; color: rgba(255,255,255,0.4); animation: scrollBounce 2s infinite; }
+        .scroll-indicator { text-align: center; margin-top: 20px; margin-bottom: 20px; color: rgba(255,255,255,0.4); animation: scrollBounce 2s infinite; font-size: 14px; }
         @keyframes scrollBounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
-        .arrow-down { font-size: 20px; margin-top: 4px; }
+        .arrow-down { font-size: 20px; display: block; margin-top: 4px; }
 
-        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-bottom: 20px; }
+        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; gap: 15px; }
         
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
         .second-slot > div { display: flex; justify-content: space-between; align-items: center; }
 
-        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ */
+        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ (Адаптивное под iPhone) */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(10px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; }
         .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 5px 0; transition: all 0.2s; }
         .bottom-nav button:active { color: white; transform: scale(0.95); }
@@ -133,7 +125,7 @@
         .buy-btn.owned { background: var(--success); }
         .buy-btn.locked { background: #333; color: #888; }
 
-        /* ЗАТЕМНЕНИЕ ЗАКРЫТЫХ ПЕТОВ ВЕРНУЛОСЬ */
+        /* ЗАТЕМНЕНИЕ ЗАКРЫТЫХ ПЕТОВ */
         .pet-slot { background: rgba(0,0,0,0.3); border-radius: 16px; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; position: relative; border: 2px solid transparent; cursor: pointer; overflow: hidden; }
         .pet-img-slot { width: 70%; height: 70%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); pointer-events: none; transition: 0.3s; }
         .slot-count { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; }
@@ -147,7 +139,7 @@
         @keyframes mutantPulse { 0%, 100% { border-color: rgba(57,255,20,0.5); } 50% { border-color: rgba(57,255,20,1); } }
         
         .pet-slot.locked { border-color: #444; background: rgba(0,0,0,0.5); border: 1px dashed #555; }
-        .pet-slot.locked .pet-img-slot { filter: brightness(0) opacity(0.5); }
+        .pet-slot.locked .pet-img-slot { filter: brightness(0) opacity(0.3) !important; }
 
         .pet-img-big { width: 120px; height: 120px; object-fit: contain; margin: 0 auto 15px auto; display: block; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
         .pet-name { text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 5px; }
@@ -224,6 +216,7 @@
         .daily-item:nth-child(7) .daily-icon-img { width: 40px; height: 40px; }
         .daily-item:nth-child(7) .daily-val { font-size: 14px; color: #ffd700; }
         
+        /* ИСПРАВЛЕННЫЕ НАСТРОЙКИ (Включатели) */
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .4s; border-radius: 34px; }
@@ -238,8 +231,6 @@
 <body>
     <div id="toast-container"></div>
     <canvas id="confetti-canvas"></canvas>
-    
-    <div id="debug-console"></div>
 
     <header class="top-bar">
         <div class="profile-section" onclick="openProfile()">
@@ -259,45 +250,43 @@
 
     <main class="main-screen">
         
-        <div class="top-focus-area">
-            <h1 id="main-title-secret" onclick="triggerAdmin()">Focus Hatcher</h1>
-            
-            <div class="mode-selector">
-                <button id="prev-btn" onclick="prevMode()">◀</button>
-                <div class="mode-info">
-                    <div id="mode-title">Базовое Яйцо</div>
-                    <div id="mode-subtitle">Шанс 1%</div>
-                    <div id="offline-warning" style="display:none; color:#ff3b30; font-size:12px; margin-top:5px; font-weight:bold; text-shadow: 0 0 5px #000;">Не закрывай приложение!</div>
-                </div>
-                <button id="next-btn" onclick="nextMode()">▶</button>
+        <h1 id="main-title-secret" onclick="triggerAdmin()">Focus Hatcher</h1>
+        
+        <div class="mode-selector">
+            <button id="prev-btn" onclick="prevMode()">◀</button>
+            <div class="mode-info">
+                <div id="mode-title">Базовое Яйцо</div>
+                <div id="mode-subtitle">Шанс 1%</div>
+                <div id="offline-warning" style="display:none; color:#ff3b30; font-size:12px; margin-top:5px; font-weight:bold; text-shadow: 0 0 5px #000;">Не закрывай приложение!</div>
             </div>
-            
-            <button id="custom-egg-btn" class="btn small" style="display:none; background:#333;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
+            <button id="next-btn" onclick="nextMode()">▶</button>
+        </div>
+        
+        <button id="custom-egg-btn" class="btn small" style="display:none; background:#333; margin-bottom:15px;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
 
-            <div class="egg-container">
-                <img id="egg-display" src="assets/eggs/egg-default.png" class="egg-img">
-                <div id="crack-overlay" class="crack-overlay"></div>
-                <div id="egg-lock" class="egg-lock-icon" style="display:none;">🔒</div>
-                <div id="stun-overlay"></div>
-                <div id="parasites-container" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></div>
+        <div class="egg-container">
+            <img id="egg-display" src="assets/eggs/egg-default.png" class="egg-img">
+            <div id="crack-overlay" class="crack-overlay"></div>
+            <div id="egg-lock" class="egg-lock-icon" style="display:none;">🔒</div>
+            <div id="stun-overlay"></div>
+            <div id="parasites-container" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></div>
+        </div>
+
+        <div id="hatched-info" style="display:none;">
+            <h2 id="hatched-name">Питомец</h2>
+            <div id="hatched-rarity" class="pet-rarity">Common</div>
+        </div>
+
+        <div id="timer" class="timer-display">25:00</div>
+
+        <div id="boosters-panel" class="boosters-container"></div>
+
+        <div class="action-buttons">
+            <div id="start-buttons-container" style="display: flex; flex-direction: column; gap: 12px;">
+                <button id="btn-focus" class="btn primary" onclick="startTimer('online')">Начать Фокус</button>
+                <button id="btn-incubator" class="btn secondary" onclick="startTimer('offline')">В Инкубатор (Оффлайн)</button>
             </div>
-
-            <div id="timer" class="timer-display">25:00</div>
-
-            <div id="hatched-info" style="display:none;">
-                <h2 id="hatched-name">Питомец</h2>
-                <div id="hatched-rarity" class="pet-rarity">Common</div>
-            </div>
-
-            <div id="boosters-panel" class="boosters-container"></div>
-
-            <div class="action-buttons" style="width:100%; max-width:320px;">
-                <div id="start-buttons-container" style="display: flex; flex-direction: column; gap: 12px;">
-                    <button id="btn-focus" class="btn primary" onclick="startTimer('online')">Начать Фокус</button>
-                    <button id="btn-incubator" class="btn secondary" onclick="startTimer('offline')">В Инкубатор (Оффлайн)</button>
-                </div>
-                <button id="main-btn" class="btn stop" style="display:none;" onclick="stopTimer()">Сдаться</button>
-            </div>
+            <button id="main-btn" class="btn stop" style="display:none;" onclick="stopTimer()">Сдаться</button>
         </div>
 
         <div class="scroll-indicator">
@@ -306,7 +295,7 @@
         </div>
 
         <div class="bottom-extra-area">
-            <button id="share-btn" class="btn share" style="display:none;" onclick="handleShare()">Поделиться успехом 🚀</button>
+            <button id="share-btn" class="btn share" style="display:none; width: 100%;" onclick="handleShare()">Поделиться успехом 🚀</button>
 
             <div id="second-slot-panel" class="second-slot" style="display:none;">
                 <div id="second-slot-idle">
@@ -730,7 +719,7 @@
             const debugConsole = document.getElementById('debug-console');
             if (debugConsole) {
                 debugConsole.style.display = 'block';
-                debugConsole.innerHTML += `<div class="error-msg">⚠️ Promise Error: ${event.reason}</div>`;
+                debugConsole.innerHTML += `<div class="error-msg">⚠️ Ошибка: ${event.reason}</div>`;
             }
         });
     </script>
