@@ -9,7 +9,7 @@
         :root { --bg: #1c1c1e; --panel: #2c2c2e; --text: #ffffff; --primary: #00A3FF; --success: #34c759; --danger: #ff3b30; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; background-size: cover; background-position: center; background-attachment: fixed; transition: background 0.5s ease; }
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; background-size: cover; background-position: center; background-attachment: fixed; transition: background 0.5s ease; margin: 0; height: 100vh; overflow: hidden; }
         body.theme-matrix { background: black; background-image: linear-gradient(0deg, rgba(0,255,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,255,0,0.1) 50%, rgba(0,255,0,0.1) 75%, transparent 75%, transparent); background-size: 100% 4px; animation: matrixScroll 20s linear infinite; }
         @keyframes matrixScroll { 100% { background-position: 0 1000px; } }
         
@@ -24,7 +24,7 @@
         @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%); position: sticky; top: 0; z-index: 100; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%); position: sticky; top: 0; z-index: 100; height: 80px; box-sizing: border-box; }
         .profile-section { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .avatar-wrapper { width: 45px; height: 45px; border-radius: 50%; overflow: hidden; border: 2px solid var(--primary); background: #333; display: flex; align-items: center; justify-content: center; }
         .header-avatar { width: 100%; height: 100%; object-fit: contain; }
@@ -38,17 +38,15 @@
         .coin-img { width: 16px; height: 16px; }
         .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; pointer-events: auto; }
 
-        /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ === */
-        /* Экран жестко скроллится внутри, обрезая горизонталь */
+        /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ (ЭФФЕКТ ВЫГЛЯДЫВАНИЯ) === */
         .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
         
-        /* Главный фокус-экран занимает ровно 100% высоты первого скролла */
-        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; min-height: 100%; padding: 10px 20px 20px 20px; box-sizing: border-box; }
+        .top-focus-area { min-height: calc(100% - 45px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; padding: 10px 20px 20px 20px; box-sizing: border-box; }
         
         h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 10px; text-align: center; }
         
-        /* УВЕЛИЧЕННОЕ ЯЙЦО */
-        .egg-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
+        /* УВЕЛИЧЕННОЕ ЯЙЦО (СВЕРХУ) */
+        .egg-container { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
         .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); z-index: 2; transform: scale(1.4); } 
         
         .egg-locked { filter: brightness(0.2) grayscale(100%); }
@@ -86,6 +84,8 @@
         .booster-slot.active { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 163, 255, 0.4); background: rgba(0, 163, 255, 0.1); transform: scale(1.05); }
 
         .action-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; align-items: center; margin-bottom: 10px; }
+        .action-buttons > div { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+        
         .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 17px; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; text-align: center; }
         .btn:active { transform: scale(0.96); }
         .btn.primary { background: linear-gradient(135deg, #00A3FF 0%, #007aff 100%); }
@@ -102,13 +102,13 @@
         .arrow-down { font-size: 18px; display: block; margin-top: 2px; }
 
         /* НИЖНЯЯ ЧАСТЬ ЭКРАНА (ПОЯВЛЯЕТСЯ ТОЛЬКО ПРИ СКРОЛЛЕ) */
-        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 30px; }
+        .bottom-extra-area { padding: 0; margin: 10px auto 0 auto; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; gap: 15px; }
         
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
         .second-slot > div { display: flex; justify-content: space-between; align-items: center; }
 
-        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ (ПРИКРЕПЛЕНО К КОНЦУ СКРОЛЛА) */
-        .bottom-nav { position: relative; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(20px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; margin-top: 20px; flex-shrink: 0; box-sizing: border-box; }
+        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ (ВЫГЛЯДЫВАЕТ НА 45px) */
+        .bottom-nav { margin-top: 15px; position: relative; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(20px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; flex-shrink: 0; box-sizing: border-box; }
         .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 5px 0; transition: all 0.2s; }
         .bottom-nav button:active { color: white; transform: scale(0.95); }
         .nav-icon { font-size: 24px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
@@ -169,8 +169,7 @@
         .rank-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
         .rank-desc { font-size: 12px; color: #ffd700; }
         
-        /* ИСПРАВЛЕНИЕ СКРОЛЛА АВАТАРОВ */
-        .avatar-item { width: 100%; aspect-ratio: 1; height: auto; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid transparent; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
+        .avatar-item { width: 100%; aspect-ratio: 1; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid transparent; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
         .avatar-item img { width: 80%; height: 80%; object-fit: contain; pointer-events: none; }
         .avatar-item.selected { border-color: var(--primary); box-shadow: 0 0 15px rgba(0,163,255,0.5); }
 
@@ -267,7 +266,7 @@
         <div class="top-focus-area">
             <h1 id="main-title-secret" onclick="if(typeof triggerAdmin === 'function') triggerAdmin()">Focus Hatcher</h1>
             
-            <button id="custom-egg-btn" class="btn small" style="display:none; background:#333; margin-bottom:10px;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
+            <button id="custom-egg-btn" class="btn small" style="display:none; background:#333; margin-bottom:15px;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
 
             <div class="egg-container">
                 <img id="egg-display" src="assets/eggs/egg-default.png" class="egg-img">
@@ -327,7 +326,7 @@
                 </div>
             </div>
         </div>
-        
+
         <nav class="bottom-nav">
             <button onclick="openInventory()"><span class="nav-icon">🐾</span>Коллекция <span id="ach-badge" class="badge" style="display:none;">!</span></button>
             <button onclick="openShop()"><span class="nav-icon">🛍</span>Магазин</button>
@@ -582,7 +581,8 @@
 
     <div id="expedition-modal" class="modal" style="z-index:1001;">
         <div class="modal-content" style="padding:0; overflow-y:auto; overflow-x:hidden; border-radius:24px; position:relative;">
-            <span class="close-btn" onclick="closeModal('expedition-modal')" style="position:absolute; top:10px; right:10px; font-size:24px; background:rgba(0,0,0,0.5); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#fff; z-index:100;">×</span>
+            
+            <span class="close-btn" onclick="closeModal('expedition-modal')" style="position:absolute; top:10px; right:10px; font-size:24px; background:rgba(0,0,0,0.5); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#fff; z-index:100; padding-bottom: 2px;">&times;</span>
             
             <div id="expedition-scene" class="expedition-scene forest-bg" style="position:relative; width:100%; height:280px;">
                 <div id="mega-radar-badge" style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.7); padding:5px 10px; border-radius:8px; font-size:12px; color:#39ff14; border:1px solid #39ff14; display:none;">📡 x2 ЛУТ</div>
