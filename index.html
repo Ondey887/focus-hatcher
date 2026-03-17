@@ -38,15 +38,16 @@
         .coin-img { width: 16px; height: 16px; }
         .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; pointer-events: auto; }
 
-        /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ (ЭФФЕКТ ВЫГЛЯДЫВАНИЯ) === */
-        .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+        /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ === */
+        /* Отступ 100px снизу, чтобы зафиксированное меню не перекрывало Инкубатор */
+        .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; padding-bottom: 100px; box-sizing: border-box; }
         
-        .top-focus-area { min-height: calc(100% - 45px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; padding: 10px 20px 20px 20px; box-sizing: border-box; }
+        .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; padding: 10px 20px 20px 20px; box-sizing: border-box; }
         
         h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 10px; text-align: center; }
         
-        /* УВЕЛИЧЕННОЕ ЯЙЦО (СВЕРХУ) */
-        .egg-container { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
+        /* УВЕЛИЧЕННОЕ ЯЙЦО СВЕРХУ */
+        .egg-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
         .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); z-index: 2; transform: scale(1.4); } 
         
         .egg-locked { filter: brightness(0.2) grayscale(100%); }
@@ -66,7 +67,7 @@
         .egg-lock-icon { position: absolute; font-size: 60px; z-index: 4; text-shadow: 0 0 20px rgba(0,0,0,0.9); pointer-events: none; }
         #stun-overlay { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 10; pointer-events: none; display: none; background: rgba(57,255,20,0.2); }
         
-        /* ОПИСАНИЕ И НАЗВАНИЕ (ПОД ЯЙЦОМ) */
+        /* ОПИСАНИЕ И НАЗВАНИЕ СТРОГО ПОД ЯЙЦОМ */
         .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-bottom: 20px; }
         .mode-selector button { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 16px; cursor: pointer; backdrop-filter: blur(5px); }
         .mode-info { text-align: center; flex: 1; }
@@ -96,28 +97,24 @@
         .btn.success { background: var(--success); }
         .btn:disabled, .btn.locked { background: #333; color: #666; box-shadow: none; pointer-events: none; border-color: transparent; }
 
-        /* ИНДИКАТОР СКРОЛЛА ПРИЖАТ К НИЗУ ПЕРВОГО ЭКРАНА */
-        .scroll-indicator { text-align: center; margin-top: auto; margin-bottom: 10px; color: rgba(255,255,255,0.4); animation: scrollBounce 2s infinite; font-size: 12px; }
-        @keyframes scrollBounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 60% { transform: translateY(-4px); } }
-        .arrow-down { font-size: 18px; display: block; margin-top: 2px; }
-
-        /* НИЖНЯЯ ЧАСТЬ ЭКРАНА (ПОЯВЛЯЕТСЯ ТОЛЬКО ПРИ СКРОЛЛЕ) */
-        .bottom-extra-area { padding: 0; margin: 10px auto 0 auto; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; gap: 15px; }
+        /* ИНКУБАТОР (СЛОТ 2) - ОСТАЛСЯ НА СВОЕМ МЕСТЕ */
+        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 10px; padding-bottom: 10px; }
         
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
         .second-slot > div { display: flex; justify-content: space-between; align-items: center; }
 
-        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ (ВЫГЛЯДЫВАЕТ НА 45px) */
-        .bottom-nav { margin-top: 15px; position: relative; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 5px calc(20px + env(safe-area-inset-bottom)); z-index: 100; align-items: start; flex-shrink: 0; box-sizing: border-box; }
-        .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; padding: 5px 0; transition: all 0.2s; }
+        /* НОВАЯ КЛАССИЧЕСКАЯ НАВИГАЦИЯ (ФИКСИРОВАННАЯ ВНИЗУ) */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 10px 5px calc(10px + env(safe-area-inset-bottom)); z-index: 100; box-sizing: border-box; }
+        .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; width: 20%; position: relative; }
         .bottom-nav button:active { color: white; transform: scale(0.95); }
         .nav-icon { font-size: 24px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .bottom-nav button:active .nav-icon { transform: scale(1.15); }
-        .badge { position: absolute; top: 0px; right: 15%; background: var(--danger); color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: none; }
+        .badge { position: absolute; top: -5px; right: 15%; background: var(--danger); color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: none; }
 
-        /* Модальные окна (ЗАЩИТА ОТ ГОРИЗОНТАЛЬНОГО СКРОЛЛА) */
+        /* Модальные окна (ЖЕСТКАЯ ЗАЩИТА ОТ ГОРИЗОНТАЛЬНОГО СКРОЛЛА) */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: var(--panel); width: 90%; max-width: 400px; border-radius: 24px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-content input, .modal-content select { min-width: 0; max-width: 100%; box-sizing: border-box; } /* Защита инпутов админки */
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 28px; color: #888; cursor: pointer; line-height: 1; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; z-index: 10; }
         
@@ -142,7 +139,6 @@
         .pet-slot.legendary { border-color: #ffd700; background: linear-gradient(180deg, rgba(255,215,0,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 15px rgba(255,215,0,0.3); }
         .pet-slot.mythic { border-color: #8a2be2; background: linear-gradient(180deg, rgba(138,43,226,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(138,43,226,0.4); animation: mythicPulse 2s infinite; }
         .pet-slot.mutant { border-color: #39ff14; background: linear-gradient(180deg, rgba(57,255,20,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(57,255,20,0.4); animation: mutantPulse 2s infinite; }
-        
         .pet-slot.locked { border-color: #444; background: rgba(0,0,0,0.5); border: 1px dashed #555; animation: none; box-shadow: none; }
         .pet-slot.locked .pet-img-slot { filter: brightness(0); opacity: 0.3; }
 
@@ -199,19 +195,19 @@
         .tap-cell { background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); width: calc(33.33% - 5px); aspect-ratio: 1; pointer-events: none; }
         .tap-cell.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,163,255,0.2); }
         
-        /* ИСПРАВЛЕННЫЙ ТОП ФОРБС (КОМПАКТНЫЙ) */
-        .forbes-item { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px; }
+        /* ИСПРАВЛЕННЫЙ ТОП ФОРБС (ЭЛЕГАНТНЫЙ И КОМПАКТНЫЙ) */
+        .forbes-item { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 4px; }
         .forbes-item.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); }
-        .forbes-rank { font-weight: 800; font-size: 14px; color: #888; width: 20px; text-align: center; }
-        .forbes-rank.top-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); font-size: 16px; }
-        .forbes-rank.top-2 { color: #C0C0C0; text-shadow: 0 0 10px rgba(192,192,192,0.5); font-size: 15px; }
-        .forbes-rank.top-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); font-size: 15px; }
-        .forbes-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: contain; background: #333; border: 1px solid #555; pointer-events: none; flex-shrink: 0; }
+        .forbes-rank { font-weight: 800; font-size: 12px; color: #888; width: 18px; text-align: center; }
+        .forbes-rank.top-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); font-size: 14px; }
+        .forbes-rank.top-2 { color: #C0C0C0; text-shadow: 0 0 10px rgba(192,192,192,0.5); font-size: 13px; }
+        .forbes-rank.top-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); font-size: 13px; }
+        .forbes-avatar { width: 26px; height: 26px; border-radius: 50%; object-fit: contain; background: #333; border: 1px solid #555; pointer-events: none; flex-shrink: 0; }
         .forbes-info { flex: 1; min-width: 0; overflow: hidden; }
-        .forbes-name { font-weight: bold; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .forbes-lvl { font-size: 10px; color: #888; }
-        .forbes-val { font-weight: bold; font-size: 12px; color: #ffd700; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-        .forbes-val img { width: 12px; height: 12px; }
+        .forbes-name { font-weight: bold; font-size: 11px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .forbes-lvl { font-size: 9px; color: #888; }
+        .forbes-val { font-weight: bold; font-size: 11px; color: #ffd700; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .forbes-val img { width: 10px; height: 10px; }
         
         .roulette-box { width: 120px; height: 120px; background: rgba(0,0,0,0.5); border-radius: 20px; border: 2px solid #fff; margin: 0 auto 20px auto; display: flex; justify-content: center; align-items: center; font-size: 50px; transition: all 0.3s; }
         .roulette-spinning { animation: spinRouletteAnim 0.2s linear infinite; filter: blur(2px); }
@@ -303,10 +299,6 @@
                 <button id="main-btn" class="btn stop" style="display:none;" onclick="stopTimer()">Сдаться</button>
             </div>
 
-            <div class="scroll-indicator">
-                <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Свайпни вниз</span>
-                <span class="arrow-down">▼</span>
-            </div>
         </div>
 
         <div class="bottom-extra-area">
@@ -327,18 +319,36 @@
             </div>
         </div>
 
-        <nav class="bottom-nav">
-            <button onclick="openInventory()"><span class="nav-icon">🐾</span>Коллекция <span id="ach-badge" class="badge" style="display:none;">!</span></button>
-            <button onclick="openShop()"><span class="nav-icon">🛍</span>Магазин</button>
-            <button onclick="openCraft()"><span class="nav-icon">🧬</span>Лаба</button>
-            <button onclick="openPartyModal()"><span class="nav-icon">🎮</span>Пати</button>
-            
-            <button onclick="openAch()"><span class="nav-icon">📜</span>Контракты</button>
-            <button onclick="openMarketModal()" style="color:#ff9500;"><span class="nav-icon">🛒</span>Рынок</button>
-            <button onclick="openForbes()"><span class="nav-icon">🏆</span>Топ</button>
-            <button onclick="openRouletteModal()"><span class="nav-icon">🎰</span>Рулетка</button>
-        </nav>
     </main>
+
+    <nav class="bottom-nav">
+        <button onclick="openInventory()"><span class="nav-icon">🐾</span>Коллекция <span id="ach-badge" class="badge" style="display:none;">!</span></button>
+        <button onclick="openShop()"><span class="nav-icon">🛍</span>Магазин</button>
+        <button onclick="openMarketModal()" style="color:#ff9500;"><span class="nav-icon">🛒</span>Рынок</button>
+        <button onclick="openPartyModal()"><span class="nav-icon">🎮</span>Пати</button>
+        <button onclick="openModal('more-modal')"><span class="nav-icon">🍔</span>Ещё</button>
+    </nav>
+
+    <div id="more-modal" class="modal" style="z-index: 1050;">
+        <div class="modal-content" style="padding: 20px; text-align: center;">
+            <span class="close-btn" onclick="closeModal('more-modal')">×</span>
+            <h2 style="margin-bottom: 20px;">Ещё Меню 📱</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openAch();">
+                    <span style="font-size: 28px;">📜</span><span style="font-size: 13px;">Контракты</span>
+                </button>
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openCraft();">
+                    <span style="font-size: 28px;">🧬</span><span style="font-size: 13px;">Лаба</span>
+                </button>
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openForbes();">
+                    <span style="font-size: 28px;">🏆</span><span style="font-size: 13px;">Топ Форбс</span>
+                </button>
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openRouletteModal();">
+                    <span style="font-size: 28px;">🎰</span><span style="font-size: 13px;">Рулетка</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="market-modal" class="modal">
         <div class="modal-content" style="max-width: 500px; width: 95%;">
@@ -377,8 +387,8 @@
 
             <p style="font-size: 13px; color: #aaa; margin-bottom: 5px;">2. Укажите цену:</p>
             <div style="display: flex; gap: 10px; margin-bottom: 15px; width: 100%; box-sizing: border-box;">
-                <input type="number" id="sell-price-input" placeholder="Цена" style="flex: 2; padding: 12px; border-radius: 8px; border: none; background: #2c2c2e; color: white; font-size: 16px; outline: none; box-sizing: border-box;">
-                <select id="sell-currency-select" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background: #2c2c2e; color: white; font-size: 16px; outline: none; cursor: pointer; box-sizing: border-box;">
+                <input type="number" id="sell-price-input" placeholder="Цена" style="flex: 2; padding: 12px; border-radius: 8px; border: none; background: #2c2c2e; color: white; font-size: 16px; outline: none; box-sizing: border-box; min-width: 0;">
+                <select id="sell-currency-select" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background: #2c2c2e; color: white; font-size: 16px; outline: none; cursor: pointer; box-sizing: border-box; min-width: 0;">
                     <option value="coins">💰</option>
                     <option value="stars">⭐️</option>
                 </select>
@@ -507,7 +517,7 @@
             
             <div id="party-setup-view">
                 <p style="font-size:13px; color:#888; text-align:center; margin:15px 0;">Играй с друзьями в мини-игры и рейды на боссов!</p>
-                <input type="text" id="party-code-input" placeholder="Код комнаты" style="width:100%; padding:15px; text-align:center; font-size:18px; font-weight:bold; background:#222; border:1px solid #444; color:#fff; border-radius:12px; margin-bottom:15px; outline:none; box-sizing: border-box;">
+                <input type="text" id="party-code-input" placeholder="Код комнаты" style="width:100%; padding:15px; text-align:center; font-size:18px; font-weight:bold; background:#222; border:1px solid #444; color:#fff; border-radius:12px; margin-bottom:15px; outline:none; box-sizing: border-box; min-width: 0;">
                 <div style="display:flex; gap:10px; width: 100%; box-sizing: border-box;">
                     <button class="btn" style="flex:1; background:#34c759;" onclick="apiJoinParty()">Войти</button>
                     <button class="btn" style="flex:1; background:#00A3FF;" onclick="apiCreateParty()">Создать</button>
@@ -698,7 +708,7 @@
         <div class="modal-content" style="text-align:center;">
             <span class="close-btn" onclick="closeModal('promo-modal')">×</span>
             <h2>Секретный код 🎁</h2>
-            <input type="text" id="promo-input" placeholder="ВВЕДИТЕ КОД" style="width:100%; padding:15px; margin:20px 0; border-radius:12px; border:2px solid #444; background:#111; color:#fff; text-align:center; font-size:20px; text-transform:uppercase; font-weight:bold; letter-spacing:2px; outline:none; box-sizing: border-box;">
+            <input type="text" id="promo-input" placeholder="ВВЕДИТЕ КОД" style="width:100%; padding:15px; margin:20px 0; border-radius:12px; border:2px solid #444; background:#111; color:#fff; text-align:center; font-size:20px; text-transform:uppercase; font-weight:bold; letter-spacing:2px; outline:none; box-sizing: border-box; min-width: 0;">
             <button class="btn" style="width:100%; background:#00A3FF; box-sizing: border-box;" onclick="activatePromo()">Активировать</button>
         </div>
     </div>
@@ -707,14 +717,14 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('admin-modal')">×</span>
             <h2 style="color:#ff3b30; text-align:center; margin-bottom:20px;">Панель Создателя 👁‍🗨</h2>
-            <input type="password" id="admin-password" placeholder="Секретный пароль" style="width:100%; padding:12px; margin-bottom:15px; background:#111; border:1px solid #444; color:#ff3b30; border-radius:8px; outline:none; text-align:center; font-family:monospace; box-sizing: border-box;">
+            <input type="password" id="admin-password" placeholder="Секретный пароль" style="width:100%; padding:12px; margin-bottom:15px; background:#111; border:1px solid #444; color:#ff3b30; border-radius:8px; outline:none; text-align:center; font-family:monospace; box-sizing: border-box; min-width: 0;">
             <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px; width: 100%; box-sizing: border-box;">
                 <h3 style="font-size:14px; margin-bottom:10px; color:#ccc;">Генератор Промокодов:</h3>
                 <div style="display:flex; gap:10px; margin-bottom:10px; width: 100%; box-sizing: border-box;">
                     <input type="text" id="admin-promo-code" placeholder="Код (FREE-123)" style="flex:2; padding:10px; background:#222; border:none; color:#fff; border-radius:8px; text-transform:uppercase; min-width:0; box-sizing: border-box;">
                     <button class="btn small" style="background:#5856d6; flex-shrink:0; box-sizing: border-box;" onclick="generateRandomPromo()">🎲</button>
                 </div>
-                <select id="admin-promo-type" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:none; color:#fff; border-radius:8px; outline:none; box-sizing: border-box;">
+                <select id="admin-promo-type" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:none; color:#fff; border-radius:8px; outline:none; box-sizing: border-box; min-width: 0;">
                     <option value="money">Монеты 💰</option>
                     <option value="stars">Звезды ⭐️</option>
                     <option value="luck">Бустер: Удача 🧪</option>
