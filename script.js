@@ -98,8 +98,9 @@ let walletBalance = 0;
 let userStars = 0;
 let pegasusShards = 0;
 let userJokers = 0; 
-let hatchStreak = 0; // НОВОЕ: Стрик вылуплений
-let lastHatchDate = ""; // НОВОЕ: Дата последнего вылупления
+let dustBalance = 0; // НОВОЕ: Баланс Пыли
+let hatchStreak = 0; 
+let lastHatchDate = ""; 
 
 // Инвентарь и настройки
 let ownedItems = { themes: ['default'], eggs: ['default'] };
@@ -190,15 +191,19 @@ const MODES = [
     { id: 'long', timeOnline: 60 * 60, timeOffline: 12 * 3600, xpReward: 1000, egg: 'diamond', title: 'Алмазное (60 мин)', sub: 'Шанс Легендарки: 5% 🔥', reqLevel: 3 },
     { id: 'custom', timeOnline: 3600, timeOffline: 5 * 3600, xpReward: 500, egg: 'default', title: 'Кастомное яйцо', sub: 'Настрой редкость', reqLevel: 5 },
     { id: 'alien', timeOnline: 2 * 3600, timeOffline: 14 * 3600, xpReward: 3000, egg: 'glitch', title: 'Инопланетное (2 ч)', sub: 'Только Легенды и Мифики', reqLevel: 30 },
-    { id: 'radio', timeOnline: 5 * 60, timeOffline: 1 * 3600, xpReward: 500, egg: 'glow', title: 'Радиоактивное (5 мин)', sub: 'Только Мутанты ☢️ (Нужен бустер 💉)', reqLevel: 50 }
+    { id: 'radio', timeOnline: 5 * 60, timeOffline: 1 * 3600, xpReward: 500, egg: 'glow', title: 'Радиоактивное (5 мин)', sub: 'Только Мутанты ☢️ (Нужен бустер 💉)', reqLevel: 50 },
+    // НОВОЕ: Аномальное Яйцо (Ивент)
+    { id: 'anomal', timeOnline: 45 * 60, timeOffline: 45 * 60, xpReward: 2000, egg: 'glitch', title: 'Аномальное (45 мин)', sub: 'Только в выходные (50 ✨)', reqLevel: 1 }
 ];
 
 const PRICES = { 
     common: 15, 
     rare: 150, 
+    epic: 1500,     // НОВОЕ
     legendary: 5000, 
     mythic: 50000, 
-    mutant: 10000 
+    mutant: 10000,
+    glitch: 7777    // НОВОЕ
 };
 
 const RANKS = [
@@ -231,6 +236,10 @@ const PET_NAMES = {
     "pig": "Свинка", 
     "monkey": "Обезьянка", 
     "owl": "Сова",
+    // НОВЫЕ: Эпики
+    "raccoon": "Енот",
+    "panther": "Пантера",
+    // ---
     "unicorn": "Единорог", 
     "dragon": "Дракон", 
     "alien": "Пришелец", 
@@ -243,7 +252,10 @@ const PET_NAMES = {
     "dark_dragon": "Темный Дракон",
     "mutant_cat": "Мутакот ☢️", 
     "mutant_dog": "Токси-Пёс ☢️", 
-    "mutant_dragon": "Гамма-Ящер ☢️"
+    "mutant_dragon": "Гамма-Ящер ☢️",
+    // НОВЫЕ: Аномальные
+    "cyber_cat": "Кибер-Кот 👾",
+    "matrix_dog": "Матричный Пёс 👾"
 };
 
 const LEVEL_REWARDS = {
@@ -259,17 +271,21 @@ const LEVEL_REWARDS = {
 const petDatabase = {
     common: ["chick", "kitten", "puppy", "hamster", "bunny", "frog", "bear", "koala", "duck", "caterpillar"],
     rare: ["fox", "panda", "tiger", "lion", "cow", "pig", "monkey", "owl"],
+    epic: ["raccoon", "panther"], // НОВОЕ
     legendary: ["unicorn", "dragon", "alien", "robot", "dino", "fireball"],
     mythic: ["pegasus", "cerberus", "dark_dragon"],
-    mutant: ["mutant_cat", "mutant_dog", "mutant_dragon"]
+    mutant: ["mutant_cat", "mutant_dog", "mutant_dragon"],
+    glitch: ["cyber_cat", "matrix_dog"] // НОВОЕ
 };
 
 const ALL_PETS_FLAT = [
     ...petDatabase.common, 
     ...petDatabase.rare, 
+    ...petDatabase.epic, // НОВОЕ
     ...petDatabase.legendary, 
     ...petDatabase.mythic, 
-    ...petDatabase.mutant, 
+    ...petDatabase.mutant,
+    ...petDatabase.glitch, // НОВОЕ
     "god"
 ];
 
@@ -279,7 +295,9 @@ function getPetRarity(p) {
     if (p === "god") return 'legendary';
     if (petDatabase.mythic.includes(p)) return 'mythic';
     if (petDatabase.mutant.includes(p)) return 'mutant';
+    if (petDatabase.glitch.includes(p)) return 'glitch'; // НОВОЕ
     if (petDatabase.legendary.includes(p)) return 'legendary';
+    if (petDatabase.epic.includes(p)) return 'epic'; // НОВОЕ
     if (petDatabase.rare.includes(p)) return 'rare';
     return 'common';
 }
@@ -495,7 +513,7 @@ function fireConfetti() {
 }
 
 // =============================================================
-// КОНТРАКТЫ И НАГРАДЫ (С БОНУСОМ XP)
+// КОНТРАКТЫ И НАГРАДЫ
 // =============================================================
 function checkContracts() {
     const today = new Date().toDateString();
@@ -510,7 +528,7 @@ function checkContracts() {
         
         let shuffled = pools.sort(() => 0.5 - Math.random()).slice(0, 3);
         activeContracts.date = today;
-        activeContracts.allClaimed = false; // НОВОЕ: Сброс флага получения мега-награды
+        activeContracts.allClaimed = false; 
         activeContracts.tasks = shuffled.map(x => ({ ...x, p: 0, c: false }));
         saveData();
     }
@@ -540,7 +558,6 @@ function updateContract(type, val) {
     }
 }
 
-// НОВОЕ: Начисление +30 XP за контракт и +500 XP за закрытие всех 3
 window.claimContract = function(idx) {
     let t = activeContracts.tasks[idx];
     if (t.c) return;
@@ -558,10 +575,8 @@ window.claimContract = function(idx) {
         myBoosters.speed += t.r.v;
     }
     
-    // БОНУС ОПЫТА ЗА КОНТРАКТ
     userXP += 30;
     
-    // Проверка всех 3 контрактов
     let allCompleted = activeContracts.tasks.every(task => task.c);
     if (allCompleted && !activeContracts.allClaimed) {
         userXP += 500;
@@ -569,7 +584,6 @@ window.claimContract = function(idx) {
         setTimeout(() => showToast('БОНУС +500 XP за 3 контракта!', '🔥'), 1000);
     }
     
-    // Общий цикл повышения уровня
     while (userXP >= userLevel * 200) { 
         userXP -= userLevel * 200; 
         userLevel++; 
@@ -715,7 +729,9 @@ function initGame() {
             pegasusShards = parseInt(localStorage.getItem('pegasusShards')) || 0; 
             userJokers = parseInt(localStorage.getItem('userJokers')) || 0; 
             
-            // НОВОЕ: Загрузка стейта для Стриков вылупления
+            // НОВОЕ: Пыль
+            dustBalance = parseInt(localStorage.getItem('dustBalance')) || 0; 
+            
             hatchStreak = parseInt(localStorage.getItem('hatchStreak')) || 0;
             lastHatchDate = localStorage.getItem('lastHatchDate') || "";
             
@@ -788,7 +804,7 @@ function loadFromCloud() {
         'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 
         'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 
         'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress', 'petStars', 'activeContracts',
-        'hatchStreak', 'lastHatchDate' // НОВОЕ: Ключи стриков
+        'hatchStreak', 'lastHatchDate', 'dustBalance' // НОВОЕ: Пыль
     ];
     
     Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
@@ -804,8 +820,8 @@ function loadFromCloud() {
                 
                 if (values.pegasusShards) pegasusShards = parseInt(values.pegasusShards);
                 if (values.userJokers) userJokers = parseInt(values.userJokers);
+                if (values.dustBalance) dustBalance = parseInt(values.dustBalance); // НОВОЕ
                 
-                // НОВОЕ: Загрузка стриков с облака
                 if (values.hatchStreak) hatchStreak = parseInt(values.hatchStreak);
                 if (values.lastHatchDate) lastHatchDate = values.lastHatchDate;
                 
@@ -880,8 +896,9 @@ function saveData(skipTimeUpdate = false) {
     localStorage.setItem('userStars', userStars);
     localStorage.setItem('pegasusShards', pegasusShards);
     localStorage.setItem('userJokers', userJokers);
-    localStorage.setItem('hatchStreak', hatchStreak); // Сохраняем стрик
-    localStorage.setItem('lastHatchDate', lastHatchDate); // Сохраняем дату
+    localStorage.setItem('dustBalance', dustBalance); // НОВОЕ
+    localStorage.setItem('hatchStreak', hatchStreak); 
+    localStorage.setItem('lastHatchDate', lastHatchDate); 
     localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
     localStorage.setItem('activeTheme', activeTheme);
     localStorage.setItem('activeEggSkin', activeEggSkin);
@@ -908,6 +925,7 @@ function saveData(skipTimeUpdate = false) {
         Telegram.WebApp.CloudStorage.setItem('userStars', userStars.toString());
         Telegram.WebApp.CloudStorage.setItem('pegasusShards', pegasusShards.toString());
         Telegram.WebApp.CloudStorage.setItem('userJokers', userJokers.toString());
+        Telegram.WebApp.CloudStorage.setItem('dustBalance', dustBalance.toString()); // НОВОЕ
         Telegram.WebApp.CloudStorage.setItem('hatchStreak', hatchStreak.toString());
         Telegram.WebApp.CloudStorage.setItem('lastHatchDate', lastHatchDate);
         Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
@@ -956,7 +974,8 @@ async function apiSyncGlobalProfile() {
                 avatar: selectedAvatar, 
                 level: userLevel, 
                 earned: netWorth, 
-                hatched: userStats.hatched || 0 
+                hatched: userStats.hatched || 0,
+                dust: dustBalance // НОВОЕ
             })
         });
     } catch(e) {}
@@ -1422,6 +1441,19 @@ function renderShop() {
     
     c.innerHTML = '';
     
+    // НОВОЕ: Теневой Рынок
+    if (currentShopTab === 'shadow') {
+        c.innerHTML = `
+            <div class="shop-item" style="grid-column: span 2; background: rgba(138, 43, 226, 0.1); border: 1px solid #8a2be2;">
+                <div style="font-size: 30px;">🧩</div>
+                <div class="shop-item-name">Осколок Пегаса</div>
+                <div style="font-size:12px;color:#ccc;margin-bottom:10px;">Для крафта Мифика</div>
+                <button class="buy-btn" style="background: #8a2be2;" onclick="buyShadowItem('shard', 250)">Купить (250 ✨)</button>
+            </div>
+        `;
+        return;
+    }
+    
     if (currentShopTab === 'premium') {
         c.innerHTML = `
             <div class="shop-item" style="grid-column: span 2; background: rgba(0, 163, 255, 0.1); border: 1px solid #00A3FF;">
@@ -1496,6 +1528,21 @@ function renderShop() {
         }
         c.appendChild(d);
     });
+}
+
+window.buyShadowItem = function(type, price) {
+    if (dustBalance >= price) {
+        dustBalance -= price;
+        if (type === 'shard') pegasusShards++;
+        
+        saveData();
+        updateBalanceUI();
+        renderShop();
+        playSound('win');
+        showToast("Осколок куплен!", "🌑");
+    } else {
+        showToast("Недостаточно Пыли!", "❌");
+    }
 }
 
 function buyPremium(type, price) {
@@ -2252,7 +2299,7 @@ async function adminSubmitPromo() {
 }
 
 // =============================================================
-// БАЗОВЫЙ ТАЙМЕР И ФОКУС (ОБНОВЛЕННАЯ ЛОГИКА ОПЫТА!)
+// БАЗОВЫЙ ТАЙМЕР И ФОКУС
 // =============================================================
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isRunning && currentHatchMode === 'online') {
@@ -2263,6 +2310,10 @@ document.addEventListener("visibilitychange", () => {
 function updateBalanceUI() {
     let moneyEl = getEl('total-money'); 
     if (moneyEl) moneyEl.innerHTML = `<img src="assets/ui/coin.png" class="coin-img"> ${walletBalance}`;
+    
+    // НОВОЕ: Обновляем Пыль
+    let dustEl = getEl('total-dust');
+    if (dustEl) dustEl.innerHTML = `✨ ${dustBalance}`;
     
     let starsEl = getEl('total-stars');
     if (starsEl) starsEl.innerHTML = `<span style="font-size: 20px; margin-right: 4px;">⭐️</span> ${userStars} <span style="font-size: 14px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 8px; margin-left: 5px;">+</span>`;
@@ -2517,6 +2568,22 @@ function startTimer(mode, isResuming = false) {
         showToast("Нужна Биодобавка! 💉", "⚠️");
         return;
     }
+    
+    // НОВОЕ: Проверка Аномального Яйца (Выходные + Пыль)
+    if (m.id === 'anomal' && !isResuming) {
+        const day = new Date().getDay();
+        const isWeekend = (day === 6 || day === 0);
+        if (!isWeekend) {
+            showToast("Доступно только в выходные!", "❌");
+            return;
+        }
+        if (dustBalance < 50) {
+            showToast("Нужно 50 Пыли (✨) для запуска!", "❌");
+            return;
+        }
+        dustBalance -= 50;
+        updateBalanceUI();
+    }
 
     currentHatchMode = mode; 
     let baseTime = 0;
@@ -2714,7 +2781,6 @@ function confirmFail(wasInterrupted = true) {
     }
 }
 
-// НОВОЕ: Переработанная функция вылупления и начисления опыта
 function finishTimer(fromOffline = false) {
     clearInterval(timerInterval); 
     isRunning = false; 
@@ -2744,7 +2810,6 @@ function finishTimer(fromOffline = false) {
     const m = MODES[currentModeIndex] || MODES[0]; 
     let baseXP = m.xpReward;
     
-    // --- НОВАЯ ЛОГИКА 1: БОНУС ОПЫТА ОТ АВАТАРА ---
     let avatarBonus = 0;
     if (selectedAvatar === 'god') {
         avatarBonus = 0.75;
@@ -2752,28 +2817,26 @@ function finishTimer(fromOffline = false) {
         let r = getPetRarity(selectedAvatar);
         if (r === 'mythic') avatarBonus = 0.50;
         else if (r === 'legendary') avatarBonus = 0.35;
-        else if (r === 'mutant') avatarBonus = 0.20; // Считаем мутанта за Эпик (+20%)
+        else if (r === 'mutant' || r === 'glitch') avatarBonus = 0.20; 
         else if (r === 'rare') avatarBonus = 0.10;
         else avatarBonus = 0.0;
     }
 
-    // --- НОВАЯ ЛОГИКА 2: СИСТЕМА СТРИКОВ (ПОДРЯД ДНЕЙ) ---
     const todayStr = new Date().toDateString();
     if (lastHatchDate !== todayStr) {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         
         if (lastHatchDate === yesterday.toDateString()) {
-            hatchStreak++; // Плюс день
+            hatchStreak++; 
         } else {
-            hatchStreak = 1; // Сброс или первый день
+            hatchStreak = 1; 
         }
         lastHatchDate = todayStr;
     } else if (hatchStreak === 0) {
-        hatchStreak = 1; // Если вылупил впервые в день установки апдейта
+        hatchStreak = 1; 
     }
     
-    // Вычисляем множитель стрика
     let streakMult = 1.0;
     if (hatchStreak >= 7) streakMult = 1.5;
     else if (hatchStreak >= 5) streakMult = 1.3;
@@ -2781,11 +2844,9 @@ function finishTimer(fromOffline = false) {
 
     let vipMult = isVip() ? 1.2 : 1;
     
-    // ИТОГОВАЯ ФОРМУЛА XP
     let finalXP = Math.floor((baseXP + (baseXP * avatarBonus)) * streakMult * vipMult);
     userXP += finalXP; 
     
-    // Цикл повышения уровня
     while (userXP >= userLevel * 200) { 
         userXP -= userLevel * 200; 
         userLevel++; 
@@ -2817,6 +2878,10 @@ function finishTimer(fromOffline = false) {
     else if (m.id === 'alien') {
         if (Math.random() < 0.10) pool = petDatabase.mythic;
         else pool = petDatabase.legendary;
+        playSound('legendary');
+    }
+    else if (m.id === 'anomal') {
+        pool = petDatabase.glitch;
         playSound('legendary');
     }
     else if (currentModeIndex === 2 && customEggConfig.target !== 'all') {
@@ -2880,7 +2945,6 @@ function finishTimer(fromOffline = false) {
     
     fireConfetti(); 
     
-    // Добавили всплывающее сообщение о Стрике
     let streakMsg = hatchStreak > 1 ? ` (Стрик x${streakMult})` : '';
     showToast(`Получено +${finalXP} XP${streakMsg}`, "🐣"); 
     updateBalanceUI();
@@ -2965,6 +3029,23 @@ function upgradePet(pet, cost) {
     
     openPetModal(pet, true);
     openInventory();
+}
+
+// НОВОЕ: Распыление петов в Пыль
+window.dustPet = function(pet, amount) {
+    if (!confirm(`Вы уверены, что хотите распылить ${PET_NAMES[pet]} за +${amount} ✨? Питомец навсегда исчезнет!`)) return;
+    
+    const idx = collection.indexOf(pet);
+    if (idx > -1) {
+        collection.splice(idx, 1);
+        dustBalance += amount;
+        saveData();
+        updateBalanceUI();
+        playSound('win');
+        showToast(`Распылено! +${amount} ✨`, '✨');
+        openPetModal(pet, true);
+        openInventory();
+    }
 }
 
 function startDnaPuzzle() {
@@ -3178,8 +3259,11 @@ function openInventory() {
             d.onclick = () => openPetModal(pet, true);
         } else {
             d.className = `pet-slot locked`; 
-            if (r === 'mythic' || r === 'mutant') { 
-                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" style="filter:brightness(0) opacity(0.5);" onerror="this.src='assets/eggs/egg-default.png'"> <div style="position:absolute; font-size: 24px; font-weight:bold; color:${r==='mutant'?'#39ff14':'#8a2be2'}; text-shadow: 0 0 5px #000;">?</div>`; 
+            if (r === 'mythic' || r === 'mutant' || r === 'glitch') { 
+                let col = '#8a2be2';
+                if (r === 'mutant') col = '#39ff14';
+                if (r === 'glitch') col = '#00ffff';
+                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" style="filter:brightness(0) opacity(0.5);" onerror="this.src='assets/eggs/egg-default.png'"> <div style="position:absolute; font-size: 24px; font-weight:bold; color:${col}; text-shadow: 0 0 5px #000;">?</div>`; 
             } else { 
                 d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`; 
             }
@@ -3220,6 +3304,13 @@ function openPetModal(pet, owned) {
             splinterBtn = `<button class="btn" style="background:#ff3b30; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,59,48,0.5);" onclick="splinterPet('${pet}', 'legendary')">Расщепить (100% 1-2 🧩)</button>`;
         }
     }
+    
+    // НОВОЕ: Кнопка Пыли для дубликатов (Common, Rare, Epic)
+    let dustBtn = '';
+    if (owned && count > 1 && ['common', 'rare', 'epic'].includes(r)) {
+        let dustGain = r === 'common' ? 5 : (r === 'rare' ? 15 : 50);
+        dustBtn = `<button class="btn" style="background:#ff3b30; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,59,48,0.5);" onclick="dustPet('${pet}', ${dustGain})">Распылить дубликат (+${dustGain} ✨)</button>`;
+    }
 
     let starStr = currentStar > 1 ? ` <span style="color:#ffd700; font-size:16px;">${'⭐️'.repeat(currentStar)}</span>` : '';
 
@@ -3230,7 +3321,8 @@ function openPetModal(pet, owned) {
              <h3 class="pet-name">${petName}${starStr}</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
              <button class="btn sell-action" onclick="sellPet()">Продать ${p}</button>
              ${upgradeBtn}
-             ${splinterBtn}` : 
+             ${splinterBtn}
+             ${dustBtn}` : 
             `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)" onerror="this.src='assets/eggs/egg-default.png'">
              <h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="closeModal('pet-modal')">Закрыть</button>`;
     }
@@ -3588,7 +3680,6 @@ function forceOpenMiniGame(gameType) {
     
     if (gameType === 'quantum_reactor') {
         openModal('quantum-reactor-modal');
-        // Временная заглушка для теста UI (Ждем бэкенд на WebSockets)
         let testRole = isPartyLeader ? 'dispatcher' : 'engineer';
         setupReactorRole(testRole, ['🔴', '🔵', '🟢', '🟡']);
     }
@@ -3815,7 +3906,6 @@ function handleBossRaidEnd() {
 // =============================================================
 // МИНИ-ИГРА: КВАНТОВЫЙ РЕАКТОР
 // =============================================================
-// Вызывать эту функцию при получении события reactor:init от сервера
 window.setupReactorRole = function(role, secretCode = null) {
     let rd = getEl('role-dispatcher');
     let re = getEl('role-engineer');
@@ -3836,7 +3926,6 @@ window.setupReactorRole = function(role, secretCode = null) {
     }
     else if (role === 'stabilizer') {
         if (rs) rs.style.display = 'block';
-        // TODO: Инициализация пазла из Лабы (reactor-dna-grid)
     }
 }
 
@@ -3880,9 +3969,7 @@ window.reactorTypeGene = function(gene) {
     engineerCurrentInput.push(gene);
     renderEngineerSlots();
     
-    // Если слоты заполнены, шлем на сервер через WebSocket
     if (engineerCurrentInput.length === requiredCodeLength) {
-        // TODO: socket.emit('reactor:submit_code', { code: engineerCurrentInput });
         console.log("Код отправлен на проверку:", engineerCurrentInput);
         showToast("Код отправлен Диспетчеру на проверку!", "📡");
     }
@@ -3908,7 +3995,6 @@ window.handleReactorEnd = function(status) {
         playSound('win');
         showToast("Реактор запущен! Инкубаторы x2 на 3 часа!", "⚛️");
         closeModal('quantum-reactor-modal');
-        // TODO: Логика выдачи бафа
     } else {
         const modalContent = document.querySelector('#quantum-reactor-modal .modal-content');
         if (modalContent) {

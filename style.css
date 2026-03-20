@@ -150,20 +150,30 @@ html, body {
     50% { filter: drop-shadow(0 0 40px rgba(57, 255, 20, 1)); }
 }
 
+/* НОВОЕ: Анимация Глитча */
+@keyframes glitchPulseImg {
+    0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.5)); }
+    50% { filter: drop-shadow(0 0 40px rgba(0, 255, 255, 1)); }
+}
+
 /* СВЕЧЕНИЕ ПЕТОВ ПРИ ВЫПАДЕНИИ */
 .hatched-img.common { filter: drop-shadow(0 0 25px rgba(142, 142, 147, 0.8)); }
 .hatched-img.rare { filter: drop-shadow(0 0 30px rgba(0, 122, 255, 0.9)); }
+.hatched-img.epic { filter: drop-shadow(0 0 35px rgba(255, 45, 85, 0.9)); } /* НОВОЕ: Эпик */
 .hatched-img.legendary { filter: drop-shadow(0 0 40px rgba(255, 215, 0, 1)); animation: breathe 3s infinite, glow 2s infinite; }
 .hatched-img.mythic { filter: drop-shadow(0 0 50px rgba(138, 43, 226, 1)); animation: breathe 3s infinite, glowMythic 2s infinite; }
 .hatched-img.mutant { filter: drop-shadow(0 0 40px rgba(57, 255, 20, 1)); animation: breathe 3s infinite, glowMutant 2s infinite; }
+.hatched-img.glitch { filter: drop-shadow(0 0 40px rgba(0, 255, 255, 1)); animation: breathe 3s infinite, glitchPulseImg 2s infinite; } /* НОВОЕ: Аномальное */
 
 @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 #hatched-info { animation: slideIn 0.5s ease-out forwards; }
 #hatched-rarity.common { color: #8e8e93; }
 #hatched-rarity.rare { color: #007aff; text-shadow: 0 0 5px rgba(0, 122, 255, 0.5); }
+#hatched-rarity.epic { color: #ff2d55; text-shadow: 0 0 10px rgba(255, 45, 85, 0.5); } /* НОВОЕ: Эпик */
 #hatched-rarity.legendary { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
 #hatched-rarity.mythic { color: #8a2be2; text-shadow: 0 0 15px rgba(138, 43, 226, 0.9); }
 #hatched-rarity.mutant { color: #39ff14; text-shadow: 0 0 15px rgba(57, 255, 20, 0.8); }
+#hatched-rarity.glitch { color: #00ffff; text-shadow: 0 0 15px rgba(0, 255, 255, 0.8); } /* НОВОЕ: Аномальное */
 
 /* === НИЗ === */
 .bottom-controls { 
@@ -227,9 +237,18 @@ html, body {
 .pet-slot { background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 5px; cursor: pointer; position: relative; height: 55px; display: flex; justify-content: center; align-items: center; }
 .pet-slot.common { border: 2px solid #8e8e93; }
 .pet-slot.rare { border: 2px solid #007aff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.3); }
+.pet-slot.epic { border: 2px solid #ff2d55; box-shadow: 0 0 10px rgba(255, 45, 85, 0.4); } /* НОВОЕ: Эпик */
 .pet-slot.legendary { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: glow 2s infinite; }
 .pet-slot.mythic { border: 2px solid #8a2be2; box-shadow: 0 0 15px rgba(138, 43, 226, 0.8); animation: glowMythic 2s infinite; }
 .pet-slot.mutant { border: 2px solid #39ff14; box-shadow: 0 0 15px rgba(57, 255, 20, 0.6); animation: glowMutant 2s infinite; }
+
+/* НОВОЕ: Анимация обводки Глитча */
+@keyframes glitchSlotPulse { 
+    0%, 100% { border-color: rgba(0,255,255,0.5); } 
+    50% { border-color: rgba(0,255,255,1); } 
+}
+.pet-slot.glitch { border: 2px solid #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.6); animation: glitchSlotPulse 2s infinite; } /* НОВОЕ: Аномальное */
+
 .pet-slot.locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); box-shadow: none; animation: none; }
 .pet-slot.locked img { filter: brightness(0); opacity: 0.3; }
 
@@ -471,9 +490,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 10px 5px calc(10px + env(safe-area-inset-bottom)); z-index: 100; box-sizing: border-box; }
 .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; width: 20%; position: relative; }
 .bottom-nav button:active { color: white; transform: scale(0.95); }
-.nav-icon { font-size: 24px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-.bottom-nav button:active .nav-icon { transform: scale(1.15); }
-.badge { position: absolute; top: -5px; right: 15%; background: #ff3b30; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: none; }
 
 /* === КВАНТОВЫЙ РЕАКТОР === */
 @keyframes pulseDanger { 
