@@ -39,14 +39,12 @@
         .settings-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; padding-left: 10px; pointer-events: auto; }
 
         /* === ГЛАВНЫЙ ЭКРАН И СКРОЛЛ === */
-        /* Отступ 100px снизу, чтобы зафиксированное меню не перекрывало Инкубатор */
         .main-screen { display: flex; flex-direction: column; align-items: center; width: 100%; height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; padding-bottom: 100px; box-sizing: border-box; }
         
         .top-focus-area { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; padding: 10px 20px 20px 20px; box-sizing: border-box; }
         
         h1 { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(255,255,255,0.2); cursor: pointer; margin-bottom: 10px; text-align: center; }
         
-        /* УВЕЛИЧЕННОЕ ЯЙЦО СВЕРХУ */
         .egg-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin: 10px auto 25px auto; }
         .egg-img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s ease; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); z-index: 2; transform: scale(1.4); } 
         
@@ -67,14 +65,12 @@
         .egg-lock-icon { position: absolute; font-size: 60px; z-index: 4; text-shadow: 0 0 20px rgba(0,0,0,0.9); pointer-events: none; }
         #stun-overlay { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 10; pointer-events: none; display: none; background: rgba(57,255,20,0.2); }
         
-        /* ОПИСАНИЕ И НАЗВАНИЕ СТРОГО ПОД ЯЙЦОМ */
         .mode-selector { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; max-width: 300px; margin-bottom: 20px; }
         .mode-selector button { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 16px; cursor: pointer; backdrop-filter: blur(5px); }
         .mode-info { text-align: center; flex: 1; }
         #mode-title { font-weight: bold; font-size: 18px; margin-bottom: 4px; }
         #mode-subtitle { font-size: 13px; color: #888; }
 
-        /* ИЗЯЩНЫЙ ТАЙМЕР */
         .timer-display { font-size: 56px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: -1px; margin-bottom: 15px; line-height: 1; text-align: center; }
         
         .boosters-container { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; width: 100%; }
@@ -97,13 +93,12 @@
         .btn.success { background: var(--success); }
         .btn:disabled, .btn.locked { background: #333; color: #666; box-shadow: none; pointer-events: none; border-color: transparent; }
 
-        /* ИНКУБАТОР (СЛОТ 2) ОСТАЛСЯ НА СВОЕМ МЕСТЕ */
-        .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 10px; padding-bottom: 10px; }
+        .bottom-extra-area { padding: 0; margin: 10px auto 0 auto; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; gap: 15px; }
         
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
         .second-slot > div { display: flex; justify-content: space-between; align-items: center; }
 
-        /* НОВАЯ КЛАССИЧЕСКАЯ НАВИГАЦИЯ (ФИКСИРОВАННАЯ ВНИЗУ) */
+        /* НИЖНЕЕ МЕНЮ НАВИГАЦИИ */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 10px 5px calc(10px + env(safe-area-inset-bottom)); z-index: 100; box-sizing: border-box; }
         .bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; width: 20%; position: relative; }
         .bottom-nav button:active { color: white; transform: scale(0.95); }
@@ -111,7 +106,7 @@
         .bottom-nav button:active .nav-icon { transform: scale(1.15); }
         .badge { position: absolute; top: -5px; right: 15%; background: var(--danger); color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: none; }
 
-        /* Модальные окна (ЖЕСТКАЯ ЗАЩИТА ОТ ГОРИЗОНТАЛЬНОГО СКРОЛЛА) */
+        /* Модальные окна */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: var(--panel); width: 90%; max-width: 400px; border-radius: 24px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .modal-content input, .modal-content select { min-width: 0; max-width: 100%; box-sizing: border-box; } 
@@ -129,11 +124,11 @@
         .buy-btn.owned { background: var(--success); }
         .buy-btn.locked { background: #333; color: #888; }
 
-        /* ЗАТЕМНЕНИЕ ЗАКРЫТЫХ ПЕТОВ */
         .pet-slot { background: rgba(0,0,0,0.3); border-radius: 16px; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; position: relative; border: 2px solid transparent; cursor: pointer; overflow: hidden; width: 100%; box-sizing: border-box; }
         .pet-img-slot { width: 70%; height: 70%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); pointer-events: none; transition: 0.3s; }
         .slot-count { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); pointer-events: none; }
         .star-badge { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.8); color: #ffd700; font-size: 9px; font-weight: bold; padding: 2px 4px; border-radius: 6px; border: 1px solid #ffd700; pointer-events: none; }
+        
         .pet-slot.common { border-color: #888; background: linear-gradient(180deg, rgba(136,136,136,0.1), rgba(0,0,0,0.5)); }
         .pet-slot.rare { border-color: #00A3FF; background: linear-gradient(180deg, rgba(0,163,255,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 10px rgba(0,163,255,0.2); }
         .pet-slot.epic { border-color: #ff2d55; background: linear-gradient(180deg, rgba(255,45,85,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 10px rgba(255,45,85,0.2); }
@@ -141,7 +136,7 @@
         .pet-slot.mythic { border-color: #8a2be2; background: linear-gradient(180deg, rgba(138,43,226,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(138,43,226,0.4); animation: mythicPulse 2s infinite; }
         .pet-slot.mutant { border-color: #39ff14; background: linear-gradient(180deg, rgba(57,255,20,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(57,255,20,0.4); animation: mutantPulse 2s infinite; }
         .pet-slot.glitch { border-color: #00ffff; background: linear-gradient(180deg, rgba(0,255,255,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(0,255,255,0.4); animation: glitchPulse 2s infinite; }
-
+        
         @keyframes mythicPulse { 0%, 100% { border-color: rgba(138,43,226,0.5); } 50% { border-color: rgba(138,43,226,1); } }
         @keyframes mutantPulse { 0%, 100% { border-color: rgba(57,255,20,0.5); } 50% { border-color: rgba(57,255,20,1); } }
         @keyframes glitchPulse { 0%, 100% { border-color: rgba(0,255,255,0.5); } 50% { border-color: rgba(0,255,255,1); } }
@@ -159,7 +154,7 @@
         .pet-rarity.mythic { color: #8a2be2; text-shadow: 0 0 10px rgba(138,43,226,0.5); } 
         .pet-rarity.mutant { color: #39ff14; text-shadow: 0 0 10px rgba(57,255,20,0.5); }
         .pet-rarity.glitch { color: #00ffff; text-shadow: 0 0 10px rgba(0,255,255,0.5); }
-
+        
         .pet-price { text-align: center; font-size: 18px; font-weight: bold; color: #ffd700; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; }
         .sell-action { background: linear-gradient(135deg, #34c759 0%, #28a745 100%); margin-top: 10px; }
 
@@ -179,7 +174,7 @@
         .rank-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
         .rank-desc { font-size: 12px; color: #ffd700; }
         
-        .avatar-item { width: 100%; aspect-ratio: 1; height: auto; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid transparent; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
+        .avatar-item { width: 100%; aspect-ratio: 1; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid transparent; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
         .avatar-item img { width: 80%; height: 80%; object-fit: contain; pointer-events: none; }
         .avatar-item.selected { border-color: var(--primary); box-shadow: 0 0 15px rgba(0,163,255,0.5); }
 
@@ -259,46 +254,45 @@
     
     <div id="debug-console"></div>
 
-    <div class="container">
-        <header class="top-bar">
-            <div class="profile-section" onclick="openProfile()">
-                <div id="header-profile-btn" class="avatar-wrapper"><img src="assets/ui/icon-profile.png" class="header-avatar"></div>
-                <div class="level-info">
-                    <div id="rank-name">Новичок</div>
-                    <div id="level-number">Lvl 1</div>
-                    <div class="xp-bar-bg"><div id="xp-bar" class="xp-bar-fill"></div></div>
-                </div>
+    <header class="top-bar">
+        <div class="profile-section" onclick="openProfile()">
+            <div id="header-profile-btn" class="avatar-wrapper"><img src="assets/ui/icon-profile.png" class="header-avatar"></div>
+            <div class="level-info">
+                <div id="rank-name">Новичок</div>
+                <div id="level-number">Lvl 1</div>
+                <div class="xp-bar-bg"><div id="xp-bar" class="xp-bar-fill"></div></div>
             </div>
-            <div class="balances">
-                <div id="total-money" class="balance-badge">💰 0</div>
-                <div id="total-stars" class="balance-badge" onclick="openBuyStarsModal()">⭐️ 0 <span style="background:rgba(255,255,255,0.2); border-radius:50%; padding:0 5px; margin-left:4px;">+</span></div>
-            </div>
-            <button class="settings-btn" onclick="if(typeof openSettings === 'function') openSettings(); else openModal('settings-modal');">⚙️</button>
-        </header>
+        </div>
+        <div class="balances">
+            <div id="total-money" class="balance-badge">💰 0</div>
+            <div id="total-stars" class="balance-badge" onclick="openBuyStarsModal()">⭐️ 0 <span style="background:rgba(255,255,255,0.2); border-radius:50%; padding:0 5px; margin-left:4px;">+</span></div>
+        </div>
+        <button class="settings-btn" onclick="if(typeof openSettings === 'function') openSettings(); else openModal('settings-modal');">⚙️</button>
+    </header>
 
-        <main class="content-wrapper">
-            <h1 class="main-title" id="main-title-secret" onclick="if(typeof triggerAdmin === 'function') triggerAdmin()">Focus Hatcher</h1>
+    <main class="main-screen">
+        
+        <div class="top-focus-area">
+            <h1 id="main-title-secret" onclick="if(typeof triggerAdmin === 'function') triggerAdmin()">Focus Hatcher</h1>
             
             <button id="custom-egg-btn" class="btn small" style="display:none; background:#333; margin-bottom:15px; width: 200px;" onclick="openCustomEggModal()">⚙️ Настроить цель</button>
 
-            <div class="slider-container">
-                <button id="prev-btn" class="arrow-btn" onclick="prevMode()">◀</button>
-                
-                <div id="egg-wrapper">
-                    <img id="egg-display" src="assets/eggs/egg-default.png" class="egg-img">
-                    <div id="crack-overlay" class="crack-overlay"></div>
-                    <div id="egg-lock" class="lock-icon-overlay">🔒</div>
-                    <div id="stun-overlay"></div>
-                    <div id="parasites-container" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></div>
-                </div>
-                
-                <button id="next-btn" class="arrow-btn" onclick="nextMode()">▶</button>
+            <div class="egg-container">
+                <img id="egg-display" src="assets/eggs/egg-default.png" class="egg-img">
+                <div id="crack-overlay" class="crack-overlay"></div>
+                <div id="egg-lock" class="egg-lock-icon" style="display:none;">🔒</div>
+                <div id="stun-overlay"></div>
+                <div id="parasites-container" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></div>
             </div>
 
-            <div id="mode-info" style="margin-top: 15px;">
-                <h2 id="mode-title">Базовое Яйцо</h2>
-                <div id="mode-subtitle">Шанс 1%</div>
-                <div id="offline-warning" style="display:none; color:#ff3b30; font-size:12px; margin-top:5px; font-weight:bold; text-shadow: 0 0 5px #000;">Не закрывай приложение!</div>
+            <div class="mode-selector">
+                <button id="prev-btn" onclick="prevMode()">◀</button>
+                <div class="mode-info">
+                    <div id="mode-title">Базовое Яйцо</div>
+                    <div id="mode-subtitle">Шанс 1%</div>
+                    <div id="offline-warning" style="display:none; color:#ff3b30; font-size:12px; margin-top:5px; font-weight:bold; text-shadow: 0 0 5px #000;">Не закрывай приложение!</div>
+                </div>
+                <button id="next-btn" onclick="nextMode()">▶</button>
             </div>
 
             <div id="hatched-info" style="display:none; margin-top: 15px;">
@@ -306,35 +300,38 @@
                 <div id="hatched-rarity" class="pet-rarity">Common</div>
             </div>
 
-            <div class="bottom-controls">
-                <div id="timer" class="timer-display">25:00</div>
+            <div id="timer" class="timer-display">25:00</div>
 
-                <div id="boosters-panel" class="boosters-container"></div>
+            <div id="boosters-panel" class="boosters-container"></div>
 
-                <div id="start-buttons-container" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-                    <button id="btn-focus" class="btn" onclick="startTimer('online')">Начать Фокус</button>
-                    <button id="btn-incubator" class="btn inventory-btn-main" onclick="startTimer('offline')">В Инкубатор (Оффлайн)</button>
+            <div class="action-buttons">
+                <div id="start-buttons-container" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                    <button id="btn-focus" class="btn primary" onclick="startTimer('online')">Начать Фокус</button>
+                    <button id="btn-incubator" class="btn secondary" onclick="startTimer('offline')">В Инкубатор (Оффлайн)</button>
                 </div>
                 <button id="main-btn" class="btn stop" style="display:none;" onclick="stopTimer()">Сдаться</button>
+            </div>
+            
+        </div>
 
-                <button id="share-btn" class="btn share-btn" style="display:none; width: 100%;" onclick="handleShare()">Поделиться успехом 🚀</button>
+        <div class="bottom-extra-area">
+            <button id="share-btn" class="btn share" style="display:none; width: 100%;" onclick="handleShare()">Поделиться успехом 🚀</button>
 
-                <div id="second-slot-panel" class="level-container" style="display:none; margin-top: 15px; text-align: center;">
-                    <div id="second-slot-idle" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>Слот 2 свободен</span>
-                        <button class="btn small" style="width: auto; padding: 5px 15px; margin: 0;" onclick="startSecondSlot()">Запустить</button>
-                    </div>
-                    <div id="second-slot-active" style="display:none;">
-                        <span>В Инкубаторе: <span id="second-slot-timer" style="font-weight:bold; color:#00A3FF;"></span></span>
-                    </div>
-                    <div id="second-slot-done" style="display:none; justify-content: space-between; align-items: center;">
-                        <span style="color:#34c759; font-weight:bold;">Яйцо готово!</span>
-                        <button class="btn small" style="width: auto; padding: 5px 15px; margin: 0; background: #34c759;" onclick="claimSecondSlot()">Забрать</button>
-                    </div>
+            <div id="second-slot-panel" class="second-slot" style="display:none;">
+                <div id="second-slot-idle">
+                    <span>Слот 2 свободен</span>
+                    <button class="btn small" onclick="startSecondSlot()">Запустить</button>
+                </div>
+                <div id="second-slot-active" style="display:none;">
+                    <span>В Инкубаторе: <span id="second-slot-timer" style="font-weight:bold; color:#00A3FF;"></span></span>
+                </div>
+                <div id="second-slot-done" style="display:none;">
+                    <span style="color:#34c759; font-weight:bold;">Яйцо готово!</span>
+                    <button class="btn small success" onclick="claimSecondSlot()">Забрать</button>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
     <nav class="bottom-nav">
         <button onclick="openInventory()"><span class="nav-icon">🐾</span>Коллекция <span id="ach-badge" class="badge" style="display:none;">!</span></button>
@@ -349,16 +346,16 @@
             <span class="close-btn" onclick="closeModal('more-modal')">×</span>
             <h2 style="margin-bottom: 20px;">Ещё Меню 📱</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn" style="background: rgba(255,255,255,0.1); padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openAch();">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openAch();">
                     <span style="font-size: 28px;">📜</span><span style="font-size: 13px;">Контракты</span>
                 </button>
-                <button class="btn" style="background: rgba(255,255,255,0.1); padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openCraft();">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openCraft();">
                     <span style="font-size: 28px;">🧬</span><span style="font-size: 13px;">Лаба</span>
                 </button>
-                <button class="btn" style="background: rgba(255,255,255,0.1); padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openForbes();">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openForbes();">
                     <span style="font-size: 28px;">🏆</span><span style="font-size: 13px;">Топ Форбс</span>
                 </button>
-                <button class="btn" style="background: rgba(255,255,255,0.1); padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openRouletteModal();">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openRouletteModal();">
                     <span style="font-size: 28px;">🎰</span><span style="font-size: 13px;">Рулетка</span>
                 </button>
             </div>
@@ -383,12 +380,12 @@
                 <p style="color:#888; font-size:14px; margin-bottom:10px;">Вы Инженер 🛠<br>Вводите гены на слух!</p>
                 <div id="engineer-input-slots" style="display:flex; justify-content:center; gap:10px; margin: 15px 0; min-height: 45px;"></div>
                 <div id="engineer-keyboard" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; max-width: 300px; margin: 0 auto;">
-                    <button class="btn" style="background: rgba(255,255,255,0.1); padding: 10px;" onclick="reactorTypeGene('🔴')">🔴 Красн</button>
-                    <button class="btn" style="background: rgba(255,255,255,0.1); padding: 10px;" onclick="reactorTypeGene('🔵')">🔵 Синий</button>
-                    <button class="btn" style="background: rgba(255,255,255,0.1); padding: 10px;" onclick="reactorTypeGene('🟢')">🟢 Зелен</button>
-                    <button class="btn" style="background: rgba(255,255,255,0.1); padding: 10px;" onclick="reactorTypeGene('🟡')">🟡 Желт</button>
-                    <button class="btn" style="background: rgba(255,255,255,0.1); padding: 10px;" onclick="reactorTypeGene('🟣')">🟣 Фиол</button>
-                    <button class="btn stop" style="padding: 10px;" onclick="reactorClearInput()">Сброс</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🔴')">🔴 Красн</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🔵')">🔵 Синий</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🟢')">🟢 Зелен</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🟡')">🟡 Желт</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🟣')">🟣 Фиол</button>
+                    <button class="btn stop" onclick="reactorClearInput()">Сброс</button>
                 </div>
                 <div style="width:100%; height:12px; background:#333; border-radius:6px; margin-top:20px; overflow:hidden; border:1px solid #555;">
                     <div id="reactor-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #00A3FF, #00ffff); transition:width 0.3s;"></div>
