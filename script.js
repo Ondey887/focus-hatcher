@@ -57,6 +57,14 @@ function playSound(type) {
         gainNode.gain.linearRampToValueAtTime(0.01, now + 1.5);
         osc.start(now); 
         osc.stop(now + 1.5);
+    } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+        gainNode.gain.setValueAtTime(0.2, now);
+        gainNode.gain.linearRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
     }
 }
 
@@ -2732,11 +2740,6 @@ function finishTimer(fromOffline = false) {
 
     apiSyncGlobalProfile();
     updateContract('hatch', 1); 
-
-    if (currentPartyCode && !fromOffline) {
-        const timeSpent = currentModeIndex === 2 ? customEggConfig.timeOnline : m.timeOnline;
-        apiAddMegaEggTime(timeSpent);
-    }
     
     let pool;
     
@@ -3203,7 +3206,9 @@ function openPartyModal() {
         if (pav) pav.style.display = 'none';
     }
     openModal('party-modal');
-}async function apiCreateParty() {
+}
+
+async function apiCreateParty() {
     playSound('click');
     const btn = event.target; 
     btn.textContent = "Создаем сервер...";
@@ -3306,7 +3311,7 @@ async function apiLeaveParty(localOnly = false) {
     if (parasiteInterval) clearInterval(parasiteInterval);
     if (bonusSpawningInterval) clearInterval(bonusSpawningInterval);
 
-    ['boss-raid-modal', 'mega-egg-modal', 'expedition-modal'].forEach(m => {
+    ['boss-raid-modal', 'quantum-reactor-modal', 'expedition-modal'].forEach(m => {
         if (modalStack.includes(m)) closeModal(m);
     });
 
@@ -3375,8 +3380,8 @@ function startPartyPolling() {
                 }
             }
             
-            if (modalStack.includes('mega-egg-modal')) {
-                updateMegaEggUI(data.mega_progress, data.mega_target);
+            if (modalStack.includes('quantum-reactor-modal')) {
+                // TODO: Здесь будет логика обновления стейта Реактора при работе по WebSockets
             }
             
             if (modalStack.includes('expedition-modal')) {
@@ -3432,14 +3437,14 @@ function updatePartyUI() {
 
 function getGameName(type) {
     if (type === 'tap_boss') return "Зараженное Яйцо";
-    if (type === 'mega_egg') return "Мега-Яйцо";
+    if (type === 'quantum_reactor') return "Квантовый Реактор";
     if (type === 'expedition') return "Экспедиция";
     return "Неизвестно";
 }
 
 function getModalIdForGame(type) {
     if (type === 'tap_boss') return 'boss-raid-modal';
-    if (type === 'mega_egg') return 'mega-egg-modal';
+    if (type === 'quantum_reactor') return 'quantum-reactor-modal';
     if (type === 'expedition') return 'expedition-modal';
     return '';
 }
@@ -3509,6 +3514,13 @@ function forceOpenMiniGame(gameType) {
 
         if (parasiteInterval) clearInterval(parasiteInterval);
         parasiteInterval = setInterval(spawnParasite, 2500); 
+    }
+    
+    if (gameType === 'quantum_reactor') {
+        openModal('quantum-reactor-modal');
+        // Временная заглушка для теста UI (Ждем бэкенд на WebSockets)
+        let testRole = isPartyLeader ? 'dispatcher' : 'engineer';
+        setupReactorRole(testRole, ['🔴', '🔵', '🟢', '🟡']);
     }
     
     if (gameType === 'expedition') {
@@ -3731,61 +3743,120 @@ function handleBossRaidEnd() {
 }
 
 // =============================================================
-// МИНИ-ИГРА: МЕГА-ЯЙЦО И ЭКСПЕДИЦИЯ
+// МИНИ-ИГРА: КВАНТОВЫЙ РЕАКТОР (ЗАМЕНА МЕГА-ЯЙЦА)
 // =============================================================
-async function apiAddMegaEggTime(seconds) {
-    try { 
-        await fetch(`${API_URL}/party/mega_egg/add`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code: currentPartyCode, seconds: seconds }) 
-        }); 
-    } catch(e) {}
-}
+let engineerCurrentInput = [];
+let requiredCodeLength = 4;
 
-function updateMegaEggUI(progress, target) {
-    let p = (progress / target) * 100; 
-    if (p > 100) p = 100;
+// Вызывать эту функцию при получении события reactor:init от сервера
+window.setupReactorRole = function(role, secretCode = null) {
+    let rd = getEl('role-dispatcher');
+    let re = getEl('role-engineer');
+    let rs = getEl('role-stabilizer');
     
-    let meb = getEl('mega-egg-bar'); 
-    if (meb) meb.style.width = `${p}%`;
+    if (rd) rd.style.display = 'none';
+    if (re) re.style.display = 'none';
+    if (rs) rs.style.display = 'none';
     
-    let met = getEl('mega-egg-text'); 
-    if (met) met.textContent = `${Math.floor(progress/3600)} / ${Math.floor(target/3600)} Часов`;
-    
-    let mecb = getEl('mega-egg-claim-btn'); 
-    if (mecb) mecb.style.display = (progress >= target) ? 'block' : 'none';
-    
-    const eggImg = getEl('mega-egg-img-display');
-    if (eggImg) {
-        if (p > 0 && p < 50) eggImg.className = 'mega-egg-img pulse-slow';
-        else if (p >= 50 && p < 100) eggImg.className = 'mega-egg-img pulse-fast';
-        else if (p >= 100) eggImg.className = 'mega-egg-img shake-crazy';
-        else eggImg.className = 'mega-egg-img';
+    if (role === 'dispatcher') {
+        if (rd) rd.style.display = 'block';
+        renderDispatcherCode(secretCode || ['🔴','🔵','🟢','🟡']);
+    } 
+    else if (role === 'engineer') {
+        if (re) re.style.display = 'block';
+        requiredCodeLength = secretCode ? secretCode.length : 4;
+        reactorClearInput();
+    }
+    else if (role === 'stabilizer') {
+        if (rs) rs.style.display = 'block';
+        // TODO: Инициализация пазла из Лабы (reactor-dna-grid)
     }
 }
 
-async function claimMegaEgg() {
-    playSound('win'); 
-    fireConfetti();
-    
-    collection.push(petDatabase.legendary[Math.floor(Math.random() * petDatabase.legendary.length)]);
-    walletBalance += 10000; 
-    saveData(); 
-    updateBalanceUI();
-    showToast("МЕГА-ЯЙЦО РАСКОЛОТО! +10k Монет и Легендарка", "🌟");
-    
-    try { 
-        await fetch(`${API_URL}/party/mega_egg/claim`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code: currentPartyCode }) 
-        }); 
-    } catch(e) {}
-    
-    closeModal('mega-egg-modal');
+function renderDispatcherCode(codeArray) {
+    const container = getEl('dispatcher-secret-code');
+    if (!container) return;
+    container.innerHTML = '';
+    codeArray.forEach(gene => {
+        const span = document.createElement('span');
+        span.textContent = gene;
+        span.style.animation = "popIn 0.3s ease";
+        container.appendChild(span);
+    });
 }
 
+window.renderEngineerSlots = function() {
+    const container = getEl('engineer-input-slots');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    for (let i = 0; i < requiredCodeLength; i++) {
+        const slot = document.createElement('div');
+        slot.style.width = '40px'; slot.style.height = '40px';
+        slot.style.border = '2px dashed #555'; slot.style.borderRadius = '8px';
+        slot.style.display = 'flex'; slot.style.justifyContent = 'center';
+        slot.style.alignItems = 'center'; slot.style.fontSize = '24px';
+        
+        if (engineerCurrentInput[i]) {
+            slot.textContent = engineerCurrentInput[i];
+            slot.style.border = '2px solid #00A3FF';
+            slot.style.background = 'rgba(0, 163, 255, 0.1)';
+        }
+        container.appendChild(slot);
+    }
+}
+
+window.reactorTypeGene = function(gene) {
+    if (engineerCurrentInput.length >= requiredCodeLength) return;
+    if (typeof playSound === 'function') playSound('click');
+    
+    engineerCurrentInput.push(gene);
+    renderEngineerSlots();
+    
+    // Если слоты заполнены, шлем на сервер через WebSocket
+    if (engineerCurrentInput.length === requiredCodeLength) {
+        // TODO: socket.emit('reactor:submit_code', { code: engineerCurrentInput });
+        console.log("Код отправлен на проверку:", engineerCurrentInput);
+        showToast("Код отправлен Диспетчеру на проверку!", "📡");
+    }
+}
+
+window.reactorClearInput = function() {
+    engineerCurrentInput = [];
+    renderEngineerSlots();
+}
+
+window.triggerReactorPenalty = function() {
+    playSound('wrong');
+    const slots = getEl('engineer-input-slots');
+    if (slots) slots.classList.add('shake-hard');
+    setTimeout(() => {
+        if (slots) slots.classList.remove('shake-hard');
+        reactorClearInput();
+    }, 400);
+}
+
+window.handleReactorEnd = function(status) {
+    if (status === 'win') {
+        playSound('win');
+        showToast("Реактор запущен! Инкубаторы x2 на 3 часа!", "⚛️");
+        closeModal('quantum-reactor-modal');
+        // TODO: Логика выдачи бафа
+    } else {
+        const modalContent = document.querySelector('#quantum-reactor-modal .modal-content');
+        if (modalContent) {
+            modalContent.style.animation = "none";
+            void modalContent.offsetWidth; // сброс анимации
+            modalContent.style.animation = "shakeHard 0.5s cubic-bezier(.36,.07,.19,.97) both";
+        }
+        showToast("Сбой Реактора! Попытка сгорела.", "💥");
+        setTimeout(() => closeModal('quantum-reactor-modal'), 1500);
+    }
+}
+
+// =============================================================
+// МИНИ-ИГРА: ЭКСПЕДИЦИЯ
+// =============================================================
 function selectExpeditionLocation(loc) {
     currentExpeditionLocation = loc;
     document.querySelectorAll('#leader-location-selector .tab-btn').forEach(b => b.classList.remove('active'));
@@ -4255,14 +4326,13 @@ async function buyMarketLot(lotId, price, currency) {
             
             collection.push(boughtPet);
             
-            // Если мы купили пета с более высоким звездным уровнем, обновляем его
             if (!petStars[boughtPet] || petStars[boughtPet] < boughtStars) {
                 petStars[boughtPet] = boughtStars;
             }
             
             saveData();
             updateBalanceUI();
-            loadMarket(); // Обновляем витрину
+            loadMarket();
             
             showToast(`Успешная покупка: ${PET_NAMES[boughtPet]}!`, "🎉");
             playSound('win');
@@ -4334,7 +4404,7 @@ async function submitSellPet() {
     
     const user = getTgUser();
     let finalName = user.name;
-    if (isVip()) finalName += ' 👑'; // Добавляем корону продавцу, если он VIP
+    if (isVip()) finalName += ' 👑';
     
     const stars = petStars[selectedPetForSale] || 1;
     
@@ -4360,11 +4430,9 @@ async function submitSellPet() {
         const data = await res.json();
         
         if (data.status === 'success') {
-            // Изымаем пета из коллекции игрока
             const idx = collection.indexOf(selectedPetForSale);
             if (idx > -1) collection.splice(idx, 1);
             
-            // Если мы продали последнюю копию этого пета, сбрасываем его звезды у нас
             if (!collection.includes(selectedPetForSale)) {
                 delete petStars[selectedPetForSale];
             }
@@ -4375,7 +4443,6 @@ async function submitSellPet() {
             showToast("Питомец выставлен на продажу!", "✅");
             playSound('money');
             
-            // Обновляем витрину, чтобы лот сразу появился
             loadMarket();
         } else {
             showToast("Ошибка при создании лота", "❌");
@@ -4386,22 +4453,19 @@ async function submitSellPet() {
     
     btn.textContent = origText;
     btn.disabled = false;
-}// =============================================================
+}
+
+// =============================================================
 // ЖЕЛЕЗОБЕТОННЫЙ ФИКС НАСТРОЕК И РЫНКА
 // =============================================================
-
-// 1. Принудительно возвращаем функцию настроек
 window.openSettings = function() {
     openModal('settings-modal');
     playSound('click');
 };
 
-// 2. Агрессивная проверка почтового ящика (денег с рынка)
 async function checkMarketSales() {
     try {
         const uid = String(getTgUser().id);
-        
-        // Стучимся на сервер за деньгами (проверяем сразу оба варианта пути)
         let res = await fetch(`${API_URL}/api/market/rewards/${uid}`);
         if (!res.ok) {
             res = await fetch(`${API_URL}/api/api/market/rewards/${uid}`);
@@ -4431,14 +4495,12 @@ async function checkMarketSales() {
             updateBalanceUI();
             playSound('money');
         }
-    } catch(e) {
-        // Ошибку сети скрываем, чтобы не спамить
-    }
+    } catch(e) {}
 }
 
-// Заставляем игру проверять рынок каждые 5 секунд!
 setInterval(checkMarketSales, 5000);
 setTimeout(checkMarketSales, 1000);
+
 // =============================================================
 // ЗАПУСК ИГРЫ
 // =============================================================

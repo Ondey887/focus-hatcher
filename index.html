@@ -97,7 +97,7 @@
         .btn.success { background: var(--success); }
         .btn:disabled, .btn.locked { background: #333; color: #666; box-shadow: none; pointer-events: none; border-color: transparent; }
 
-        /* ИНКУБАТОР (СЛОТ 2) - ОСТАЛСЯ НА СВОЕМ МЕСТЕ */
+        /* ИНКУБАТОР (СЛОТ 2) ОСТАЛСЯ НА СВОЕМ МЕСТЕ */
         .bottom-extra-area { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 15px; padding-top: 10px; padding-bottom: 10px; }
         
         .second-slot { width: 100%; background: rgba(255,255,255,0.05); border: 1px dashed rgba(52, 199, 89, 0.5); border-radius: 16px; padding: 12px 15px; text-align: center; font-size: 14px; backdrop-filter: blur(5px); }
@@ -114,7 +114,7 @@
         /* Модальные окна (ЖЕСТКАЯ ЗАЩИТА ОТ ГОРИЗОНТАЛЬНОГО СКРОЛЛА) */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: var(--panel); width: 90%; max-width: 400px; border-radius: 24px; padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .modal-content input, .modal-content select { min-width: 0; max-width: 100%; box-sizing: border-box; } /* Защита инпутов админки */
+        .modal-content input, .modal-content select { min-width: 0; max-width: 100%; box-sizing: border-box; } 
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 28px; color: #888; cursor: pointer; line-height: 1; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; z-index: 10; }
         
@@ -139,6 +139,9 @@
         .pet-slot.legendary { border-color: #ffd700; background: linear-gradient(180deg, rgba(255,215,0,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 15px rgba(255,215,0,0.3); }
         .pet-slot.mythic { border-color: #8a2be2; background: linear-gradient(180deg, rgba(138,43,226,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(138,43,226,0.4); animation: mythicPulse 2s infinite; }
         .pet-slot.mutant { border-color: #39ff14; background: linear-gradient(180deg, rgba(57,255,20,0.1), rgba(0,0,0,0.5)); box-shadow: inset 0 0 20px rgba(57,255,20,0.4); animation: mutantPulse 2s infinite; }
+        @keyframes mythicPulse { 0%, 100% { border-color: rgba(138,43,226,0.5); } 50% { border-color: rgba(138,43,226,1); } }
+        @keyframes mutantPulse { 0%, 100% { border-color: rgba(57,255,20,0.5); } 50% { border-color: rgba(57,255,20,1); } }
+        
         .pet-slot.locked { border-color: #444; background: rgba(0,0,0,0.5); border: 1px dashed #555; animation: none; box-shadow: none; }
         .pet-slot.locked .pet-img-slot { filter: brightness(0); opacity: 0.3; }
 
@@ -165,7 +168,7 @@
         .rank-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
         .rank-desc { font-size: 12px; color: #ffd700; }
         
-        .avatar-item { width: 100%; aspect-ratio: 1; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid transparent; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
+        .avatar-item { width: 100%; aspect-ratio: 1; height: auto; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid transparent; overflow: hidden; margin: 0 auto; box-sizing: border-box; }
         .avatar-item img { width: 80%; height: 80%; object-fit: contain; pointer-events: none; }
         .avatar-item.selected { border-color: var(--primary); box-shadow: 0 0 15px rgba(0,163,255,0.5); }
 
@@ -195,7 +198,7 @@
         .tap-cell { background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); width: calc(33.33% - 5px); aspect-ratio: 1; pointer-events: none; }
         .tap-cell.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,163,255,0.2); }
         
-        /* ИСПРАВЛЕННЫЙ ТОП ФОРБС (ЭЛЕГАНТНЫЙ И КОМПАКТНЫЙ) */
+        /* ИСПРАВЛЕННЫЙ ТОП ФОРБС (КОМПАКТНЫЙ) */
         .forbes-item { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 4px; }
         .forbes-item.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); }
         .forbes-rank { font-weight: 800; font-size: 12px; color: #888; width: 18px; text-align: center; }
@@ -231,6 +234,10 @@
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(22px); }
         .settings-option { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 16px; font-weight: bold; gap: 20px; box-sizing: border-box; width: 100%; }
+        
+        /* Квантовый Реактор Специфичное */
+        @keyframes pulseDanger { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.5; } }
+        .shake-lose { animation: shakeHard 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
@@ -318,7 +325,6 @@
                 </div>
             </div>
         </div>
-
     </main>
 
     <nav class="bottom-nav">
@@ -346,6 +352,44 @@
                 <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openRouletteModal();">
                     <span style="font-size: 28px;">🎰</span><span style="font-size: 13px;">Рулетка</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quantum-reactor-modal" class="modal" style="z-index:1001;">
+        <div id="reactor-danger-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,59,48,0.3); pointer-events:none; display:none; animation: pulseDanger 1s infinite; z-index: 1;"></div>
+        
+        <div class="modal-content" style="text-align:center; padding:15px; max-width:100%; height:100%; border-radius:0; background:#111; z-index: 2; overflow-x: hidden;">
+            <span class="close-btn" onclick="requestStopMiniGame()">×</span>
+            <h2 style="color:#00ffff; text-shadow:0 0 15px rgba(0,255,255,0.6);">Квантовый Реактор ⚛️</h2>
+            
+            <div style="font-size:42px; font-weight:900; color:#fff; margin:15px 0; font-variant-numeric:tabular-nums;" id="reactor-timer">60.0</div>
+
+            <div id="role-dispatcher" style="display:none; background:rgba(0,0,0,0.5); padding:20px; border-radius:16px; border:1px solid #00A3FF; box-sizing: border-box; width: 100%;">
+                <p style="color:#888; font-size:14px; margin-bottom:15px;">Вы Диспетчер 📡<br>Диктуйте этот код Инженеру!</p>
+                <div id="dispatcher-secret-code" style="display:flex; justify-content:center; gap:15px; font-size:40px; min-height:50px;"></div>
+            </div>
+
+            <div id="role-engineer" style="display:none; width: 100%; box-sizing: border-box;">
+                <p style="color:#888; font-size:14px; margin-bottom:10px;">Вы Инженер 🛠<br>Вводите гены на слух!</p>
+                <div id="engineer-input-slots" style="display:flex; justify-content:center; gap:10px; margin: 15px 0; min-height: 45px;"></div>
+                <div id="engineer-keyboard" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; max-width: 300px; margin: 0 auto;">
+                    <button class="btn secondary" onclick="reactorTypeGene('🔴')">🔴 Красн</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🔵')">🔵 Синий</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🟢')">🟢 Зелен</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🟡')">🟡 Желт</button>
+                    <button class="btn secondary" onclick="reactorTypeGene('🟣')">🟣 Фиол</button>
+                    <button class="btn stop" onclick="reactorClearInput()">Сброс</button>
+                </div>
+                <div style="width:100%; height:12px; background:#333; border-radius:6px; margin-top:20px; overflow:hidden; border:1px solid #555;">
+                    <div id="reactor-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #00A3FF, #00ffff); transition:width 0.3s;"></div>
+                </div>
+                <p style="font-size:12px; color:#00ffff; margin-top:5px;"><span id="reactor-progress-text">0</span> / 3 Циклов</p>
+            </div>
+
+            <div id="role-stabilizer" style="display:none; background:rgba(0,0,0,0.5); padding:15px; border-radius:16px; width: 100%; box-sizing: border-box;">
+                <p style="color:#888; font-size:14px; margin-bottom:10px;">Вы Стабилизатор 🔋<br>Решайте цепи для +10 сек!</p>
+                <div id="reactor-dna-grid" style="display:grid; grid-template-columns: repeat(3, 60px); gap:8px; justify-content:center; margin:15px 0;"></div>
             </div>
         </div>
     </div>
@@ -536,7 +580,7 @@
                 <div id="party-leader-controls" style="width: 100%; box-sizing: border-box;">
                     <p style="font-size:12px; color:#ffd700; text-align:center; margin-bottom:10px;">Вы лидер. Выберите игру:</p>
                     <button class="btn" style="width:100%; margin-bottom:10px; background:linear-gradient(90deg, #ff3b30, #ff9500);" onclick="requestStartMiniGame('tap_boss')">Рейд: Босс-Паразит 🦠</button>
-                    <button class="btn" style="width:100%; margin-bottom:10px; background:linear-gradient(90deg, #ffd700, #ff9500); color:#000;" onclick="requestStartMiniGame('mega_egg')">Мега-Яйцо 🥚</button>
+                    <button class="btn" style="width:100%; margin-bottom:10px; background:linear-gradient(90deg, #00ffff, #00A3FF); color:#fff; text-shadow:0 0 5px #000;" onclick="requestStartMiniGame('quantum_reactor')">Реактор ⚛️</button>
                     <button class="btn" style="width:100%; margin-bottom:15px; background:linear-gradient(90deg, #34c759, #00A3FF);" onclick="requestStartMiniGame('expedition')">Экспедиция 2.0 🗺</button>
                 </div>
                 
@@ -570,22 +614,6 @@
             </div>
             
             <div id="raid-players-grid" style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:20px;"></div>
-        </div>
-    </div>
-
-    <div id="mega-egg-modal" class="modal" style="z-index:1001;">
-        <div class="modal-content" style="text-align:center;">
-            <h2 style="color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5);">Мега-Яйцо 🌟</h2>
-            <p style="font-size:12px; color:#888; margin-top:5px;">Время, проведенное всеми участниками пати в онлайне, заполняет шкалу!</p>
-            
-            <img id="mega-egg-img-display" src="assets/eggs/egg-gold.png" style="width:180px; height:180px; margin:30px auto; filter:drop-shadow(0 0 30px rgba(255,215,0,0.3));">
-            
-            <div style="width:100%; height:24px; background:#222; border-radius:12px; overflow:hidden; margin:10px 0; border:1px solid #444; position:relative; box-sizing: border-box;">
-                <div id="mega-egg-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #ffd700, #fff); transition:width 0.5s; box-shadow:0 0 10px #ffd700;"></div>
-                <div id="mega-egg-text" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#000; font-size:12px; font-weight:bold;">0 / 0 Часов</div>
-            </div>
-            
-            <button id="mega-egg-claim-btn" class="btn" style="display:none; width:100%; margin-top:20px; background:linear-gradient(90deg, #ffd700, #ff9500); color:#000; font-size:18px; animation:pulse 1s infinite;" onclick="claimMegaEgg()">РАСКОЛОТЬ!</button>
         </div>
     </div>
 

@@ -15,7 +15,7 @@ html, body {
 .container { 
     width: 100%; height: 100%; max-width: 450px; margin: 0 auto;
     display: flex; flex-direction: column; justify-content: space-between; 
-    padding: 10px 15px 15px 15px; 
+    padding: 10px 15px 100px 15px; 
     position: relative; text-align: center;
     overflow-y: auto; overflow-x: hidden;
 }
@@ -246,7 +246,9 @@ html, body {
 
 /* МОДАЛКИ */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-.modal-content { background: #2c2c2e; width: 90%; max-width: 340px; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); max-height: 85vh; overflow-y: auto; }
+.modal-content { background: #2c2c2e; width: 90%; max-width: 340px; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); max-height: 85vh; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; }
+.modal-content input, .modal-content select { min-width: 0; max-width: 100%; box-sizing: border-box; }
+
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .close-btn { background: none; border: none; color: #8e8e93; font-size: 24px; cursor: pointer; padding: 5px; }
 .shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
@@ -281,12 +283,14 @@ input:checked + .slider:before { transform: translateX(24px); }
 .pet-name { font-size: 24px; margin-top: 5px; margin-bottom: 0px; font-weight: bold; } 
 .pet-rarity { font-size: 14px; margin-bottom: 10px; text-transform: uppercase; font-weight: bold; }
 
-.avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.avatar-item { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 5px; cursor: pointer; border: 2px solid transparent; }
-.avatar-item img { width: 100%; height: auto; border-radius: 8px; }
+/* AVATAR FIXES */
+.avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; overflow-x: hidden; width: 100%; box-sizing: border-box; }
+.avatar-item { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 5px; cursor: pointer; border: 2px solid transparent; width: 100%; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
+.avatar-item img { width: 80%; height: 80%; object-fit: contain; border-radius: 8px; }
 .avatar-item.selected { border-color: #34c759; background: rgba(52, 199, 89, 0.2); }
+
 #avatar-modal { z-index: 3000; }
-.promo-input { width: 90%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 16px; text-transform: uppercase; text-align: center; margin-top: 10px; outline: none; }
+.promo-input { width: 90%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 16px; text-transform: uppercase; text-align: center; margin-top: 10px; outline: none; box-sizing: border-box; min-width: 0; }
 .promo-input:focus { border-color: #007aff; }
 .daily-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .daily-item:last-child { grid-column: span 4; background: linear-gradient(45deg, #ffd700, #ffa500); color: black; font-weight: bold; }
@@ -391,23 +395,23 @@ input:checked + .slider:before { transform: translateX(24px); }
     100% { transform: translateX(0) rotate(0deg); }
 }
 
-/* === FORBES === */
-.forbes-list { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; text-align: left; padding-right: 5px; }
-.forbes-item { background: rgba(255,255,255,0.08); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.05); }
+/* === FORBES FIX === */
+.forbes-list { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; overflow-x: hidden; text-align: left; padding-right: 5px; width: 100%; box-sizing: border-box; }
+.forbes-item { background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 10px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 4px; box-sizing: border-box; }
 .forbes-item.me { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
-.forbes-rank { font-weight: bold; font-size: 16px; width: 30px; text-align: center; color: #8e8e93; }
-.forbes-rank.top-1 { color: #ffd700; font-size: 22px; text-shadow: 0 0 5px #ffd700; }
-.forbes-rank.top-2 { color: #c0c0c0; font-size: 20px; text-shadow: 0 0 5px #c0c0c0; }
-.forbes-rank.top-3 { color: #cd7f32; font-size: 18px; text-shadow: 0 0 5px #cd7f32; }
-.forbes-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #555; background: #2c2c2e;}
+.forbes-rank { font-weight: bold; font-size: 14px; width: 20px; text-align: center; color: #8e8e93; }
+.forbes-rank.top-1 { color: #ffd700; font-size: 16px; text-shadow: 0 0 5px #ffd700; }
+.forbes-rank.top-2 { color: #c0c0c0; font-size: 15px; text-shadow: 0 0 5px #c0c0c0; }
+.forbes-rank.top-3 { color: #cd7f32; font-size: 15px; text-shadow: 0 0 5px #cd7f32; }
+.forbes-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #555; background: #2c2c2e; flex-shrink: 0; }
 .top-1 + .forbes-avatar { border-color: #ffd700; }
 .top-2 + .forbes-avatar { border-color: #c0c0c0; }
 .top-3 + .forbes-avatar { border-color: #cd7f32; }
-.forbes-info { flex: 1; overflow: hidden; }
-.forbes-name { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
-.forbes-lvl { font-size: 11px; color: #aaa; }
-.forbes-val { font-weight: bold; color: #ffd700; font-size: 14px; display: flex; align-items: center; gap: 5px; }
-.forbes-val img { width: 16px; height: 16px; object-fit: contain; }
+.forbes-info { flex: 1; overflow: hidden; min-width: 0; }
+.forbes-name { font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.forbes-lvl { font-size: 10px; color: #aaa; }
+.forbes-val { font-weight: bold; color: #ffd700; font-size: 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.forbes-val img { width: 12px; height: 12px; object-fit: contain; }
 
 /* === АНИМАЦИЯ МИФИКА И ДНК === */
 .mythic-craft-container { height: 250px; display: flex; justify-content: center; align-items: center; position: relative; }
@@ -461,4 +465,21 @@ input:checked + .slider:before { transform: translateX(24px); }
     0% { filter: brightness(10) drop-shadow(0 0 100px #fff); transform: scale(0.5); }
     50% { transform: scale(1.5); filter: brightness(2) drop-shadow(0 0 50px #8a2be2); }
     100% { transform: scale(1.2); filter: brightness(1) drop-shadow(0 0 50px #8a2be2); }
+}
+
+/* === НОВАЯ НАВИГАЦИЯ (TAB BAR) === */
+.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 10px 5px calc(10px + env(safe-area-inset-bottom)); z-index: 100; box-sizing: border-box; }
+.bottom-nav button { background: none; border: none; color: #aaa; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; width: 20%; position: relative; }
+.bottom-nav button:active { color: white; transform: scale(0.95); }
+.nav-icon { font-size: 24px; margin-bottom: 4px; display: block; transition: transform 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+.bottom-nav button:active .nav-icon { transform: scale(1.15); }
+.badge { position: absolute; top: -5px; right: 15%; background: #ff3b30; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: none; }
+
+/* === КВАНТОВЫЙ РЕАКТОР === */
+@keyframes pulseDanger { 
+    0%, 100% { opacity: 0.1; } 
+    50% { opacity: 0.5; } 
+}
+.shake-lose { 
+    animation: shakeHard 0.5s cubic-bezier(.36,.07,.19,.97) both; 
 }
