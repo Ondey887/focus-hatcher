@@ -98,6 +98,8 @@ let walletBalance = 0;
 let userStars = 0;
 let pegasusShards = 0;
 let userJokers = 0; 
+let hatchStreak = 0; // НОВОЕ: Стрик вылуплений
+let lastHatchDate = ""; // НОВОЕ: Дата последнего вылупления
 
 // Инвентарь и настройки
 let ownedItems = { themes: ['default'], eggs: ['default'] };
@@ -164,7 +166,7 @@ let dnaGrid = [];
 let isStunned = false;
 let parasiteInterval = null;
 let petStars = {}; 
-let activeContracts = { date: '', tasks: [] }; 
+let activeContracts = { date: '', allClaimed: false, tasks: [] }; 
 
 // =============================================================
 // БЕЗОПАСНЫЙ ПАРСИНГ ДАННЫХ (ЗАЩИТА)
@@ -493,7 +495,7 @@ function fireConfetti() {
 }
 
 // =============================================================
-// КОНТРАКТЫ И НАГРАДЫ
+// КОНТРАКТЫ И НАГРАДЫ (С БОНУСОМ XP)
 // =============================================================
 function checkContracts() {
     const today = new Date().toDateString();
@@ -508,6 +510,7 @@ function checkContracts() {
         
         let shuffled = pools.sort(() => 0.5 - Math.random()).slice(0, 3);
         activeContracts.date = today;
+        activeContracts.allClaimed = false; // НОВОЕ: Сброс флага получения мега-награды
         activeContracts.tasks = shuffled.map(x => ({ ...x, p: 0, c: false }));
         saveData();
     }
@@ -537,6 +540,7 @@ function updateContract(type, val) {
     }
 }
 
+// НОВОЕ: Начисление +30 XP за контракт и +500 XP за закрытие всех 3
 window.claimContract = function(idx) {
     let t = activeContracts.tasks[idx];
     if (t.c) return;
@@ -554,10 +558,36 @@ window.claimContract = function(idx) {
         myBoosters.speed += t.r.v;
     }
     
+    // БОНУС ОПЫТА ЗА КОНТРАКТ
+    userXP += 30;
+    
+    // Проверка всех 3 контрактов
+    let allCompleted = activeContracts.tasks.every(task => task.c);
+    if (allCompleted && !activeContracts.allClaimed) {
+        userXP += 500;
+        activeContracts.allClaimed = true;
+        setTimeout(() => showToast('БОНУС +500 XP за 3 контракта!', '🔥'), 1000);
+    }
+    
+    // Общий цикл повышения уровня
+    while (userXP >= userLevel * 200) { 
+        userXP -= userLevel * 200; 
+        userLevel++; 
+        showToast(`Lvl UP: ${userLevel}`, "🎉"); 
+        playSound('win'); 
+        if (LEVEL_REWARDS[userLevel] && LEVEL_REWARDS[userLevel].reward && LEVEL_REWARDS[userLevel].reward.includes('Уникальный')) {
+            if (userLevel === 50 && !collection.includes("god")) { 
+                collection.push("god"); 
+                showToast("Получен: 🐲 God", "🎁"); 
+            }
+        }
+    }
+
     saveData(); 
     updateBalanceUI(); 
+    updateLevelUI();
     renderQuests();
-    showToast(`Награда получена!`, '🎁'); 
+    showToast(`Награда получена! (+30 XP)`, '🎁'); 
     playSound('money');
 };
 
@@ -685,6 +715,10 @@ function initGame() {
             pegasusShards = parseInt(localStorage.getItem('pegasusShards')) || 0; 
             userJokers = parseInt(localStorage.getItem('userJokers')) || 0; 
             
+            // НОВОЕ: Загрузка стейта для Стриков вылупления
+            hatchStreak = parseInt(localStorage.getItem('hatchStreak')) || 0;
+            lastHatchDate = localStorage.getItem('lastHatchDate') || "";
+            
             ownedItems = safeParse(localStorage.getItem('ownedItems'), { themes: ['default'], eggs: ['default'] });
             activeTheme = localStorage.getItem('activeTheme') || 'default';
             activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
@@ -709,7 +743,7 @@ function initGame() {
             boxAdsProgress = safeParse(localStorage.getItem('boxAdsProgress'), { epic: 0, mythic: 0 });
             
             petStars = safeParse(localStorage.getItem('petStars'), {});
-            activeContracts = safeParse(localStorage.getItem('activeContracts'), { date: '', tasks: [] });
+            activeContracts = safeParse(localStorage.getItem('activeContracts'), { date: '', allClaimed: false, tasks: [] });
         }
     } catch(e) { 
         console.error("Local Load Error", e); 
@@ -740,20 +774,6 @@ function initGame() {
         }; 
     }
     
-    const titleEl = getEl('main-title-secret');
-    if (titleEl) {
-        titleEl.onclick = () => {
-            secretTaps++;
-            if (secretTapTimer) clearTimeout(secretTapTimer);
-            secretTapTimer = setTimeout(() => { secretTaps = 0; }, 1500);
-            if (secretTaps >= 7) {
-                secretTaps = 0;
-                playSound('win');
-                openModal('admin-modal');
-            }
-        };
-    }
-
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         loadFromCloud();
     } else {
@@ -767,7 +787,8 @@ function loadFromCloud() {
         'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 
         'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 
         'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 
-        'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress', 'petStars', 'activeContracts'
+        'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress', 'petStars', 'activeContracts',
+        'hatchStreak', 'lastHatchDate' // НОВОЕ: Ключи стриков
     ];
     
     Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
@@ -783,6 +804,10 @@ function loadFromCloud() {
                 
                 if (values.pegasusShards) pegasusShards = parseInt(values.pegasusShards);
                 if (values.userJokers) userJokers = parseInt(values.userJokers);
+                
+                // НОВОЕ: Загрузка стриков с облака
+                if (values.hatchStreak) hatchStreak = parseInt(values.hatchStreak);
+                if (values.lastHatchDate) lastHatchDate = values.lastHatchDate;
                 
                 if (values.myCollection) collection = safeParse(values.myCollection, []);
                 if (values.ownedItems) ownedItems = safeParse(values.ownedItems, { themes: ['default'], eggs: ['default'] });
@@ -807,7 +832,7 @@ function loadFromCloud() {
                 if (values.boxAdsProgress) boxAdsProgress = safeParse(values.boxAdsProgress, { epic: 0, mythic: 0 });
                 
                 if (values.petStars) petStars = safeParse(values.petStars, {});
-                if (values.activeContracts) activeContracts = safeParse(values.activeContracts, { date: '', tasks: [] });
+                if (values.activeContracts) activeContracts = safeParse(values.activeContracts, { date: '', allClaimed: false, tasks: [] });
 
                 let profileBtn = getEl('header-profile-btn');
                 if (selectedAvatar !== 'default' && profileBtn) { 
@@ -855,6 +880,8 @@ function saveData(skipTimeUpdate = false) {
     localStorage.setItem('userStars', userStars);
     localStorage.setItem('pegasusShards', pegasusShards);
     localStorage.setItem('userJokers', userJokers);
+    localStorage.setItem('hatchStreak', hatchStreak); // Сохраняем стрик
+    localStorage.setItem('lastHatchDate', lastHatchDate); // Сохраняем дату
     localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
     localStorage.setItem('activeTheme', activeTheme);
     localStorage.setItem('activeEggSkin', activeEggSkin);
@@ -881,6 +908,8 @@ function saveData(skipTimeUpdate = false) {
         Telegram.WebApp.CloudStorage.setItem('userStars', userStars.toString());
         Telegram.WebApp.CloudStorage.setItem('pegasusShards', pegasusShards.toString());
         Telegram.WebApp.CloudStorage.setItem('userJokers', userJokers.toString());
+        Telegram.WebApp.CloudStorage.setItem('hatchStreak', hatchStreak.toString());
+        Telegram.WebApp.CloudStorage.setItem('lastHatchDate', lastHatchDate);
         Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
         Telegram.WebApp.CloudStorage.setItem('userLevel', userLevel.toString());
         Telegram.WebApp.CloudStorage.setItem('myCollection', JSON.stringify(collection));
@@ -1380,10 +1409,6 @@ function switchShopTab(t) {
 function openShop() { 
     switchShopTab('themes'); 
     openModal('shop-modal'); 
-}
-
-function openSettings() { 
-    openModal('settings-modal'); 
 }
 
 function openAch() { 
@@ -2227,7 +2252,7 @@ async function adminSubmitPromo() {
 }
 
 // =============================================================
-// БАЗОВЫЙ ТАЙМЕР И ФОКУС
+// БАЗОВЫЙ ТАЙМЕР И ФОКУС (ОБНОВЛЕННАЯ ЛОГИКА ОПЫТА!)
 // =============================================================
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isRunning && currentHatchMode === 'online') {
@@ -2689,6 +2714,7 @@ function confirmFail(wasInterrupted = true) {
     }
 }
 
+// НОВОЕ: Переработанная функция вылупления и начисления опыта
 function finishTimer(fromOffline = false) {
     clearInterval(timerInterval); 
     isRunning = false; 
@@ -2715,18 +2741,59 @@ function finishTimer(fromOffline = false) {
     let co = getEl('crack-overlay'); 
     if (co) co.className = 'crack-overlay';
 
-    let vipMult = isVip() ? 1.2 : 1;
     const m = MODES[currentModeIndex] || MODES[0]; 
-    userXP += Math.floor(m.xpReward * vipMult); 
+    let baseXP = m.xpReward;
     
-    if (userXP >= userLevel * 200) { 
+    // --- НОВАЯ ЛОГИКА 1: БОНУС ОПЫТА ОТ АВАТАРА ---
+    let avatarBonus = 0;
+    if (selectedAvatar === 'god') {
+        avatarBonus = 0.75;
+    } else {
+        let r = getPetRarity(selectedAvatar);
+        if (r === 'mythic') avatarBonus = 0.50;
+        else if (r === 'legendary') avatarBonus = 0.35;
+        else if (r === 'mutant') avatarBonus = 0.20; // Считаем мутанта за Эпик (+20%)
+        else if (r === 'rare') avatarBonus = 0.10;
+        else avatarBonus = 0.0;
+    }
+
+    // --- НОВАЯ ЛОГИКА 2: СИСТЕМА СТРИКОВ (ПОДРЯД ДНЕЙ) ---
+    const todayStr = new Date().toDateString();
+    if (lastHatchDate !== todayStr) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (lastHatchDate === yesterday.toDateString()) {
+            hatchStreak++; // Плюс день
+        } else {
+            hatchStreak = 1; // Сброс или первый день
+        }
+        lastHatchDate = todayStr;
+    } else if (hatchStreak === 0) {
+        hatchStreak = 1; // Если вылупил впервые в день установки апдейта
+    }
+    
+    // Вычисляем множитель стрика
+    let streakMult = 1.0;
+    if (hatchStreak >= 7) streakMult = 1.5;
+    else if (hatchStreak >= 5) streakMult = 1.3;
+    else if (hatchStreak >= 3) streakMult = 1.2;
+
+    let vipMult = isVip() ? 1.2 : 1;
+    
+    // ИТОГОВАЯ ФОРМУЛА XP
+    let finalXP = Math.floor((baseXP + (baseXP * avatarBonus)) * streakMult * vipMult);
+    userXP += finalXP; 
+    
+    // Цикл повышения уровня
+    while (userXP >= userLevel * 200) { 
         userXP -= userLevel * 200; 
         userLevel++; 
         showToast(`Lvl UP: ${userLevel}`, "🎉"); 
         playSound('win'); 
         
         if (LEVEL_REWARDS[userLevel] && LEVEL_REWARDS[userLevel].reward && LEVEL_REWARDS[userLevel].reward.includes('Уникальный')) {
-            if (userLevel === 50) { 
+            if (userLevel === 50 && !collection.includes("god")) { 
                 collection.push("god"); 
                 showToast("Получен: 🐲 God", "🎁"); 
             }
@@ -2812,7 +2879,10 @@ function finishTimer(fromOffline = false) {
     if (infoBox) infoBox.style.display = 'block';
     
     fireConfetti(); 
-    showToast(`Получено!`, "🐣"); 
+    
+    // Добавили всплывающее сообщение о Стрике
+    let streakMsg = hatchStreak > 1 ? ` (Стрик x${streakMult})` : '';
+    showToast(`Получено +${finalXP} XP${streakMsg}`, "🐣"); 
     updateBalanceUI();
     
     if (isVibrationOn && window.navigator.vibrate) {
@@ -3743,11 +3813,8 @@ function handleBossRaidEnd() {
 }
 
 // =============================================================
-// МИНИ-ИГРА: КВАНТОВЫЙ РЕАКТОР (ЗАМЕНА МЕГА-ЯЙЦА)
+// МИНИ-ИГРА: КВАНТОВЫЙ РЕАКТОР
 // =============================================================
-let engineerCurrentInput = [];
-let requiredCodeLength = 4;
-
 // Вызывать эту функцию при получении события reactor:init от сервера
 window.setupReactorRole = function(role, secretCode = null) {
     let rd = getEl('role-dispatcher');
@@ -3846,7 +3913,7 @@ window.handleReactorEnd = function(status) {
         const modalContent = document.querySelector('#quantum-reactor-modal .modal-content');
         if (modalContent) {
             modalContent.style.animation = "none";
-            void modalContent.offsetWidth; // сброс анимации
+            void modalContent.offsetWidth; 
             modalContent.style.animation = "shakeHard 0.5s cubic-bezier(.36,.07,.19,.97) both";
         }
         showToast("Сбой Реактора! Попытка сгорела.", "💥");
@@ -4222,8 +4289,9 @@ async function claimExpedition() {
         requestStopMiniGame(); 
     }
 }
+
 // =============================================================
-// 13. ГЛОБАЛЬНЫЙ РЫНОК (MARKET)
+// ГЛОБАЛЬНЫЙ РЫНОК (MARKET)
 // =============================================================
 let currentMarketTab = 'all';
 let selectedPetForSale = null;
@@ -4248,7 +4316,7 @@ async function loadMarket() {
     grid.innerHTML = '<div style="text-align:center; color:#888; grid-column: 1 / -1; padding: 20px;">Загрузка товаров... ⏳</div>';
     
     try {
-        const res = await fetch(`${API_URL}/api/market/list`);
+        const res = await fetch(`${API_URL}/market/list`);
         const data = await res.json();
         let lots = data.lots || [];
         
@@ -4309,7 +4377,7 @@ async function buyMarketLot(lotId, price, currency) {
     playSound('click');
     
     try {
-        const res = await fetch(`${API_URL}/api/market/buy`, {
+        const res = await fetch(`${API_URL}/market/buy`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lot_id: lotId, buyer_id: String(getTgUser().id) })
@@ -4414,7 +4482,7 @@ async function submitSellPet() {
     btn.disabled = true;
     
     try {
-        const res = await fetch(`${API_URL}/api/market/sell`, {
+        const res = await fetch(`${API_URL}/market/sell`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -4466,9 +4534,9 @@ window.openSettings = function() {
 async function checkMarketSales() {
     try {
         const uid = String(getTgUser().id);
-        let res = await fetch(`${API_URL}/api/market/rewards/${uid}`);
+        let res = await fetch(`${API_URL}/market/rewards/${uid}`);
         if (!res.ok) {
-            res = await fetch(`${API_URL}/api/api/market/rewards/${uid}`);
+            res = await fetch(`${API_URL}/api/market/rewards/${uid}`);
         }
         
         const data = await res.json();
