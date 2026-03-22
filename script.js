@@ -104,7 +104,7 @@ let dustBalance = 0;
 let hatchStreak = 0; 
 let lastHatchDate = ""; 
 
-// НОВОЕ: Данные Battle Pass
+// Данные Battle Pass
 let claimedRewards = [];
 let mythicTickets = 0;
 
@@ -251,21 +251,20 @@ function getPetRarity(p) {
     return 'common';
 }
 
-// === НОВОЕ: ГЕНЕРАЦИЯ BATTLE PASS ===
+// === НОВОЕ: ГЕНЕРАЦИЯ BATTLE PASS С ПЫЛЬЮ ===
 const BATTLE_PASS_REWARDS = [];
 for (let i = 1; i <= 100; i++) {
-    let free = { type: 'money', val: i * 50, icon: '💰', name: `${i*50} Монет` };
-    let pro = { type: 'dust', val: i * 2, icon: '✨', name: `${i*2} Пыли` };
+    let free = { type: 'money', val: i * 50, icon: '💰', name: `${i*50} Монет`, dustVal: i };
+    let pro = { type: 'dust', val: i * 2, icon: '✨', name: `${i*2} Пыли`, dustVal: 0 }; 
 
-    if (i % 5 === 0) { free = { type: 'luck', val: 1, icon: '🧪', name: 'Удача x1' }; pro = { type: 'stars', val: 10, icon: '⭐️', name: '10 Звезд' }; }
-    if (i % 10 === 0) { free = { type: 'speed', val: 2, icon: '⚡️', name: 'Ускоритель x2' }; pro = { type: 'bio', val: 1, icon: '💉', name: 'Биодобавка x1' }; }
+    if (i % 5 === 0) { free = { type: 'luck', val: 1, icon: '🧪', name: 'Удача x1', dustVal: 10 }; pro = { type: 'stars', val: 10, icon: '⭐️', name: '10 Звезд', dustVal: 10 }; }
+    if (i % 10 === 0) { free = { type: 'speed', val: 2, icon: '⚡️', name: 'Ускоритель x2', dustVal: 15 }; pro = { type: 'bio', val: 1, icon: '💉', name: 'Шприц 💉', dustVal: 25 }; }
 
-    // Главные Майлстоуны
-    if (i === 15) { pro = { type: 'mythic_ticket', val: 1, icon: '🎫', name: 'Билет Рулетки' }; }
-    if (i === 30) { free = { type: 'pet', val: 'alien', icon: 'assets/pets/pet-alien.png', name: 'Пришелец' }; pro = { type: 'joker', val: 1, icon: '🧬', name: 'Ген Мутации' }; }
-    if (i === 50) { free = { type: 'pet', val: 'god', icon: 'assets/pets/pet-god.png', name: 'Бог Фокуса' }; pro = { type: 'theme', val: 'matrix', icon: '🌌', name: 'Фон: Матрица' }; }
-    if (i === 75) { free = { type: 'pet', val: 'pegasus', icon: 'assets/pets/pet-pegasus.png', name: 'Пегас' }; pro = { type: 'mythic_ticket', val: 3, icon: '🎫', name: 'Билеты x3' }; }
-    if (i === 100) { free = { type: 'pet', val: 'dark_dragon', icon: 'assets/pets/pet-dark_dragon.png', name: 'Тёмный Дракон' }; pro = { type: 'stars', val: 500, icon: '⭐️', name: '500 Звезд' }; }
+    if (i === 15) { pro = { type: 'mythic_ticket', val: 1, icon: '🎫', name: 'Билет рулетки', dustVal: 50 }; }
+    if (i === 30) { free = { type: 'pet', val: 'alien', icon: 'assets/pets/pet-alien.png', name: 'Пришелец', dustVal: 100 }; pro = { type: 'joker', val: 1, icon: '🧬', name: 'Ген Мутации', dustVal: 50 }; }
+    if (i === 50) { free = { type: 'pet', val: 'god', icon: 'assets/pets/pet-god.png', name: 'Бог Фокуса', dustVal: 200 }; pro = { type: 'theme', val: 'matrix', icon: '🌌', name: 'Фон: Матрица', dustVal: 100 }; }
+    if (i === 75) { free = { type: 'pet', val: 'pegasus', icon: 'assets/pets/pet-pegasus.png', name: 'Пегас', dustVal: 300 }; pro = { type: 'mythic_ticket', val: 3, icon: '🎫', name: 'Билеты x3', dustVal: 150 }; }
+    if (i === 100) { free = { type: 'pet', val: 'dark_dragon', icon: 'assets/pets/pet-dark_dragon.png', name: 'Тёмный Дракон', dustVal: 500 }; pro = { type: 'stars', val: 500, icon: '⭐️', name: '500 Звезд', dustVal: 250 }; }
 
     BATTLE_PASS_REWARDS.push({ level: i, free, pro });
 }
@@ -692,7 +691,6 @@ function initGame() {
             userJokers = parseInt(localStorage.getItem('userJokers')) || 0; 
             dustBalance = parseInt(localStorage.getItem('dustBalance')) || 0; 
             
-            // Загрузка BATTLE PASS
             claimedRewards = safeParse(localStorage.getItem('claimedRewards'), []);
             mythicTickets = parseInt(localStorage.getItem('mythicTickets')) || 0;
             
@@ -1215,7 +1213,7 @@ async function sendInviteToFriend() {
     }, 1000);
 }
 
-// === НОВОЕ: ОТРИСОВКА BATTLE PASS ===
+// === НОВОЕ: ОТРИСОВКА BATTLE PASS И РАСПЫЛЕНИЕ ===
 function openLevels() {
     const list = getEl('battle-pass-list'); 
     if (!list) return;
@@ -1247,48 +1245,111 @@ function openLevels() {
         const freeClaimed = claimedRewards.includes(`${bp.level}_free`);
         const proClaimed = claimedRewards.includes(`${bp.level}_pro`);
         
-        const div = document.createElement('div'); 
-        div.className = `bp-level-row ${isReached ? 'completed' : ''}`;
+        const col = document.createElement('div'); 
+        col.className = 'bp-col';
         
-        // Free Track
-        let freeBtn = '';
-        if (freeClaimed) freeBtn = `<button class="bp-btn claimed" disabled>✅</button>`;
-        else if (isReached) freeBtn = `<button class="bp-btn" onclick="claimBpReward(${bp.level}, 'free')">Забрать</button>`;
-        else freeBtn = `<button class="bp-btn" disabled>🔒</button>`;
+        // --- Free Card ---
+        let freeIcon = bp.free.icon.includes('.') ? `<img src="${bp.free.icon}" class="bp-icon">` : `<div class="bp-icon">${bp.free.icon}</div>`;
+        let freeBtnHtml = '';
         
-        let freeIcon = bp.free.icon.includes('.') ? `<img src="${bp.free.icon}" class="bp-reward-icon">` : `<div class="bp-reward-icon" style="font-size:20px;">${bp.free.icon}</div>`;
-
-        // Pro Track
-        let proBtn = '';
-        let proLock = !isVip() ? `<div class="bp-lock-icon">🔒</div>` : '';
-        let proTrackClass = `bp-track pro ${!isVip() ? 'locked' : ''}`;
-
-        if (proClaimed) proBtn = `<button class="bp-btn claimed" disabled>✅</button>`;
-        else if (isReached && isVip()) proBtn = `<button class="bp-btn" onclick="claimBpReward(${bp.level}, 'pro')">Забрать</button>`;
-        else proBtn = `<button class="bp-btn" disabled>🔒</button>`;
+        if (freeClaimed) {
+            freeBtnHtml = `<button class="bp-btn claimed" disabled>✅</button>`;
+        } else if (isReached) {
+            freeBtnHtml = `
+                <div style="display:flex; width:100%; gap:2px; justify-content:center;">
+                    <button class="bp-btn" style="flex:1;" onclick="claimBpReward(${bp.level}, 'free')">Взять</button>
+                    ${bp.free.type !== 'dust' ? `<button class="bp-btn dust" style="flex:1;" onclick="dustBpReward(${bp.level}, 'free')">✨${bp.free.dustVal}</button>` : ''}
+                </div>`;
+        } else {
+            freeBtnHtml = `<button class="bp-btn" disabled>🔒</button>`;
+        }
         
-        let proIcon = bp.pro.icon.includes('.') ? `<img src="${bp.pro.icon}" class="bp-reward-icon">` : `<div class="bp-reward-icon" style="font-size:20px;">${bp.pro.icon}</div>`;
-
-        div.innerHTML = `
-            <div class="bp-level-number">Ур.<br>${bp.level}</div>
-            <div class="bp-tracks">
-                <div class="bp-track">
-                    <div class="bp-reward-info">${freeIcon}<div class="bp-reward-text">${bp.free.name}</div></div>
-                    ${freeBtn}
-                </div>
-                <div class="${proTrackClass}">
-                    ${proLock}
-                    <div class="bp-reward-info">${proIcon}<div class="bp-reward-text">${bp.pro.name}</div></div>
-                    ${proBtn}
-                </div>
+        let freeCard = `
+            <div class="bp-card">
+                ${freeIcon}
+                <div class="bp-text">${bp.free.name}</div>
+                ${freeBtnHtml}
             </div>
         `;
-        list.appendChild(div);
+
+        // --- Divider ---
+        let lineClass = isReached ? 'bp-line active' : 'bp-line';
+        let badgeClass = isReached ? 'bp-lvl-badge active' : 'bp-lvl-badge';
+        let divider = `
+            <div class="bp-level-divider">
+                <div class="${lineClass}"></div>
+                <div class="${badgeClass}">${bp.level}</div>
+            </div>
+        `;
+
+        // --- Pro Card ---
+        let proIcon = bp.pro.icon.includes('.') ? `<img src="${bp.pro.icon}" class="bp-icon">` : `<div class="bp-icon">${bp.pro.icon}</div>`;
+        let proBtnHtml = '';
+        let proLockedClass = !isVip() ? 'locked' : '';
+        let proLockOverlay = !isVip() ? `<div class="bp-lock-icon">🔒</div>` : '';
+        
+        if (proClaimed) {
+            proBtnHtml = `<button class="bp-btn claimed" disabled>✅</button>`;
+        } else if (isReached && isVip()) {
+            proBtnHtml = `
+                <div style="display:flex; width:100%; gap:2px; justify-content:center;">
+                    <button class="bp-btn" style="flex:1;" onclick="claimBpReward(${bp.level}, 'pro')">Взять</button>
+                    ${bp.pro.type !== 'dust' ? `<button class="bp-btn dust" style="flex:1;" onclick="dustBpReward(${bp.level}, 'pro')">✨${bp.pro.dustVal}</button>` : ''}
+                </div>`;
+        } else {
+            proBtnHtml = `<button class="bp-btn" disabled>🔒</button>`;
+        }
+
+        let proCard = `
+            <div class="bp-card pro ${proLockedClass}">
+                ${proLockOverlay}
+                ${proIcon}
+                <div class="bp-text">${bp.pro.name}</div>
+                ${proBtnHtml}
+            </div>
+        `;
+
+        col.innerHTML = freeCard + divider + proCard;
+        list.appendChild(col);
     });
+    
     openModal('levels-modal');
+    
+    setTimeout(() => {
+        if(list.children.length > 0) {
+            let targetIndex = Math.max(0, userLevel - 2);
+            let targetChild = list.children[targetIndex];
+            if (targetChild) {
+                list.scrollTo({ left: targetChild.offsetLeft - 20, behavior: 'smooth' });
+            }
+        }
+    }, 100);
 }
 
-// === НОВОЕ: ПОЛУЧЕНИЕ НАГРАДЫ BATTLE PASS ===
+window.dustBpReward = function(level, type) {
+    if (userLevel < level) return;
+    if (type === 'pro' && !isVip()) return showToast("Нужен статус Focus PRO!", "👑");
+    
+    let claimKey = `${level}_${type}`;
+    if (claimedRewards.includes(claimKey)) return;
+    
+    let bp = BATTLE_PASS_REWARDS.find(x => x.level === level);
+    if (!bp) return;
+    
+    let reward = type === 'free' ? bp.free : bp.pro;
+    if (reward.type === 'dust') return; 
+    
+    if (confirm(`Распылить награду "${reward.name}" и получить ${reward.dustVal} ✨?`)) {
+        dustBalance += reward.dustVal;
+        claimedRewards.push(claimKey);
+        saveData();
+        updateBalanceUI();
+        openLevels();
+        playSound('win');
+        showToast(`Награда распылена! +${reward.dustVal} ✨`, "✨");
+    }
+};
+
 window.claimBpReward = function(level, type) {
     if (userLevel < level) return;
     if (type === 'pro' && !isVip()) return showToast("Нужен статус Focus PRO!", "👑");
@@ -1348,7 +1409,6 @@ function checkAchievements() {
         }
     }
     
-    // Подсветка для Батл Пасса
     let hasBpReward = false;
     BATTLE_PASS_REWARDS.forEach(bp => {
         if (userLevel >= bp.level) {
@@ -1946,7 +2006,6 @@ function renderForbesList(tab) {
 // =============================================================
 // РУЛЕТКА И РЕКЛАМА
 // =============================================================
-// === ИЗМЕНЕНИЕ: ЛОГИКА БИЛЕТОВ В РУЛЕТКЕ ===
 function switchRouletteBox(type) {
     playSound('click');
     currentBoxType = type;
@@ -2086,7 +2145,6 @@ function spinRouletteAd() {
     }
 }
 
-// === ИЗМЕНЕНИЕ: ЛОГИКА БИЛЕТОВ В РУЛЕТКЕ ===
 function spinRoulette(method) {
     let cost = 10;
     if (currentBoxType === 'epic') cost = 25;
@@ -2203,7 +2261,7 @@ function spinRoulette(method) {
 
         saveData(); 
         updateBalanceUI();
-        switchRouletteBox(currentBoxType); // Обновляем кнопку, если потратили билет
+        switchRouletteBox(currentBoxType); 
     }, 2000);
 }
 
@@ -2857,75 +2915,170 @@ function confirmFail(wasInterrupted = true) {
     }
 }
 
-// === НОВОЕ: ОТРИСОВКА BATTLE PASS ===
-function openLevels() {
-    const list = getEl('battle-pass-list'); 
-    if (!list) return;
+function finishTimer(fromOffline = false) {
+    clearInterval(timerInterval); 
+    isRunning = false; 
+    localStorage.removeItem('hatchEndTime');
     
-    let banner = getEl('pro-pass-banner');
-    if (banner) {
-        if (isVip()) {
-            banner.innerHTML = `
-                <div style="text-align: left;">
-                    <div style="font-weight: bold; color: #ffd700; font-size: 14px;">Focus PRO 👑 Активен</div>
-                    <div style="font-size: 10px; color: #ccc;">Все премиум-награды доступны!</div>
-                </div>
-            `;
-        } else {
-            banner.innerHTML = `
-                <div style="text-align: left;">
-                    <div style="font-weight: bold; color: #00A3FF; font-size: 14px;">Focus PRO 👑</div>
-                    <div style="font-size: 10px; color: #ccc;">Разблокируй нижнюю линию наград!</div>
-                </div>
-                <button id="buy-pro-pass-btn" class="btn small" style="background: #00A3FF; width: auto; margin: 0;" onclick="closeModal('levels-modal'); openShop();">Купить PRO</button>
-            `;
-        }
+    let ow = getEl('offline-warning'); 
+    if (ow) ow.style.display = 'none'; 
+    
+    let mb = getEl('main-btn'); 
+    if (mb) mb.style.display = 'none';
+    
+    let sbc = getEl('start-buttons-container'); 
+    if (sbc) sbc.style.display = 'flex'; 
+    
+    let sb = getEl('share-btn'); 
+    if (sb) sb.style.display = 'block'; 
+    
+    let pb = getEl('prev-btn'); 
+    if (pb) pb.style.visibility = 'visible'; 
+    
+    let nb = getEl('next-btn'); 
+    if (nb) nb.style.visibility = 'visible';
+    
+    let co = getEl('crack-overlay'); 
+    if (co) co.className = 'crack-overlay';
+
+    const m = MODES[currentModeIndex] || MODES[0]; 
+    let baseXP = m.xpReward;
+    
+    let avatarBonus = 0;
+    if (selectedAvatar === 'god') {
+        avatarBonus = 0.75;
+    } else {
+        let r = getPetRarity(selectedAvatar);
+        if (r === 'mythic') avatarBonus = 0.50;
+        else if (r === 'legendary') avatarBonus = 0.35;
+        else if (r === 'mutant' || r === 'glitch') avatarBonus = 0.20; 
+        else if (r === 'rare') avatarBonus = 0.10;
+        else avatarBonus = 0.0;
     }
 
-    list.innerHTML = '';
+    const todayStr = new Date().toDateString();
+    if (lastHatchDate !== todayStr) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (lastHatchDate === yesterday.toDateString()) {
+            hatchStreak++; 
+        } else {
+            hatchStreak = 1; 
+        }
+        lastHatchDate = todayStr;
+    } else if (hatchStreak === 0) {
+        hatchStreak = 1; 
+    }
     
-    BATTLE_PASS_REWARDS.forEach(bp => {
-        const isReached = userLevel >= bp.level;
-        const freeClaimed = claimedRewards.includes(`${bp.level}_free`);
-        const proClaimed = claimedRewards.includes(`${bp.level}_pro`);
-        
-        const div = document.createElement('div'); 
-        div.className = `bp-level-row ${isReached ? 'completed' : ''}`;
-        
-        // Free Track
-        let freeBtn = '';
-        if (freeClaimed) freeBtn = `<button class="bp-btn claimed" disabled>✅ Забрано</button>`;
-        else if (isReached) freeBtn = `<button class="bp-btn" onclick="claimBpReward(${bp.level}, 'free')">Забрать</button>`;
-        else freeBtn = `<button class="bp-btn" disabled>🔒 ${bp.level} ур.</button>`;
-        
-        let freeIcon = bp.free.icon.includes('.') ? `<img src="${bp.free.icon}" class="bp-reward-icon">` : `<div class="bp-reward-icon">${bp.free.icon}</div>`;
+    let streakMult = 1.0;
+    if (hatchStreak >= 7) streakMult = 1.5;
+    else if (hatchStreak >= 5) streakMult = 1.3;
+    else if (hatchStreak >= 3) streakMult = 1.2;
 
-        // Pro Track
-        let proBtn = '';
-        let proTrackClass = `bp-track pro ${!isVip() ? 'locked' : ''}`;
+    let vipMult = isVip() ? 1.2 : 1;
+    
+    let finalXP = Math.floor((baseXP + (baseXP * avatarBonus)) * streakMult * vipMult);
+    userXP += finalXP; 
+    
+    while (userXP >= userLevel * 200) { 
+        userXP -= userLevel * 200; 
+        userLevel++; 
+        showToast(`Lvl UP: ${userLevel} 🏆`, "🎉"); 
+        playSound('win'); 
+    }
+    
+    localStorage.setItem('userXP', userXP); 
+    localStorage.setItem('userLevel', userLevel); 
+    updateLevelUI();
+    userStats.hatched++;
 
-        if (proClaimed) proBtn = `<button class="bp-btn claimed" disabled>✅ Забрано</button>`;
-        else if (isReached && isVip()) proBtn = `<button class="bp-btn" onclick="claimBpReward(${bp.level}, 'pro')">Забрать</button>`;
-        else proBtn = `<button class="bp-btn" disabled>🔒 ${!isVip() ? 'PRO' : bp.level + ' ур.'}</button>`;
+    apiSyncGlobalProfile();
+    updateContract('hatch', 1); 
+    
+    let pool;
+    
+    if (m.id === 'radio' || activeBoosters.bio) {
+        pool = petDatabase.mutant;
+        playSound('legendary'); 
+    } 
+    else if (m.id === 'alien') {
+        if (Math.random() < 0.10) pool = petDatabase.mythic;
+        else pool = petDatabase.legendary;
+        playSound('legendary');
+    }
+    else if (m.id === 'anomal') {
+        pool = petDatabase.glitch;
+        playSound('legendary');
+    }
+    else if (currentModeIndex === 2 && customEggConfig.target !== 'all') {
+        if (fromOffline && customEggConfig.target === 'legendary') {
+            pool = petDatabase.rare;
+            playSound('win');
+            showToast("В оффлайне легендарки не выпадают!", "⚠️");
+        } else {
+            pool = petDatabase[customEggConfig.target]; 
+            playSound(customEggConfig.target === 'legendary' ? 'legendary' : 'win');
+        }
+    } else {
+        let leg = m.id === 'short' ? 1 : 5; 
+        let rare = m.id === 'short' ? 15 : 30;
         
-        let proIcon = bp.pro.icon.includes('.') ? `<img src="${bp.pro.icon}" class="bp-reward-icon">` : `<div class="bp-reward-icon">${bp.pro.icon}</div>`;
+        if (activeBoosters.luck) { 
+            leg *= 5; 
+            myBoosters.luck--; 
+            activeBoosters.luck = false; 
+        }
+        
+        if (fromOffline) {
+            rare += leg; 
+            leg = 0; 
+        }
 
-        div.innerHTML = `
-            <div class="bp-level-number">Ур.<br>${bp.level}</div>
-            <div class="bp-tracks">
-                <div class="bp-track">
-                    <div class="bp-reward-info">${freeIcon}<div class="bp-reward-text">${bp.free.name}</div></div>
-                    ${freeBtn}
-                </div>
-                <div class="${proTrackClass}">
-                    <div class="bp-reward-info">${proIcon}<div class="bp-reward-text">${bp.pro.name}</div></div>
-                    ${proBtn}
-                </div>
-            </div>
-        `;
-        list.appendChild(div);
-    });
-    openModal('levels-modal');
+        const rnd = Math.random() * 100;
+        if (rnd < leg) { 
+            pool = petDatabase.legendary; 
+            playSound('legendary'); 
+        } else if (rnd < leg + rare) { 
+            pool = petDatabase.rare; 
+            playSound('win'); 
+        } else { 
+            pool = petDatabase.common; 
+            playSound('win'); 
+        }
+    }
+    
+    const dropped = pool[Math.floor(Math.random() * pool.length)]; 
+    collection.push(dropped); 
+    saveData();
+    
+    const eggDisplay = getEl('egg-display');
+    if (eggDisplay) {
+        eggDisplay.src = `assets/pets/pet-${dropped}.png`; 
+        eggDisplay.className = `hatched-img ${getPetRarity(dropped)}`;
+    }
+    
+    const infoBox = getEl('hatched-info'); 
+    let hn = getEl('hatched-name'); 
+    if (hn) hn.textContent = PET_NAMES[dropped] || "Питомец";
+    
+    const rarityElem = getEl('hatched-rarity'); 
+    if (rarityElem) { 
+        rarityElem.textContent = getPetRarity(dropped); 
+        rarityElem.className = getPetRarity(dropped); 
+    }
+    
+    if (infoBox) infoBox.style.display = 'block';
+    
+    fireConfetti(); 
+    
+    let streakMsg = hatchStreak > 1 ? ` (Стрик x${streakMult})` : '';
+    showToast(`Получено +${finalXP} XP${streakMsg}`, "🐣"); 
+    updateBalanceUI();
+    
+    if (isVibrationOn && window.navigator.vibrate) {
+        window.navigator.vibrate(200);
+    }
 }
 
 // =============================================================
