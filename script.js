@@ -2857,171 +2857,75 @@ function confirmFail(wasInterrupted = true) {
     }
 }
 
-// === ИЗМЕНЕНИЕ: ЛОГИКА УРОВНЕЙ БЕЗ АВТО-ВЫДАЧИ ПЕТА (ТЕПЕРЬ ВСЕ ЧЕРЕЗ BATTLE PASS) ===
-function finishTimer(fromOffline = false) {
-    clearInterval(timerInterval); 
-    isRunning = false; 
-    localStorage.removeItem('hatchEndTime');
+// === НОВОЕ: ОТРИСОВКА BATTLE PASS ===
+function openLevels() {
+    const list = getEl('battle-pass-list'); 
+    if (!list) return;
     
-    let ow = getEl('offline-warning'); 
-    if (ow) ow.style.display = 'none'; 
-    
-    let mb = getEl('main-btn'); 
-    if (mb) mb.style.display = 'none';
-    
-    let sbc = getEl('start-buttons-container'); 
-    if (sbc) sbc.style.display = 'flex'; 
-    
-    let sb = getEl('share-btn'); 
-    if (sb) sb.style.display = 'block'; 
-    
-    let pb = getEl('prev-btn'); 
-    if (pb) pb.style.visibility = 'visible'; 
-    
-    let nb = getEl('next-btn'); 
-    if (nb) nb.style.visibility = 'visible';
-    
-    let co = getEl('crack-overlay'); 
-    if (co) co.className = 'crack-overlay';
-
-    const m = MODES[currentModeIndex] || MODES[0]; 
-    let baseXP = m.xpReward;
-    
-    let avatarBonus = 0;
-    if (selectedAvatar === 'god') {
-        avatarBonus = 0.75;
-    } else {
-        let r = getPetRarity(selectedAvatar);
-        if (r === 'mythic') avatarBonus = 0.50;
-        else if (r === 'legendary') avatarBonus = 0.35;
-        else if (r === 'mutant' || r === 'glitch') avatarBonus = 0.20; 
-        else if (r === 'rare') avatarBonus = 0.10;
-        else avatarBonus = 0.0;
-    }
-
-    const todayStr = new Date().toDateString();
-    if (lastHatchDate !== todayStr) {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        if (lastHatchDate === yesterday.toDateString()) {
-            hatchStreak++; 
+    let banner = getEl('pro-pass-banner');
+    if (banner) {
+        if (isVip()) {
+            banner.innerHTML = `
+                <div style="text-align: left;">
+                    <div style="font-weight: bold; color: #ffd700; font-size: 14px;">Focus PRO 👑 Активен</div>
+                    <div style="font-size: 10px; color: #ccc;">Все премиум-награды доступны!</div>
+                </div>
+            `;
         } else {
-            hatchStreak = 1; 
+            banner.innerHTML = `
+                <div style="text-align: left;">
+                    <div style="font-weight: bold; color: #00A3FF; font-size: 14px;">Focus PRO 👑</div>
+                    <div style="font-size: 10px; color: #ccc;">Разблокируй нижнюю линию наград!</div>
+                </div>
+                <button id="buy-pro-pass-btn" class="btn small" style="background: #00A3FF; width: auto; margin: 0;" onclick="closeModal('levels-modal'); openShop();">Купить PRO</button>
+            `;
         }
-        lastHatchDate = todayStr;
-    } else if (hatchStreak === 0) {
-        hatchStreak = 1; 
     }
-    
-    let streakMult = 1.0;
-    if (hatchStreak >= 7) streakMult = 1.5;
-    else if (hatchStreak >= 5) streakMult = 1.3;
-    else if (hatchStreak >= 3) streakMult = 1.2;
 
-    let vipMult = isVip() ? 1.2 : 1;
+    list.innerHTML = '';
     
-    let finalXP = Math.floor((baseXP + (baseXP * avatarBonus)) * streakMult * vipMult);
-    userXP += finalXP; 
-    
-    while (userXP >= userLevel * 200) { 
-        userXP -= userLevel * 200; 
-        userLevel++; 
-        showToast(`Lvl UP: ${userLevel} 🏆`, "🎉"); 
-        playSound('win'); 
-    }
-    
-    localStorage.setItem('userXP', userXP); 
-    localStorage.setItem('userLevel', userLevel); 
-    updateLevelUI();
-    userStats.hatched++;
-
-    apiSyncGlobalProfile();
-    updateContract('hatch', 1); 
-    
-    let pool;
-    
-    if (m.id === 'radio' || activeBoosters.bio) {
-        pool = petDatabase.mutant;
-        playSound('legendary'); 
-    } 
-    else if (m.id === 'alien') {
-        if (Math.random() < 0.10) pool = petDatabase.mythic;
-        else pool = petDatabase.legendary;
-        playSound('legendary');
-    }
-    else if (m.id === 'anomal') {
-        pool = petDatabase.glitch;
-        playSound('legendary');
-    }
-    else if (currentModeIndex === 2 && customEggConfig.target !== 'all') {
-        if (fromOffline && customEggConfig.target === 'legendary') {
-            pool = petDatabase.rare;
-            playSound('win');
-            showToast("В оффлайне легендарки не выпадают!", "⚠️");
-        } else {
-            pool = petDatabase[customEggConfig.target]; 
-            playSound(customEggConfig.target === 'legendary' ? 'legendary' : 'win');
-        }
-    } else {
-        let leg = m.id === 'short' ? 1 : 5; 
-        let rare = m.id === 'short' ? 15 : 30;
+    BATTLE_PASS_REWARDS.forEach(bp => {
+        const isReached = userLevel >= bp.level;
+        const freeClaimed = claimedRewards.includes(`${bp.level}_free`);
+        const proClaimed = claimedRewards.includes(`${bp.level}_pro`);
         
-        if (activeBoosters.luck) { 
-            leg *= 5; 
-            myBoosters.luck--; 
-            activeBoosters.luck = false; 
-        }
+        const div = document.createElement('div'); 
+        div.className = `bp-level-row ${isReached ? 'completed' : ''}`;
         
-        if (fromOffline) {
-            rare += leg; 
-            leg = 0; 
-        }
+        // Free Track
+        let freeBtn = '';
+        if (freeClaimed) freeBtn = `<button class="bp-btn claimed" disabled>✅ Забрано</button>`;
+        else if (isReached) freeBtn = `<button class="bp-btn" onclick="claimBpReward(${bp.level}, 'free')">Забрать</button>`;
+        else freeBtn = `<button class="bp-btn" disabled>🔒 ${bp.level} ур.</button>`;
+        
+        let freeIcon = bp.free.icon.includes('.') ? `<img src="${bp.free.icon}" class="bp-reward-icon">` : `<div class="bp-reward-icon">${bp.free.icon}</div>`;
 
-        const rnd = Math.random() * 100;
-        if (rnd < leg) { 
-            pool = petDatabase.legendary; 
-            playSound('legendary'); 
-        } else if (rnd < leg + rare) { 
-            pool = petDatabase.rare; 
-            playSound('win'); 
-        } else { 
-            pool = petDatabase.common; 
-            playSound('win'); 
-        }
-    }
-    
-    const dropped = pool[Math.floor(Math.random() * pool.length)]; 
-    collection.push(dropped); 
-    saveData();
-    
-    const eggDisplay = getEl('egg-display');
-    if (eggDisplay) {
-        eggDisplay.src = `assets/pets/pet-${dropped}.png`; 
-        eggDisplay.className = `hatched-img ${getPetRarity(dropped)}`;
-    }
-    
-    const infoBox = getEl('hatched-info'); 
-    let hn = getEl('hatched-name'); 
-    if (hn) hn.textContent = PET_NAMES[dropped] || "Питомец";
-    
-    const rarityElem = getEl('hatched-rarity'); 
-    if (rarityElem) { 
-        rarityElem.textContent = getPetRarity(dropped); 
-        rarityElem.className = getPetRarity(dropped); 
-    }
-    
-    if (infoBox) infoBox.style.display = 'block';
-    
-    fireConfetti(); 
-    
-    let streakMsg = hatchStreak > 1 ? ` (Стрик x${streakMult})` : '';
-    showToast(`Получено +${finalXP} XP${streakMsg}`, "🐣"); 
-    updateBalanceUI();
-    
-    if (isVibrationOn && window.navigator.vibrate) {
-        window.navigator.vibrate(200);
-    }
+        // Pro Track
+        let proBtn = '';
+        let proTrackClass = `bp-track pro ${!isVip() ? 'locked' : ''}`;
+
+        if (proClaimed) proBtn = `<button class="bp-btn claimed" disabled>✅ Забрано</button>`;
+        else if (isReached && isVip()) proBtn = `<button class="bp-btn" onclick="claimBpReward(${bp.level}, 'pro')">Забрать</button>`;
+        else proBtn = `<button class="bp-btn" disabled>🔒 ${!isVip() ? 'PRO' : bp.level + ' ур.'}</button>`;
+        
+        let proIcon = bp.pro.icon.includes('.') ? `<img src="${bp.pro.icon}" class="bp-reward-icon">` : `<div class="bp-reward-icon">${bp.pro.icon}</div>`;
+
+        div.innerHTML = `
+            <div class="bp-level-number">Ур.<br>${bp.level}</div>
+            <div class="bp-tracks">
+                <div class="bp-track">
+                    <div class="bp-reward-info">${freeIcon}<div class="bp-reward-text">${bp.free.name}</div></div>
+                    ${freeBtn}
+                </div>
+                <div class="${proTrackClass}">
+                    <div class="bp-reward-info">${proIcon}<div class="bp-reward-text">${bp.pro.name}</div></div>
+                    ${proBtn}
+                </div>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+    openModal('levels-modal');
 }
 
 // =============================================================

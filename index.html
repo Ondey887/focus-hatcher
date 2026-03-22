@@ -248,19 +248,18 @@
         
         /* === НОВОЕ: СТИЛИ ДЛЯ BATTLE PASS (ПУТЬ ФОКУСА) === */
         .bp-level-row { display: flex; align-items: center; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); padding: 10px; position: relative; overflow: hidden; margin-bottom: 10px; }
-        .bp-level-row.completed { border-color: #34c759; }
-        .bp-level-number { min-width: 50px; text-align: center; font-weight: bold; font-size: 16px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 10px; margin-right: 10px; }
+        .bp-level-row.completed { border-color: #34c759; background: rgba(52, 199, 89, 0.05); }
+        .bp-level-number { min-width: 45px; text-align: center; font-weight: 900; font-size: 16px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 10px; margin-right: 10px; color: #fff; }
         .bp-tracks { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .bp-track { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px; position: relative; overflow: hidden; }
+        .bp-track { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 12px; position: relative; overflow: hidden; }
         .bp-track.pro { background: rgba(0, 163, 255, 0.05); border: 1px solid rgba(0, 163, 255, 0.2); }
-        .bp-track.locked::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); border-radius: 8px; z-index: 1; }
-        .bp-lock-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; font-size: 20px; text-shadow: 0 0 10px #000; }
-        .bp-reward-info { display: flex; align-items: center; gap: 8px; z-index: 2; }
-        .bp-reward-icon { width: 30px; height: 30px; object-fit: contain; }
-        .bp-reward-text { font-size: 12px; font-weight: bold; }
-        .bp-btn { z-index: 2; font-size: 11px; padding: 5px 10px; border-radius: 6px; background: #34c759; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .bp-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
-        .bp-btn.claimed { background: transparent; color: #34c759; }
+        .bp-track.locked::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); border-radius: 8px; z-index: 1; }
+        .bp-reward-info { display: flex; align-items: center; gap: 10px; z-index: 2; }
+        .bp-reward-icon { width: 28px; height: 28px; object-fit: contain; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .bp-reward-text { font-size: 13px; font-weight: bold; color: #fff; }
+        .bp-btn { z-index: 2; font-size: 12px; padding: 6px 12px; border-radius: 8px; background: #34c759; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .bp-btn:disabled { background: rgba(255,255,255,0.1); color: #888; cursor: not-allowed; }
+        .bp-btn.claimed { background: transparent; color: #34c759; border: 1px solid #34c759; pointer-events: none; }
 
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
