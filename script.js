@@ -88,8 +88,11 @@ function playNote(freq, time, duration) {
 // =============================================================
 const API_URL = "https://focushatcher-ondey.amvera.io/api"; 
 const botLink = "https://t.me/FocusHatcher_Ondey_bot/game"; 
-let modalStack = [];
 
+// НОВОЕ: Подключение WebSockets к серверу (без /api на конце!)
+const socket = io("https://focushatcher-ondey.amvera.io");
+
+let modalStack = [];
 // Основной прогресс
 let collection = [];
 let userXP = 0;
@@ -3400,6 +3403,12 @@ async function apiCreateParty() {
         if (pav) pav.style.display = 'block';
         
         showToast("Пати создано! Ты лидер 👑", "🎮");
+        
+        // НОВОЕ: Подключаемся к комнате WebSockets!
+        if (typeof socket !== 'undefined') {
+            socket.emit('joinRoom', { roomId: currentPartyCode });
+        }
+        
         startPartyPolling();
     } catch (e) { 
         showToast("Ошибка сервера", "❌"); 
@@ -3439,6 +3448,12 @@ async function apiJoinParty(prefilledCode = null) {
             if (pav) pav.style.display = 'block';
             
             showToast("Успешный вход!", "✅");
+            
+            // НОВОЕ: Подключаемся к комнате WebSockets!
+            if (typeof socket !== 'undefined') {
+                socket.emit('joinRoom', { roomId: currentPartyCode });
+            }
+            
             startPartyPolling();
         } else {
             showToast("Пати не найдено", "❌");
