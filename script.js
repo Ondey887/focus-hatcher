@@ -3962,6 +3962,7 @@ window.renderEngineerSlots = function() {
     }
 }
 
+// === БАГ 2: КНОПКИ ИНЖЕНЕРА (ОТПРАВКА НА СЕРВЕР) ===
 window.reactorTypeGene = function(gene) {
     if (engineerCurrentInput.length >= requiredCodeLength) return;
     if (typeof playSound === 'function') playSound('click');
@@ -3969,43 +3970,66 @@ window.reactorTypeGene = function(gene) {
     engineerCurrentInput.push(gene);
     renderEngineerSlots();
     
+    // Если слоты заполнены, шлем на сервер через WebSocket
     if (engineerCurrentInput.length === requiredCodeLength) {
-        console.log("Код отправлен на проверку:", engineerCurrentInput);
-        showToast("Код отправлен Диспетчеру на проверку!", "📡");
+        socket.emit('submitCode', { 
+            roomId: currentPartyCode, // ID комнаты (Пати)
+            code: engineerCurrentInput 
+        });
+        showToast("Код отправлен на проверку...", "📡");
     }
 }
 
-window.reactorClearInput = function() {
-    engineerCurrentInput = [];
-    renderEngineerSlots();
-}
+// === БАГ 1 & 2: СЛУШАТЕЛИ WEBSOCKET ОТ СЕРВЕРА ===
+// (Предполагается, что переменная socket у тебя инициализирована)
 
-window.triggerReactorPenalty = function() {
-    playSound('wrong');
-    const slots = getEl('engineer-input-slots');
-    if (slots) slots.classList.add('shake-hard');
-    setTimeout(() => {
-        if (slots) slots.classList.remove('shake-hard');
-        reactorClearInput();
-    }, 400);
-}
-
-window.handleReactorEnd = function(status) {
-    if (status === 'win') {
-        playSound('win');
-        showToast("Реактор запущен! Инкубаторы x2 на 3 часа!", "⚛️");
-        closeModal('quantum-reactor-modal');
-    } else {
-        const modalContent = document.querySelector('#quantum-reactor-modal .modal-content');
-        if (modalContent) {
-            modalContent.style.animation = "none";
-            void modalContent.offsetWidth; 
-            modalContent.style.animation = "shakeHard 0.5s cubic-bezier(.36,.07,.19,.97) both";
-        }
-        showToast("Сбой Реактора! Попытка сгорела.", "💥");
-        setTimeout(() => closeModal('quantum-reactor-modal'), 1500);
+// 1. Реактивное обновление таймера
+socket.on('timerUpdate', (timeLeft) => {
+    const timerEl = document.getElementById('reactor-timer');
+    if (timerEl) {
+        timerEl.textContent = timeLeft.toFixed(1);
+        // Красим в красный, если времени мало
+        if (timeLeft <= 10) timerEl.style.color = '#ff3b30';
+        else timerEl.style.color = '#fff';
     }
-}
+});
+
+// 2. Код введен ВЕРНО
+socket.on('correctCode', (data) => {
+    reactorClearInput(); // Очищаем слоты Инженера
+    playSound('win');
+    
+    // Обновляем полоску прогресса
+    const progressText = document.getElementById('reactor-progress-text');
+    const progressBar = document.getElementById('reactor-progress-bar');
+    if (progressText) progressText.textContent = data.progress;
+    if (progressBar) progressBar.style.width = `${(data.progress / 3) * 100}%`;
+    
+    // Если у игрока открыт экран Диспетчера - показываем ему новый код
+    if (document.getElementById('role-dispatcher').style.display === 'block') {
+        renderDispatcherCode(data.newCode);
+    }
+    showToast("Код подошел! Продолжаем!", "✅");
+});
+
+// 3. Код введен НЕВЕРНО
+socket.on('wrongCode', (data) => {
+    triggerReactorPenalty(); // Вызываем тряску слотов (уже есть в твоем коде)
+    showToast("-5 секунд за ошибку!", "❌");
+    
+    // Синхронизируем сброшенное время
+    const timerEl = document.getElementById('reactor-timer');
+    if (timerEl) timerEl.textContent = data.newTimeLeft.toFixed(1);
+});
+
+// 4. Конец игры
+socket.on('gameWon', () => {
+    handleReactorEnd('win'); // Функция победы (уже есть в твоем коде)
+});
+
+socket.on('gameOver', () => {
+    handleReactorEnd('lose'); // Функция поражения (уже есть в твоем коде)
+});
 
 // =============================================================
 // МИНИ-ИГРА: ЭКСПЕДИЦИЯ
