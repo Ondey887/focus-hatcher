@@ -113,7 +113,7 @@ let ownedItems = { themes: ['default'], eggs: ['default'] };
 let activeTheme = 'default';
 let activeEggSkin = 'default';
 let selectedAvatar = 'default';
-let userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0 };
+let userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0, totalDaysLogged: 0, baseTickets: 0, epicTickets: 0 };
 let myBoosters = { luck: 0, speed: 0, bio: 0 };
 let claimedAchievements = [];
 let claimedQuests = [];
@@ -214,10 +214,10 @@ const PET_NAMES = {
     "frog": "Лягушка", "bear": "Мишка", "koala": "Коала", "duck": "Утенок", "caterpillar": "Гусеница",
     "fox": "Лисенок", "panda": "Панда", "tiger": "Тигренок", "lion": "Львенок", "cow": "Коровка",
     "pig": "Свинка", "monkey": "Обезьянка", "owl": "Сова",
-    "raccoon": "Енот", "panther": "Пантера",
+    "raccoon": "Енот", "panther": "Пантера", "cyber_fox": "Кибер-лис",
     "unicorn": "Единорог", "dragon": "Дракон", "alien": "Пришелец", "robot": "Робот", "dino": "Динозавр",
     "fireball": "Огонек", "god": "Бог Фокуса", "pegasus": "Мифический Пегас",
-    "cerberus": "Цербер", "dark_dragon": "Темный Дракон",
+    "cerberus": "Цербер", "dark_dragon": "Темный Дракон", "neon_dragon": "Неоновый Дракон",
     "mutant_cat": "Мутакот ☢️", "mutant_dog": "Токси-Пёс ☢️", "mutant_dragon": "Гамма-Ящер ☢️",
     "cyber_cat": "Кибер-Кот 👾", "matrix_dog": "Матричный Пёс 👾"
 };
@@ -225,9 +225,9 @@ const PET_NAMES = {
 const petDatabase = {
     common: ["chick", "kitten", "puppy", "hamster", "bunny", "frog", "bear", "koala", "duck", "caterpillar"],
     rare: ["fox", "panda", "tiger", "lion", "cow", "pig", "monkey", "owl"],
-    epic: ["raccoon", "panther"],
+    epic: ["raccoon", "panther", "cyber_fox"],
     legendary: ["unicorn", "dragon", "alien", "robot", "dino", "fireball"],
-    mythic: ["pegasus", "cerberus", "dark_dragon"],
+    mythic: ["pegasus", "cerberus", "dark_dragon", "neon_dragon"],
     mutant: ["mutant_cat", "mutant_dog", "mutant_dragon"],
     glitch: ["cyber_cat", "matrix_dog"]
 };
@@ -251,20 +251,38 @@ function getPetRarity(p) {
     return 'common';
 }
 
-// === НОВОЕ: ГЕНЕРАЦИЯ BATTLE PASS С ПЫЛЬЮ ===
+// === BATTLE PASS 100 УРОВНЕЙ С БИЛЕТАМИ, ШПРИЦАМИ И ЛЕГЕНДАМИ ===
 const BATTLE_PASS_REWARDS = [];
 for (let i = 1; i <= 100; i++) {
-    let free = { type: 'money', val: i * 50, icon: '💰', name: `${i*50} Монет`, dustVal: i };
-    let pro = { type: 'dust', val: i * 2, icon: '✨', name: `${i*2} Пыли`, dustVal: 0 }; 
+    let free = { type: 'money', val: i * 500, icon: '💰', name: `${i*500} Монет`, dustVal: i * 5 };
+    let pro = { type: 'dust', val: i * 5, icon: '✨', name: `${i*5} Пыли`, dustVal: 0 }; 
 
-    if (i % 5 === 0) { free = { type: 'luck', val: 1, icon: '🧪', name: 'Удача x1', dustVal: 10 }; pro = { type: 'stars', val: 10, icon: '⭐️', name: '10 Звезд', dustVal: 10 }; }
-    if (i % 10 === 0) { free = { type: 'speed', val: 2, icon: '⚡️', name: 'Ускоритель x2', dustVal: 15 }; pro = { type: 'bio', val: 1, icon: '💉', name: 'Шприц 💉', dustVal: 25 }; }
+    if (i % 10 === 5) { 
+        free = { type: 'roulette_ticket', val: 'base', icon: '🎟️', name: 'Обычный Билет', dustVal: 10 };
+        pro = { type: 'stars', val: 15, icon: '⭐️', name: '15 Звезд', dustVal: 10 };
+    }
+    if (i % 10 === 0) { 
+        free = { type: 'roulette_ticket', val: 'epic', icon: '🎫', name: 'Эпик Билет', dustVal: 20 };
+        pro = { type: 'joker', val: 1, icon: '🧬', name: 'Ген Мутации', dustVal: 50 };
+    }
 
-    if (i === 15) { pro = { type: 'mythic_ticket', val: 1, icon: '🎫', name: 'Билет рулетки', dustVal: 50 }; }
-    if (i === 30) { free = { type: 'pet', val: 'alien', icon: 'assets/pets/pet-alien.png', name: 'Пришелец', dustVal: 100 }; pro = { type: 'joker', val: 1, icon: '🧬', name: 'Ген Мутации', dustVal: 50 }; }
-    if (i === 50) { free = { type: 'pet', val: 'god', icon: 'assets/pets/pet-god.png', name: 'Бог Фокуса', dustVal: 200 }; pro = { type: 'theme', val: 'matrix', icon: '🌌', name: 'Фон: Матрица', dustVal: 100 }; }
-    if (i === 75) { free = { type: 'pet', val: 'pegasus', icon: 'assets/pets/pet-pegasus.png', name: 'Пегас', dustVal: 300 }; pro = { type: 'mythic_ticket', val: 3, icon: '🎫', name: 'Билеты x3', dustVal: 150 }; }
-    if (i === 100) { free = { type: 'pet', val: 'dark_dragon', icon: 'assets/pets/pet-dark_dragon.png', name: 'Тёмный Дракон', dustVal: 500 }; pro = { type: 'stars', val: 500, icon: '⭐️', name: '500 Звезд', dustVal: 250 }; }
+    // Глобальные Чекпоинты
+    if (i === 25) { 
+        free = { type: 'pet_and_ticket', pet: 'cyber_fox', ticket: 'epic', icon: '🦊', name: 'Кибер-лис + Билет', dustVal: 100 }; 
+        pro = { type: 'bg_and_ticket', bg: 'cyberpunk', ticket: 'mythic', icon: '🌆', name: 'Cyberpunk + Билет', dustVal: 200 }; 
+    }
+    if (i === 50) { 
+        free = { type: 'pet', val: 'god', icon: 'assets/pets/pet-god.png', name: 'Бог Фокуса', dustVal: 200 }; 
+        pro = { type: 'bundle_50', icon: '🎁', name: '2 Гена + 50 ⭐️ + Билет', dustVal: 300 }; 
+    }
+    if (i === 75) { 
+        free = { type: 'pet', val: 'pegasus', icon: 'assets/pets/pet-pegasus.png', name: 'Пегас', dustVal: 300 }; 
+        pro = { type: 'bundle_75', icon: '🎁', name: 'Яйцо Голограмма + 3 Гена', dustVal: 400 }; 
+    }
+    if (i === 100) { 
+        free = { type: 'pet', val: 'dark_dragon', icon: 'assets/pets/pet-dark_dragon.png', name: 'Тёмный Дракон', dustVal: 500 }; 
+        pro = { type: 'bundle_100', icon: '🎁', name: 'Матрица + 150⭐️ + Неон Дракон', dustVal: 1000 }; 
+    }
 
     BATTLE_PASS_REWARDS.push({ level: i, free, pro });
 }
@@ -285,39 +303,50 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
+// ОБНОВЛЕННЫЕ ЦЕНЫ С ДИНАМИКОЙ
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
-        { id: 'forest', name: 'Лес', price: 500, bgFile: 'assets/bg/bg-forest.jpg' },
-        { id: 'space', name: 'Космос', price: 2000, bgFile: 'assets/bg/bg-space.jpg' },
-        { id: 'neon', name: 'Неон', price: 5000, bgFile: 'assets/bg/bg-neon.jpg' },
-        { id: 'gold', name: 'Мажор', price: 10000, bgFile: 'assets/bg/bg-gold.jpg' },
-        { id: 'matrix', name: 'Матрица PRO', price: '100 ⭐️', isPremium: true, bgFile: null }
+        { id: 'forest', name: 'Лес', price: 10000, bgFile: 'assets/bg/bg-forest.jpg' },
+        { id: 'space', name: 'Космос', price: 25000, bgFile: 'assets/bg/bg-space.jpg' },
+        { id: 'neon', name: 'Неон', price: 50000, bgFile: 'assets/bg/bg-neon.jpg' },
+        { id: 'cyberpunk', name: 'Киберпанк (PRO 25)', price: 'Заблокировано', isPremium: true, bgFile: 'assets/bg/bg-cyberpunk.jpg' },
+        { id: 'matrix', name: 'Матрица (PRO 100)', price: '50 ⭐️', isPremium: true, bgFile: null }
     ],
     eggs: [
         { id: 'default', name: 'Стандарт', price: 0, img: 'assets/eggs/egg-default.png' },
-        { id: 'glow', name: 'Сияние', price: 1000, img: 'assets/eggs/egg-glow.png' },
-        { id: 'ice', name: 'Лед', price: 3000, img: 'assets/eggs/egg-ice.png' },
-        { id: 'glitch', name: 'Глюк', price: 7777, img: 'assets/eggs/egg-glitch.png' },
-        { id: 'gold', name: 'Золото', price: 15000, img: 'assets/eggs/egg-gold.png' },
-        { id: 'holo', name: 'Голограмма PRO', price: '100 ⭐️', isPremium: true, img: 'assets/eggs/egg-ice.png' }
+        { id: 'glow', name: 'Сияние', price: 10000, img: 'assets/eggs/egg-glow.png' },
+        { id: 'ice', name: 'Лед', price: 20000, img: 'assets/eggs/egg-ice.png' },
+        { id: 'glitch', name: 'Глюк', price: 50000, img: 'assets/eggs/egg-glitch.png' },
+        { id: 'holo', name: 'Голограмма', price: '20 ⭐️', isPremium: true, img: 'assets/eggs/egg-ice.png' }
     ],
     boosters: [
-        { id: 'luck', name: 'Зелье Удачи', price: 4990, icon: 'assets/ui/booster-luck.png', desc: 'Шанс x5' },
-        { id: 'speed', name: 'Ускоритель', price: 9990, icon: 'assets/ui/booster-speed.png', desc: 'Меньше времени' },
-        { id: 'bio', name: 'Биодобавка 💉', price: '50 ⭐️', icon: '💉', desc: 'Мутант гарантирован' }
+        { id: 'luck', name: 'Зелье Удачи', baseCoins: 5000, baseStars: 5, icon: 'assets/ui/booster-luck.png', desc: 'Шанс x5' },
+        { id: 'speed', name: 'Ускоритель', baseCoins: 5000, baseStars: 5, icon: 'assets/ui/booster-speed.png', desc: 'Меньше времени' },
+        { id: 'bio', name: 'Шприц 💉', baseCoins: 15000, baseStars: 15, icon: '💉', desc: 'Мутант гарантирован' }
     ]
 };
 
-const DAILY_REWARDS = [
-    { day: 1, type: 'money', val: 100 }, 
-    { day: 2, type: 'money', val: 250 }, 
-    { day: 3, type: 'money', val: 500 },
-    { day: 4, type: 'money', val: 1000 }, 
-    { day: 5, type: 'money', val: 2000 }, 
-    { day: 6, type: 'booster', id: 'speed', val: 1 }, 
-    { day: 7, type: 'mixed', money: 5000, booster: 'luck' }
-];
+// НОВЫЕ ДИНАМИЧЕСКИЕ ЕЖЕДНЕВНЫЕ НАГРАДЫ
+function getDailyRewardsConfig() {
+    let totalDays = userStats.totalDaysLogged || 0;
+    let week = Math.floor(totalDays / 7);
+    
+    let day7Reward = { type: 'mixed', booster: 'bio', dust: 50 };
+    if (week >= 2) {
+        day7Reward = { type: 'shard', val: 1 };
+    }
+
+    return [
+        { day: 1, type: 'money', val: 1000 }, 
+        { day: 2, type: 'dust', val: 15 }, 
+        { day: 3, type: 'booster', id: 'luck', val: 1 },
+        { day: 4, type: 'money', val: 5000 }, 
+        { day: 5, type: 'stars', val: 10 }, 
+        { day: 6, type: 'booster', id: 'bio', val: 1 }, 
+        { day: 7, ...day7Reward }
+    ];
+}
 
 const ROULETTE_PRIZES = {
     base: [
@@ -602,8 +631,9 @@ function renderDailyModal(curr) {
     if (!g) return;
     
     g.innerHTML = '';
+    const D_REWARDS = getDailyRewardsConfig();
     
-    DAILY_REWARDS.forEach((r, i) => {
+    D_REWARDS.forEach((r, i) => {
         const d = document.createElement('div');
         let st = ''; 
         if (i < curr) st = 'claimed'; 
@@ -614,13 +644,26 @@ function renderDailyModal(curr) {
         
         if (r.type === 'money') {
             iconHTML = `<img src="assets/ui/coin.png" class="daily-icon-img">`;
-        } else if (r.type === 'booster' && r.id === 'speed') {
-            iconHTML = `<img src="assets/ui/booster-speed.png" class="daily-icon-img">`;
+        } else if (r.type === 'dust') {
+            iconHTML = `<div style="font-size:30px; margin-bottom:5px;">✨</div>`;
+        } else if (r.type === 'stars') {
+            iconHTML = `<div style="font-size:30px; margin-bottom:5px;">⭐️</div>`;
+        } else if (r.type === 'booster') {
+            iconHTML = r.id === 'speed' ? `<img src="assets/ui/booster-speed.png" class="daily-icon-img">` : `<div style="font-size:30px; margin-bottom:5px;">${r.icon || '💉'}</div>`;
+        } else if (r.type === 'shard') {
+            iconHTML = `<div style="font-size:30px; margin-bottom:5px;">🧩</div>`; 
         } else if (r.type === 'mixed') {
-            iconHTML = `<img src="assets/ui/icon-trophy.png" class="daily-icon-img">`; 
+            iconHTML = `<div style="font-size:30px; margin-bottom:5px;">🎁</div>`; 
         }
         
-        let v = (r.type === 'money' || r.type === 'mixed') ? `+${r.money || r.val}` : '+1 Буст';
+        let v = '';
+        if (r.type === 'money') v = `+${r.val}`;
+        else if (r.type === 'dust') v = `+${r.val} Пыли`;
+        else if (r.type === 'stars') v = `+${r.val} Звезд`;
+        else if (r.type === 'shard') v = `Осколок!`;
+        else if (r.type === 'booster') v = '+1 Буст';
+        else if (r.type === 'mixed') v = `СУПЕР-ПРИЗ!`;
+        
         d.innerHTML = `<div class="daily-day">День ${r.day}</div>${iconHTML}<div class="daily-val">${v}</div>`;
         g.appendChild(d);
     });
@@ -637,16 +680,26 @@ window.claimDaily = function() {
         s = 0;
     }
     
-    const r = DAILY_REWARDS[s];
+    if (!userStats.totalDaysLogged) userStats.totalDaysLogged = 0;
+    userStats.totalDaysLogged++;
+
+    const D_REWARDS = getDailyRewardsConfig();
+    const r = D_REWARDS[s];
     let bonusMult = isVip() ? 1.2 : 1;
     
     if (r.type === 'money') {
         walletBalance += Math.floor(r.val * bonusMult);
+    } else if (r.type === 'dust') {
+        dustBalance += Math.floor(r.val * bonusMult);
+    } else if (r.type === 'stars') {
+        userStars += r.val;
+    } else if (r.type === 'shard') {
+        pegasusShards++;
     } else if (r.type === 'booster') { 
         if (!myBoosters[r.id]) myBoosters[r.id] = 0; 
         myBoosters[r.id]++; 
     } else if (r.type === 'mixed') { 
-        walletBalance += Math.floor(r.money * bonusMult); 
+        dustBalance += Math.floor(r.dust * bonusMult); 
         if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; 
         myBoosters[r.booster]++; 
     }
@@ -703,7 +756,7 @@ function initGame() {
             selectedAvatar = localStorage.getItem('selectedAvatar') || 'default'; 
             
             let s = safeParse(localStorage.getItem('userStats'), {}); 
-            userStats = {...userStats, ...s};
+            userStats = { hatches: 0, earned: 0, invites: 0, crafts: 0, totalDaysLogged: 0, baseTickets: 0, epicTickets: 0, ...s };
             
             let b = safeParse(localStorage.getItem('myBoosters'), {}); 
             myBoosters = { luck: b.luck || 0, speed: b.speed || 0, bio: b.bio || 0 };
@@ -1370,6 +1423,12 @@ window.claimBpReward = function(level, type) {
     if (reward.type === 'bio') { myBoosters.bio = (myBoosters.bio || 0) + reward.val; }
     if (reward.type === 'joker') { userJokers += reward.val; }
     if (reward.type === 'mythic_ticket') { mythicTickets += reward.val; }
+    
+    if (reward.type === 'roulette_ticket') {
+        if (reward.val === 'base') userStats.baseTickets = (userStats.baseTickets || 0) + 1;
+        if (reward.val === 'epic') userStats.epicTickets = (userStats.epicTickets || 0) + 1;
+    }
+    
     if (reward.type === 'pet') {
         collection.push(reward.val);
         showToast(`Получен уникальный питомец: ${PET_NAMES[reward.val]}!`, "🎁");
@@ -1379,13 +1438,41 @@ window.claimBpReward = function(level, type) {
         showToast(`Новый фон разблокирован!`, "🌌");
     }
 
+    if (reward.type === 'bundle_50') {
+        userJokers += 2; userStars += 50; mythicTickets += 1;
+        showToast("Получен Супер-Набор 50 ур!", "🎁");
+    }
+    if (reward.type === 'bundle_75') {
+        if (!ownedItems.eggs.includes('holo')) ownedItems.eggs.push('holo');
+        userJokers += 3; dustBalance += 100;
+        showToast("Получено Яйцо Голограмма + Лут!", "🎁");
+    }
+    if (reward.type === 'bundle_100') {
+        if (!ownedItems.themes.includes('matrix')) ownedItems.themes.push('matrix');
+        userStars += 150;
+        collection.push('neon_dragon');
+        showToast("ТЕМНЫЙ ПРО-НАБОР ПОЛУЧЕН!", "🎁");
+    }
+    if (reward.type === 'pet_and_ticket') {
+        collection.push(reward.pet);
+        if (reward.ticket === 'epic') userStats.epicTickets = (userStats.epicTickets || 0) + 1;
+        showToast(`Получен ${PET_NAMES[reward.pet]} и Билет!`, "🎁");
+    }
+    if (reward.type === 'bg_and_ticket') {
+        if (!ownedItems.themes.includes(reward.bg)) ownedItems.themes.push(reward.bg);
+        if (reward.ticket === 'mythic') mythicTickets++;
+        showToast("Получен эксклюзивный фон и Билет!", "🎁");
+    }
+
     claimedRewards.push(claimKey);
     saveData();
     updateBalanceUI();
     openLevels(); 
     playSound('win');
     fireConfetti();
-    showToast(`Награда получена!`, "✅");
+    if (!reward.type.includes('bundle') && !reward.type.includes('and')) {
+        showToast(`Награда получена!`, "✅");
+    }
 };
 
 function checkAchievements() {
@@ -1570,11 +1657,23 @@ function renderShop() {
     
     if (currentShopTab === 'shadow') {
         c.innerHTML = `
-            <div class="shop-item" style="grid-column: span 2; background: rgba(138, 43, 226, 0.1); border: 1px solid #8a2be2;">
+            <div class="shop-item" style="grid-column: span 1; background: rgba(138, 43, 226, 0.1); border: 1px solid #8a2be2;">
                 <div style="font-size: 30px;">🧩</div>
                 <div class="shop-item-name">Осколок Пегаса</div>
-                <div style="font-size:12px;color:#ccc;margin-bottom:10px;">Для крафта Мифика</div>
-                <button class="buy-btn" style="background: #8a2be2;" onclick="buyShadowItem('shard', 250)">Купить (250 ✨)</button>
+                <div style="font-size:10px;color:#ccc;margin-bottom:10px;">Для крафта Мифика</div>
+                <div style="display:flex; gap:5px; width:100%;">
+                    <button class="buy-btn" style="background: #8a2be2; flex:1; font-size:11px;" onclick="buyShadowItem('shard', 400, 'dust')">400 ✨</button>
+                    <button class="buy-btn" style="background: #ffd700; color:#000; flex:1; font-size:11px;" onclick="buyShadowItem('shard', 40, 'stars')">40 ⭐️</button>
+                </div>
+            </div>
+            <div class="shop-item" style="grid-column: span 1; background: rgba(57, 255, 20, 0.1); border: 1px solid #39ff14;">
+                <div style="font-size: 30px;">🧬</div>
+                <div class="shop-item-name">Ген Мутации</div>
+                <div style="font-size:10px;color:#ccc;margin-bottom:10px;">Джокер для синтеза</div>
+                <div style="display:flex; gap:5px; width:100%;">
+                    <button class="buy-btn" style="background: #39ff14; color:#000; flex:1; font-size:11px;" onclick="buyShadowItem('joker', 150, 'dust')">150 ✨</button>
+                    <button class="buy-btn" style="background: #ffd700; color:#000; flex:1; font-size:11px;" onclick="buyShadowItem('joker', 20, 'stars')">20 ⭐️</button>
+                </div>
             </div>
         `;
         return;
@@ -1592,23 +1691,7 @@ function renderShop() {
                 <div style="font-size: 30px;">🥚</div>
                 <div class="shop-item-name">Второй Инкубатор</div>
                 <div style="font-size:12px;color:#ccc;margin-bottom:10px;">Расти 2 яйца оффлайн одновременно</div>
-                <button class="buy-btn" style="${hasSecondSlot ? 'background:#555; pointer-events:none;' : 'background: #00A3FF;'}" onclick="buyPremium('slot', 500)">${hasSecondSlot ? 'Куплено навсегда' : '500 ⭐️'}</button>
-            </div>
-            <div class="shop-item" style="grid-column: span 2; background: rgba(255, 59, 48, 0.1); border: 1px solid #ff3b30;">
-                <div style="font-size: 30px;">🧬</div>
-                <div class="shop-item-name">Ген Мутации (Джокер)</div>
-                <div style="font-size:12px;color:#ccc;margin-bottom:10px;">Заменяет недостающего пета при синтезе</div>
-                <button class="buy-btn" style="background: #00A3FF;" onclick="buyPremium('joker', 50)">50 ⭐️ (У вас: ${userJokers})</button>
-            </div>
-            <div class="shop-item" style="grid-column: span 1; background: rgba(255, 255, 255, 0.05); border: 1px solid #ffd700;">
-                <div style="font-size: 30px;">🌌</div>
-                <div class="shop-item-name">Фон: Матрица</div>
-                <button class="buy-btn" style="${ownedItems.themes.includes('matrix') ? 'background:#555' : 'background: #00A3FF;'}" onclick="buyPremium('theme_matrix', 100)">${ownedItems.themes.includes('matrix') ? 'Куплено' : '100 ⭐️'}</button>
-            </div>
-            <div class="shop-item" style="grid-column: span 1; background: rgba(255, 255, 255, 0.05); border: 1px solid #ffd700;">
-                <div style="font-size: 30px;">🔮</div>
-                <div class="shop-item-name">Яйцо: Голограмма</div>
-                <button class="buy-btn" style="${ownedItems.eggs.includes('holo') ? 'background:#555' : 'background: #00A3FF;'}" onclick="buyPremium('egg_holo', 100)">${ownedItems.eggs.includes('holo') ? 'Куплено' : '100 ⭐️'}</button>
+                <button class="buy-btn" style="${hasSecondSlot ? 'background:#555; pointer-events:none;' : 'background: #00A3FF;'}" onclick="buyPremium('slot', 100)">${hasSecondSlot ? 'Куплено навсегда' : '100 ⭐️'}</button>
             </div>
         `;
         return;
@@ -1622,33 +1705,32 @@ function renderShop() {
         
         let btnHTML = '';
         if (currentShopTab === 'boosters') {
-            btnHTML = `<button class="buy-btn" onclick="buyItem('${item.id}', '${item.price}')">${item.price} ${typeof item.price === 'number' ? '<img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">' : ''}</button>`;
+            let pCoins = item.baseCoins + Math.floor(walletBalance * 0.05);
+            let pStars = item.baseStars;
+            
+            btnHTML = `
+                <div style="display:flex; gap:5px; width:100%;">
+                    <button class="buy-btn" style="flex:1; font-size:10px;" onclick="buyItem('${item.id}', ${pCoins}, 'coins')">${pCoins} 💰</button>
+                    <button class="buy-btn" style="flex:1; background:#ffd700; color:#000; font-size:10px;" onclick="buyItem('${item.id}', ${pStars}, 'stars')">${pStars} ⭐️</button>
+                </div>`;
+                
             let iconContent = item.icon.includes('.png') ? `<img src="${item.icon}" class="shop-icon-img">` : `<div style="font-size: 50px; margin-bottom: 10px;">${item.icon}</div>`;
-            d.innerHTML = `${iconContent}<div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#888">${item.desc}</div>${btnHTML}`;
+            d.innerHTML = `${iconContent}<div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#888;margin-bottom:10px;">${item.desc}</div>${btnHTML}`;
         } else if (currentShopTab === 'eggs') {
             const owned = ownedItems.eggs.includes(item.id); 
             const active = activeEggSkin === item.id;
             let cls = owned ? "buy-btn owned" : "buy-btn"; 
-            
-            if (!owned && walletBalance < item.price) {
-                cls += " locked"; 
-            }
-            
+            if (!owned && walletBalance < item.price) cls += " locked"; 
             let txt = owned ? (active ? "Выбрано" : "Выбрать") : `${item.price} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
-            btnHTML = `<button class="${cls}" onclick="buyItem('${item.id}',${item.price})">${txt}</button>`;
+            btnHTML = `<button class="${cls}" onclick="buyItem('${item.id}',${item.price}, 'coins')">${txt}</button>`;
             d.innerHTML = `<img src="${item.img}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div>${btnHTML}`;
         } else {
             const owned = ownedItems.themes.includes(item.id); 
             const active = activeTheme === item.id;
             let cls = owned ? "buy-btn owned" : "buy-btn"; 
-            
-            if (!owned && walletBalance < item.price) {
-                cls += " locked"; 
-            }
-            
+            if (!owned && walletBalance < item.price) cls += " locked"; 
             let txt = owned ? (active ? "Выбрано" : "Выбрать") : `${item.price} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
-            btnHTML = `<button class="${cls}" onclick="buyItem('${item.id}',${item.price})">${txt}</button>`;
-            
+            btnHTML = `<button class="${cls}" onclick="buyItem('${item.id}',${item.price}, 'coins')">${txt}</button>`;
             let icon = item.bgFile ? `<img src="${item.bgFile}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;margin-bottom:5px">` : `<div style="width:60px;height:60px;background:#333;border-radius:10px;margin-bottom:5px"></div>`;
             d.innerHTML = `${icon}<div class="shop-item-name">${item.name}</div>${btnHTML}`;
         }
@@ -1656,18 +1738,30 @@ function renderShop() {
     });
 }
 
-window.buyShadowItem = function(type, price) {
-    if (dustBalance >= price) {
+window.buyShadowItem = function(type, price, currency) {
+    if (currency === 'dust' && dustBalance >= price) {
         dustBalance -= price;
         if (type === 'shard') pegasusShards++;
+        if (type === 'joker') userJokers++;
         
         saveData();
         updateBalanceUI();
         renderShop();
         playSound('win');
-        showToast("Осколок куплен!", "🌑");
+        showToast("Товар куплен за Пыль!", "🌑");
+    } else if (currency === 'stars' && userStars >= price) {
+        userStars -= price;
+        if (type === 'shard') pegasusShards++;
+        if (type === 'joker') userJokers++;
+        
+        saveData();
+        updateBalanceUI();
+        renderShop();
+        playSound('money');
+        showToast("Товар куплен за Звезды!", "⭐️");
     } else {
-        showToast("Недостаточно Пыли!", "❌");
+        showToast("Недостаточно средств!", "❌");
+        if (currency === 'stars') openBuyStarsModal();
     }
 }
 
@@ -1710,42 +1804,27 @@ function buyPremium(type, price) {
     }
 }
 
-function buyItem(id, price) {
-    if (typeof price === 'string' && price.includes('⭐️')) { 
-        let starCost = parseInt(price);
-        if (userStars >= starCost) {
-            userStars -= starCost;
-            if (!myBoosters[id]) {
-                myBoosters[id] = 0; 
-            }
-            myBoosters[id]++; 
-            
+function buyItem(id, price, currency) {
+    if (currentShopTab === 'boosters') {
+        if (currency === 'coins' && walletBalance >= price) { 
+            walletBalance -= price; 
+            myBoosters[id] = (myBoosters[id] || 0) + 1; 
             saveData(); 
             updateBalanceUI(); 
             renderShop();
-            showToast("Куплено за Звезды!", "💉"); 
-            playSound('money');
-        } else {
-            showToast("Мало Звезд!", "❌");
-            openBuyStarsModal();
-        }
-        return; 
-    }
-    
-    if (currentShopTab === 'boosters') {
-        if (walletBalance >= price) { 
-            walletBalance -= price; 
-            if (!myBoosters[id]) {
-                myBoosters[id] = 0; 
-            }
-            myBoosters[id]++; 
-            
+            showToast("Куплено за Монеты!", "🧪"); 
+            playSound('money'); 
+        } else if (currency === 'stars' && userStars >= price) {
+            userStars -= price; 
+            myBoosters[id] = (myBoosters[id] || 0) + 1; 
             saveData(); 
             updateBalanceUI(); 
-            showToast("Куплено!", "🧪"); 
+            renderShop();
+            showToast("Куплено за Звезды!", "🧪"); 
             playSound('money'); 
         } else {
-            showToast("Мало денег", "🚫");
+            showToast("Недостаточно средств", "🚫");
+            if (currency === 'stars') openBuyStarsModal();
         }
         return;
     }
@@ -1783,7 +1862,7 @@ function buyItem(id, price) {
             showToast("Куплено!", "🛍️"); 
             playSound('money');
         } else {
-            showToast("Мало денег", "🚫");
+            showToast("Мало монет", "🚫");
         }
     }
 }
@@ -2018,22 +2097,20 @@ function switchRouletteBox(type) {
     
     let cost = 10; 
     let reqAds = 1;
+    let ticketCount = 0;
     
-    if (type === 'epic') { 
-        cost = 25; 
-        reqAds = 2; 
-    }
-    if (type === 'mythic') { 
-        cost = 50; 
-        reqAds = 3; 
-    }
+    if (type === 'base') ticketCount = userStats.baseTickets || 0;
+    if (type === 'epic') { cost = 25; reqAds = 2; ticketCount = userStats.epicTickets || 0; }
+    if (type === 'mythic') { cost = 50; reqAds = 3; ticketCount = mythicTickets || 0; }
     
     let paidBtn = getEl('roulette-paid-btn');
     if (paidBtn) {
-        if (type === 'mythic' && mythicTickets > 0) {
-            paidBtn.textContent = `Крутить за Билет 🎫 (${mythicTickets} шт)`;
+        if (ticketCount > 0) {
+            paidBtn.textContent = `Крутить за Билет 🎫 (${ticketCount} шт)`;
+            paidBtn.onclick = () => spinRoulette('ticket');
         } else {
             paidBtn.textContent = `Крутить за ${cost} ⭐️`;
+            paidBtn.onclick = () => spinRoulette('stars');
         }
     }
     
@@ -2150,22 +2227,21 @@ function spinRoulette(method) {
     if (currentBoxType === 'epic') cost = 25;
     if (currentBoxType === 'mythic') cost = 50;
 
-    if (method === 'stars') {
-        if (currentBoxType === 'mythic' && mythicTickets > 0) {
-            mythicTickets -= 1;
-            showToast("Использован Билет Рулетки!", "🎫");
-        } else {
-            if (userStars < cost) {
-                showToast("Недостаточно Звезд!", "❌");
-                openBuyStarsModal();
-                return;
-            }
-            userStars -= cost;
+    if (method === 'ticket') {
+        if (currentBoxType === 'base') userStats.baseTickets--;
+        else if (currentBoxType === 'epic') userStats.epicTickets--;
+        else if (currentBoxType === 'mythic') mythicTickets--;
+        showToast("Использован Билет Рулетки!", "🎫");
+    } else if (method === 'stars') {
+        if (userStars < cost) {
+            showToast("Недостаточно Звезд!", "❌");
+            openBuyStarsModal();
+            return;
         }
+        userStars -= cost;
         updateBalanceUI();
     } else if (method === 'free' && currentBoxType === 'base') {
         lastRouletteDate = new Date().toDateString();
-        switchRouletteBox('base'); 
     }
     
     updateContract('roulette', 1);
@@ -3433,7 +3509,7 @@ function openPetModal(pet, owned) {
     
     let dustBtn = '';
     if (owned && count > 1 && ['common', 'rare', 'epic'].includes(r)) {
-        let dustGain = r === 'common' ? 5 : (r === 'rare' ? 15 : 50);
+        let dustGain = r === 'common' ? 10 : (r === 'rare' ? 30 : 100);
         dustBtn = `<button class="btn" style="background:#ff3b30; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,59,48,0.5);" onclick="dustPet('${pet}', ${dustGain})">Распылить дубликат (+${dustGain} ✨)</button>`;
     }
 
@@ -4193,14 +4269,14 @@ function calculatePreStartSynergy() {
 }
 
 async function buyMegaRadar() {
-    if (userStars < 100) { 
-        showToast("Нужно 100 Звезд!", "❌"); 
+    if (userStars < 5) { 
+        showToast("Нужно 5 Звезд!", "❌"); 
         openBuyStarsModal(); 
         return; 
     }
     
     playSound('money'); 
-    userStars -= 100; 
+    userStars -= 5; 
     saveData(); 
     updateBalanceUI(); 
     showToast("Мега-Радар активирован!", "📡");
