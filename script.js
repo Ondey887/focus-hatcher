@@ -176,7 +176,7 @@ let petStars = {};
 let activeContracts = { date: '', allClaimed: false, tasks: [] }; 
 
 // =============================================================
-// БЕЗОПАСНЫЙ ПАРСИНГ ДАННЫХ (ЗАЩИТА)
+// БЕЗОПАСНЫЙ ПАРСИНГ ДАННЫХ И ФОРМАТИРОВАНИЕ (ЗАЩИТА)
 // =============================================================
 function safeParse(val, def) {
     if (!val || val === 'undefined' || val === 'null') {
@@ -187,6 +187,11 @@ function safeParse(val, def) {
     } catch(e) { 
         return def; 
     }
+}
+
+function formatNumber(num) {
+    if (num === undefined || num === null) return 0;
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 // =============================================================
@@ -303,7 +308,6 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
-// ОБНОВЛЕННЫЕ ЦЕНЫ С ДИНАМИКОЙ
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
@@ -327,7 +331,6 @@ const SHOP_DATA = {
     ]
 };
 
-// НОВЫЕ ДИНАМИЧЕСКИЕ ЕЖЕДНЕВНЫЕ НАГРАДЫ
 function getDailyRewardsConfig() {
     let totalDays = userStats.totalDaysLogged || 0;
     let week = Math.floor(totalDays / 7);
@@ -657,8 +660,8 @@ function renderDailyModal(curr) {
         }
         
         let v = '';
-        if (r.type === 'money') v = `+${r.val}`;
-        else if (r.type === 'dust') v = `+${r.val} Пыли`;
+        if (r.type === 'money') v = `+${formatNumber(r.val)}`;
+        else if (r.type === 'dust') v = `+${formatNumber(r.val)} Пыли`;
         else if (r.type === 'stars') v = `+${r.val} Звезд`;
         else if (r.type === 'shard') v = `Осколок!`;
         else if (r.type === 'booster') v = '+1 Буст';
@@ -1100,13 +1103,13 @@ function openProfile() {
     if (pl) pl.textContent = `Уровень ${userLevel}`;
     
     let sh = getEl('stat-hatched'); 
-    if (sh) sh.textContent = userStats.hatched || 0;
+    if (sh) sh.textContent = formatNumber(userStats.hatched || 0);
     
     let su = getEl('stat-unique'); 
-    if (su) su.textContent = new Set(collection).size;
+    if (su) su.textContent = formatNumber(new Set(collection).size);
     
     let si = getEl('stat-invites'); 
-    if (si) si.textContent = userStats.invites || 0;
+    if (si) si.textContent = formatNumber(userStats.invites || 0);
     
     let netWorth = walletBalance;
     collection.forEach(pet => netWorth += PRICES[getPetRarity(pet)] || 0);
@@ -1121,7 +1124,7 @@ function openProfile() {
     });
     
     let se = getEl('stat-earned'); 
-    if (se) se.textContent = netWorth; 
+    if (se) se.textContent = formatNumber(netWorth); 
     
     let pa = getEl('profile-avatar'); 
     if (pa) pa.src = getPetImg(selectedAvatar);
@@ -1197,7 +1200,7 @@ async function apiLoadFriends() {
             const encodedFriend = encodeURIComponent(JSON.stringify(f));
             container.innerHTML += `
                 <div class="achievement-card" style="cursor: pointer;" onclick="openFriendProfile('${encodedFriend}')">
-                    <img src="${getPetImg(f.avatar)}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #007aff;" onerror="this.src='assets/ui/icon-profile.png'">
+                    <div class="ach-icon"><img src="${getPetImg(f.avatar)}" onerror="this.src='assets/ui/icon-profile.png'"></div>
                     <div class="ach-info">
                         <div class="ach-title">${f.name}</div>
                         <div class="ach-desc">Уровень ${f.level}</div>
@@ -1220,8 +1223,8 @@ function openFriendProfile(encodedFriend) {
     let fpn = getEl('fp-name'); if (fpn) fpn.textContent = f.name; 
     let fpa = getEl('fp-avatar'); if (fpa) fpa.src = getPetImg(f.avatar);
     let fpl = getEl('fp-level'); if (fpl) fpl.textContent = `Уровень ${f.level}`; 
-    let fph = getEl('fp-hatched'); if (fph) fph.textContent = f.hatched || 0; 
-    let fpe = getEl('fp-earned'); if (fpe) fpe.textContent = f.earned || 0;
+    let fph = getEl('fp-hatched'); if (fph) fph.textContent = formatNumber(f.hatched || 0); 
+    let fpe = getEl('fp-earned'); if (fpe) fpe.textContent = formatNumber(f.earned || 0);
     
     let fib = getEl('fp-invite-btn');
     let fih = getEl('fp-invite-hint');
@@ -1710,8 +1713,8 @@ function renderShop() {
             
             btnHTML = `
                 <div style="display:flex; gap:5px; width:100%;">
-                    <button class="buy-btn" style="flex:1; font-size:10px;" onclick="buyItem('${item.id}', ${pCoins}, 'coins')">${pCoins} 💰</button>
-                    <button class="buy-btn" style="flex:1; background:#ffd700; color:#000; font-size:10px;" onclick="buyItem('${item.id}', ${pStars}, 'stars')">${pStars} ⭐️</button>
+                    <button class="buy-btn" style="flex:1; font-size:10px;" onclick="buyItem('${item.id}', ${pCoins}, 'coins')">${formatNumber(pCoins)} 💰</button>
+                    <button class="buy-btn" style="flex:1; background:#ffd700; color:#000; font-size:10px;" onclick="buyItem('${item.id}', ${pStars}, 'stars')">${formatNumber(pStars)} ⭐️</button>
                 </div>`;
                 
             let iconContent = item.icon.includes('.png') ? `<img src="${item.icon}" class="shop-icon-img">` : `<div style="font-size: 50px; margin-bottom: 10px;">${item.icon}</div>`;
@@ -1721,7 +1724,7 @@ function renderShop() {
             const active = activeEggSkin === item.id;
             let cls = owned ? "buy-btn owned" : "buy-btn"; 
             if (!owned && walletBalance < item.price) cls += " locked"; 
-            let txt = owned ? (active ? "Выбрано" : "Выбрать") : `${item.price} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
+            let txt = owned ? (active ? "Выбрано" : "Выбрать") : `${formatNumber(item.price)} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
             btnHTML = `<button class="${cls}" onclick="buyItem('${item.id}',${item.price}, 'coins')">${txt}</button>`;
             d.innerHTML = `<img src="${item.img}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div>${btnHTML}`;
         } else {
@@ -1729,7 +1732,7 @@ function renderShop() {
             const active = activeTheme === item.id;
             let cls = owned ? "buy-btn owned" : "buy-btn"; 
             if (!owned && walletBalance < item.price) cls += " locked"; 
-            let txt = owned ? (active ? "Выбрано" : "Выбрать") : `${item.price} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
+            let txt = owned ? (active ? "Выбрано" : "Выбрать") : `${formatNumber(item.price)} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
             btnHTML = `<button class="${cls}" onclick="buyItem('${item.id}',${item.price}, 'coins')">${txt}</button>`;
             let icon = item.bgFile ? `<img src="${item.bgFile}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;margin-bottom:5px">` : `<div style="width:60px;height:60px;background:#333;border-radius:10px;margin-bottom:5px"></div>`;
             d.innerHTML = `${icon}<div class="shop-item-name">${item.name}</div>${btnHTML}`;
@@ -1906,11 +1909,11 @@ function renderAch() {
         
         let btn = ''; 
         if (done && !claimed) {
-            btn = `<button class="buy-btn" onclick="claimAch('${a.id}',${a.reward})">Забрать ${a.reward} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle"></button>`; 
+            btn = `<button class="buy-btn" onclick="claimAch('${a.id}',${a.reward})">Забрать ${formatNumber(a.reward)} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle"></button>`; 
         } else if (claimed) {
             btn = "✅"; 
         } else {
-            btn = `<span style="font-size:12px;color:#888">Цель: ${a.goal}</span>`;
+            btn = `<span style="font-size:12px;color:#888">Цель: ${formatNumber(a.goal)}</span>`;
         }
         
         d.innerHTML = `<div class="ach-icon">${done ? '<img src="assets/ui/icon-trophy.png">' : '<img src="assets/ui/icon-lock.png">'}</div><div class="ach-info"><div class="ach-title">${a.title}</div><div class="ach-desc">${a.desc}</div></div><div>${btn}</div>`;
@@ -1936,11 +1939,11 @@ function renderQuests() {
         } else if (t.p >= t.g) {
             btn = `<button class="buy-btn" onclick="claimContract(${i})">Забрать</button>`;
         } else {
-            btn = `<span style="font-size:12px;color:#888">${t.p}/${t.g}</span>`;
+            btn = `<span style="font-size:12px;color:#888">${formatNumber(t.p)}/${formatNumber(t.g)}</span>`;
         }
         
         let icon = t.r.t === 'money' ? '💰' : (t.r.t === 'stars' ? '⭐️' : '🎁');
-        let rewardText = `${t.r.v} ` + (t.r.t === 'money' ? 'Монет' : (t.r.t === 'stars' ? 'Звезд' : 'Бустер'));
+        let rewardText = `${formatNumber(t.r.v)} ` + (t.r.t === 'money' ? 'Монет' : (t.r.t === 'stars' ? 'Звезд' : 'Бустер'));
 
         d.innerHTML = `<div class="ach-icon" style="font-size:24px;">${icon}</div><div class="ach-info"><div class="ach-title">${t.d}</div><div class="ach-desc">Награда: ${rewardText}</div></div><div>${btn}</div>`;
         c.appendChild(d);
@@ -1973,7 +1976,7 @@ function claimAch(id, r) {
     updateBalanceUI(); 
     renderAch(); 
     
-    showToast(`Награда +${r}`, 'img'); 
+    showToast(`Награда +${formatNumber(r)}`, 'img'); 
     playSound('money'); 
 }
 
@@ -1987,7 +1990,7 @@ function claimQuest(id, r) {
     updateBalanceUI(); 
     renderQuests(); 
     
-    showToast(`Награда +${r}`, 'img'); 
+    showToast(`Награда +${formatNumber(r)}`, 'img'); 
     playSound('money'); 
 }
 
@@ -2074,7 +2077,7 @@ function renderForbesList(tab) {
                     <div class="forbes-name">${p.name} ${isMe ? '(Ты)' : ''}</div>
                     <div class="forbes-lvl">Уровень ${p.level}</div>
                 </div>
-                <div class="forbes-val">${p.earned} <img src="assets/ui/coin.png"></div>
+                <div class="forbes-val">${formatNumber(p.earned)} <img src="assets/ui/coin.png"></div>
             </div>
         `;
     });
@@ -2298,7 +2301,7 @@ function spinRoulette(method) {
         }
         else if (selectedPrize.t === 'money') { 
             walletBalance += selectedPrize.v; 
-            showToast(`+${selectedPrize.v} монет!`, "💰"); 
+            showToast(`+${formatNumber(selectedPrize.v)} монет!`, "💰"); 
             box.textContent = "💰"; 
             resText.textContent = `Выпало: ${selectedPrize.n}`; 
         }
@@ -2418,7 +2421,7 @@ async function activatePromo() {
         if (data.status === 'success') {
             if (data.type === 'money') { 
                 walletBalance += data.val; 
-                showToast(`+${data.val} Монет`, 'img'); 
+                showToast(`+${formatNumber(data.val)} Монет`, 'img'); 
             } else if (data.type === 'speed') { 
                 if (!myBoosters.speed) myBoosters.speed = 0; 
                 myBoosters.speed += data.val; 
@@ -2521,13 +2524,13 @@ document.addEventListener("visibilitychange", () => {
 
 function updateBalanceUI() {
     let moneyEl = getEl('total-money'); 
-    if (moneyEl) moneyEl.innerHTML = `<img src="assets/ui/coin.png" class="coin-img"> ${walletBalance}`;
+    if (moneyEl) moneyEl.innerHTML = `<img src="assets/ui/coin.png" class="coin-img"> ${formatNumber(walletBalance)}`;
     
     let dustEl = getEl('total-dust');
-    if (dustEl) dustEl.innerHTML = `✨ ${dustBalance}`;
+    if (dustEl) dustEl.innerHTML = `✨ ${formatNumber(dustBalance)}`;
     
     let starsEl = getEl('total-stars');
-    if (starsEl) starsEl.innerHTML = `<span style="font-size: 20px; margin-right: 4px;">⭐️</span> ${userStars} <span style="font-size: 14px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 8px; margin-left: 5px;">+</span>`;
+    if (starsEl) starsEl.innerHTML = `<span style="font-size: 20px; margin-right: 4px;">⭐️</span> ${formatNumber(userStars)} <span style="font-size: 14px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 8px; margin-left: 5px;">+</span>`;
     
     let uc = getEl('unique-count'); 
     if (uc) uc.textContent = `Коллекция: ${new Set(collection).size} / ${TOTAL_PETS_COUNT}`;
@@ -3149,7 +3152,7 @@ function finishTimer(fromOffline = false) {
     fireConfetti(); 
     
     let streakMsg = hatchStreak > 1 ? ` (Стрик x${streakMult})` : '';
-    showToast(`Получено +${finalXP} XP${streakMsg}`, "🐣"); 
+    showToast(`Получено +${formatNumber(finalXP)} XP${streakMsg}`, "🐣"); 
     updateBalanceUI();
     
     if (isVibrationOn && window.navigator.vibrate) {
@@ -3519,8 +3522,8 @@ function openPetModal(pet, owned) {
     if (pdv) {
         pdv.innerHTML = owned ? 
             `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" onerror="this.src='assets/eggs/egg-default.png'">
-             <h3 class="pet-name">${petName}${starStr}</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${p} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
-             <button class="btn sell-action" onclick="sellPet()">Продать ${p}</button>
+             <h3 class="pet-name">${petName}${starStr}</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${formatNumber(p)} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
+             <button class="btn sell-action" onclick="sellPet()">Продать ${formatNumber(p)}</button>
              ${upgradeBtn}
              ${splinterBtn}
              ${dustBtn}` : 
@@ -3548,7 +3551,7 @@ function sellPet() {
     saveData(); 
     updateBalanceUI(); 
     closeModal('pet-modal'); 
-    showToast(`Продано +${finalPrice}`, 'img'); 
+    showToast(`Продано +${formatNumber(finalPrice)}`, 'img'); 
     playSound('money'); 
     openInventory(); 
 }
@@ -4096,12 +4099,12 @@ function handleBossRaidEnd() {
     if (winner && winner.user_id === myId) { 
         let prize = Math.floor(10000 * vipMult); 
         fireConfetti(); 
-        showToast(`ТЫ MVP! +${prize} монет`, "🏆"); 
+        showToast(`ТЫ MVP! +${formatNumber(prize)} монет`, "🏆"); 
         walletBalance += prize; 
     } else { 
         const myDmg = me ? me.boss_hp : 0; 
         const reward = Math.floor(myDmg * 0.5 * vipMult); 
-        showToast(`Босс повержен! Твоя доля: +${reward} монет`, "💰"); 
+        showToast(`Босс повержен! Твоя доля: +${formatNumber(reward)} монет`, "💰"); 
         walletBalance += reward; 
     }
     
@@ -4574,10 +4577,10 @@ async function claimExpedition() {
     }
 
     if (droppedShard) { 
-        showToast(`Лут: +${reward} монет${msgBonus} и ОСКОЛОК ПЕГАСА! 🧩`, "💰"); 
+        showToast(`Лут: +${formatNumber(reward)} монет${msgBonus} и ОСКОЛОК ПЕГАСА! 🧩`, "💰"); 
         fireConfetti(); 
     } else { 
-        showToast(`Лут собран: +${reward} монет${msgBonus}!`, "💰"); 
+        showToast(`Лут собран: +${formatNumber(reward)} монет${msgBonus}!`, "💰"); 
     }
 
     try { 
@@ -4648,7 +4651,7 @@ async function loadMarket() {
                 btnHtml = `<button class="btn locked" style="padding: 8px; font-size: 12px; margin-top: 10px;">Твой лот</button>`;
             } else {
                 const currIcon = lot.currency === 'coins' ? '💰' : '⭐️';
-                btnHtml = `<button class="btn" style="background: #00A3FF; padding: 8px; font-size: 12px; margin-top: 10px; box-shadow:0 2px 10px rgba(0,163,255,0.4);" onclick="buyMarketLot('${lot.lot_id}', ${lot.price}, '${lot.currency}')">Купить за ${lot.price} ${currIcon}</button>`;
+                btnHtml = `<button class="btn" style="background: #00A3FF; padding: 8px; font-size: 12px; margin-top: 10px; box-shadow:0 2px 10px rgba(0,163,255,0.4);" onclick="buyMarketLot('${lot.lot_id}', ${lot.price}, '${lot.currency}')">Купить за ${formatNumber(lot.price)} ${currIcon}</button>`;
             }
 
             const d = document.createElement('div');
@@ -4856,11 +4859,11 @@ async function checkMarketSales() {
             
             if (gotCoins > 0) { 
                 walletBalance += gotCoins; 
-                showToast(`Вашего пета купили! +${gotCoins} 💰`, "🎉"); 
+                showToast(`Вашего пета купили! +${formatNumber(gotCoins)} 💰`, "🎉"); 
             }
             if (gotStars > 0) { 
                 userStars += gotStars; 
-                showToast(`Вашего пета купили! +${gotStars} ⭐️`, "🎉"); 
+                showToast(`Вашего пета купили! +${formatNumber(gotStars)} ⭐️`, "🎉"); 
             }
             
             saveData();
