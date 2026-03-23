@@ -121,6 +121,10 @@ let usedCodes = [];
 let isVibrationOn = true;
 let isSoundOn = false;
 
+// Друзья
+let currentFriendsList = [];
+let currentViewingFriendId = null;
+
 // Таймеры и механики
 let vipEndTime = 0;
 let hasSecondSlot = false;
@@ -664,7 +668,7 @@ function renderDailyModal(curr) {
         let v = '';
         if (r.type === 'money') v = `+${formatNumber(r.val)}`;
         else if (r.type === 'dust') v = `+${formatNumber(r.val)} Пыли`;
-        else if (r.type === 'stars') v = `+${formatNumber(r.val)} Звезд`;
+        else if (r.type === 'stars') v = `+${r.val} Звезд`;
         else if (r.type === 'shard') v = `Осколок!`;
         else if (r.type === 'booster') v = '+1 Буст';
         else if (r.type === 'mixed') v = `СУПЕР-ПРИЗ!`;
@@ -761,7 +765,7 @@ function initGame() {
             selectedAvatar = localStorage.getItem('selectedAvatar') || 'default'; 
             
             let s = safeParse(localStorage.getItem('userStats'), {}); 
-            userStats = { hatches: 0, earned: 0, invites: 0, crafts: 0, totalDaysLogged: 0, baseTickets: 0, epicTickets: 0, ...s };
+            userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0, totalDaysLogged: 0, baseTickets: 0, epicTickets: 0, ...s };
             
             let b = safeParse(localStorage.getItem('myBoosters'), {}); 
             myBoosters = { luck: b.luck || 0, speed: b.speed || 0, bio: b.bio || 0 };
@@ -1198,10 +1202,11 @@ async function apiLoadFriends() {
             return; 
         }
         
+        currentFriendsList = data.friends;
+        
         data.friends.forEach(f => {
-            const encodedFriend = encodeURIComponent(JSON.stringify(f));
             container.innerHTML += `
-                <div class="achievement-card" style="cursor: pointer;" onclick="openFriendProfile('${encodedFriend}')">
+                <div class="achievement-card" style="cursor: pointer;" onclick="openFriendProfile('${f.user_id}')">
                     <div class="ach-icon"><img src="${getPetImg(f.avatar)}" onerror="this.src='assets/ui/icon-profile.png'"></div>
                     <div class="ach-info">
                         <div class="ach-title">${f.name}</div>
@@ -1215,11 +1220,11 @@ async function apiLoadFriends() {
     }
 }
 
-let currentViewingFriendId = null;
-
-function openFriendProfile(encodedFriend) {
+function openFriendProfile(userId) {
     playSound('click'); 
-    const f = JSON.parse(decodeURIComponent(encodedFriend)); 
+    const f = currentFriendsList.find(x => x.user_id === userId);
+    if (!f) return;
+    
     currentViewingFriendId = f.user_id;
     
     let fpn = getEl('fp-name'); if (fpn) fpn.textContent = f.name; 
@@ -1481,23 +1486,23 @@ window.claimBpReward = function(level, type) {
 };
 
 function checkAchievements() {
-    let has = false; 
+    let hasAch = false; 
     let u = new Set(collection).size;
     
     ACHIEVEMENTS_DATA.forEach(a => { 
         if (!claimedAchievements.includes(a.id)) { 
-            if (a.type === 'money' && walletBalance >= a.goal) has = true;
-            if (a.type === 'unique' && u >= a.goal) has = true;
-            if (a.type === 'hatch' && userStats.hatched >= a.goal) has = true;
-            if (!a.type && userStats.hatched >= a.goal) has = true;
-            if (a.type === 'level' && userLevel >= a.goal) has = true;
-            if (a.type === 'craft' && userStats.crafts >= a.goal) has = true;
+            if (a.type === 'money' && walletBalance >= a.goal) hasAch = true;
+            if (a.type === 'unique' && u >= a.goal) hasAch = true;
+            if (a.type === 'hatch' && userStats.hatched >= a.goal) hasAch = true;
+            if (!a.type && userStats.hatched >= a.goal) hasAch = true;
+            if (a.type === 'level' && userLevel >= a.goal) hasAch = true;
+            if (a.type === 'craft' && userStats.crafts >= a.goal) hasAch = true;
         } 
     });
     
     if (activeContracts && activeContracts.tasks) {
         if (activeContracts.tasks.some(t => t.p >= t.g && !t.c)) {
-            has = true;
+            hasAch = true;
         }
     }
     
@@ -1509,9 +1514,9 @@ function checkAchievements() {
         }
     });
 
-    let badge = getEl('ach-badge');
-    if (badge) {
-        badge.style.display = has ? 'flex' : 'none';
+    let achBadge = getEl('ach-badge');
+    if (achBadge) {
+        achBadge.style.display = hasAch ? 'flex' : 'none';
     }
     
     let bpBadge = getEl('bp-badge');
@@ -3708,15 +3713,16 @@ async function apiLeaveParty(localOnly = false) {
     if (rgb) rgb.style.display = 'none';
 }
 
+// ИСПРАВЛЕНИЕ БАГА С ПРОПАДАЮЩИМ КОДОМ ПАТИ
 function renderPartyPlayers(players) {
     const container = getEl('party-players-list'); 
     if (!container) return;
     
     container.innerHTML = '';
-    const header = document.querySelector('#party-active-view h3');
+    const header = getEl('party-players-header'); 
     
     if (header && players.length) {
-        header.innerHTML = `Игроки <span id="leader-badge" style="color: #ffd700; font-size: 12px; display: ${isPartyLeader ? 'inline' : 'none'};">(Вы Лидер 👑)</span>`;
+        header.innerHTML = `Игроки: <span id="leader-badge" style="color: #ffd700; font-size: 12px; display: ${isPartyLeader ? 'inline' : 'none'};">(Вы Лидер 👑)</span>`;
     }
     
     players.forEach(p => {
