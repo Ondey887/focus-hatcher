@@ -259,7 +259,7 @@ function getPetRarity(p) {
 // === BATTLE PASS 100 УРОВНЕЙ С БИЛЕТАМИ, ШПРИЦАМИ И ЛЕГЕНДАМИ ===
 const BATTLE_PASS_REWARDS = [];
 for (let i = 1; i <= 100; i++) {
-    let free = { type: 'money', val: i * 500, icon: '💰', name: `${i*500} Монет`, dustVal: i * 5 };
+    let free = { type: 'money', val: i * 500, icon: '💰', name: `${formatNumber(i*500)} Монет`, dustVal: i * 5 };
     let pro = { type: 'dust', val: i * 5, icon: '✨', name: `${i*5} Пыли`, dustVal: 0 }; 
 
     if (i % 10 === 5) { 
@@ -308,6 +308,7 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
+// ОБНОВЛЕННЫЕ ЦЕНЫ С ДИНАМИКОЙ
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
@@ -331,6 +332,7 @@ const SHOP_DATA = {
     ]
 };
 
+// НОВЫЕ ДИНАМИЧЕСКИЕ ЕЖЕДНЕВНЫЕ НАГРАДЫ
 function getDailyRewardsConfig() {
     let totalDays = userStats.totalDaysLogged || 0;
     let week = Math.floor(totalDays / 7);
@@ -353,23 +355,23 @@ function getDailyRewardsConfig() {
 
 const ROULETTE_PRIZES = {
     base: [
-        { n: "1000 Монет", t: 'money', v: 1000, p: 40 },
-        { n: "5000 Монет", t: 'money', v: 5000, p: 20 },
+        { n: "1 000 Монет", t: 'money', v: 1000, p: 40 },
+        { n: "5 000 Монет", t: 'money', v: 5000, p: 20 },
         { n: "Бустер Удачи", t: 'luck', v: 1, p: 15 },
         { n: "Ген Мутации", t: 'joker', v: 1, p: 10 },
         { n: "10 Звезд", t: 'stars', v: 10, p: 10 },
         { n: "Осколок Пегаса", t: 'shard', v: 1, p: 5 }
     ],
     epic: [
-        { n: "5000 Монет", t: 'money', v: 5000, p: 35 },
-        { n: "10000 Монет", t: 'money', v: 10000, p: 24 },
+        { n: "5 000 Монет", t: 'money', v: 5000, p: 35 },
+        { n: "10 000 Монет", t: 'money', v: 10000, p: 24 },
         { n: "Бустер Удачи x3", t: 'luck', v: 3, p: 15 },
         { n: "Ген Мутации x2", t: 'joker', v: 2, p: 15 },
         { n: "Осколок Пегаса", t: 'shard', v: 1, p: 10 },
         { n: "СЛУЧАЙНАЯ ЛЕГЕНДА!", t: 'legendary_random', v: 1, p: 1 }
     ],
     mythic: [
-        { n: "15000 Монет", t: 'money', v: 15000, p: 30 },
+        { n: "15 000 Монет", t: 'money', v: 15000, p: 30 },
         { n: "Ген Мутации x5", t: 'joker', v: 5, p: 25 },
         { n: "Осколок Пегаса x2", t: 'shard', v: 2, p: 20 },
         { n: "50 Звезд", t: 'stars', v: 50, p: 15 },
@@ -662,7 +664,7 @@ function renderDailyModal(curr) {
         let v = '';
         if (r.type === 'money') v = `+${formatNumber(r.val)}`;
         else if (r.type === 'dust') v = `+${formatNumber(r.val)} Пыли`;
-        else if (r.type === 'stars') v = `+${r.val} Звезд`;
+        else if (r.type === 'stars') v = `+${formatNumber(r.val)} Звезд`;
         else if (r.type === 'shard') v = `Осколок!`;
         else if (r.type === 'booster') v = '+1 Буст';
         else if (r.type === 'mixed') v = `СУПЕР-ПРИЗ!`;
@@ -1509,7 +1511,12 @@ function checkAchievements() {
 
     let badge = getEl('ach-badge');
     if (badge) {
-        badge.style.display = (has || hasBpReward) ? 'block' : 'none';
+        badge.style.display = has ? 'flex' : 'none';
+    }
+    
+    let bpBadge = getEl('bp-badge');
+    if (bpBadge) {
+        bpBadge.style.display = hasBpReward ? 'flex' : 'none';
     }
 }
 

@@ -164,8 +164,8 @@
         .achievement-card.unlocked { border-color: var(--success); background: rgba(52, 199, 89, 0.05); }
         .ach-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; flex-shrink: 0; }
         .ach-icon img { width: 100%; height: 100%; object-fit: contain; }
-        .ach-info { flex: 1; }
-        .ach-title { font-weight: bold; font-size: 15px; margin-bottom: 4px; }
+        .ach-info { flex: 1; min-width: 0; overflow: hidden; }
+        .ach-title { font-weight: bold; font-size: 15px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .ach-desc { font-size: 12px; color: #888; }
         
         .level-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
@@ -276,8 +276,9 @@
     <div id="debug-console"></div>
 
     <header class="top-bar">
-        <div class="profile-section" onclick="openProfile()">
+        <div class="profile-section" onclick="openProfile()" style="position: relative;">
             <div id="header-profile-btn" class="avatar-wrapper"><img src="assets/ui/icon-profile.png" class="header-avatar"></div>
+            <span id="bp-badge" class="badge" style="display:none; position: absolute; left: 35px; top: -5px; z-index: 20;">!</span>
             <div class="level-info">
                 <div id="rank-name">Новичок</div>
                 <div id="level-number">Lvl 1</div>
@@ -355,11 +356,11 @@
     </main>
 
     <nav class="bottom-nav">
-        <button onclick="openInventory()"><span class="nav-icon">🐾</span>Коллекция <span id="ach-badge" class="badge" style="display:none;">!</span></button>
+        <button onclick="openInventory()"><span class="nav-icon">🐾</span>Коллекция</button>
         <button onclick="openShop()"><span class="nav-icon">🛍</span>Магазин</button>
         <button onclick="openMarketModal()" style="color:#ff9500;"><span class="nav-icon">🛒</span>Рынок</button>
         <button onclick="openPartyModal()"><span class="nav-icon">🎮</span>Пати</button>
-        <button onclick="openModal('more-modal')"><span class="nav-icon">🍔</span>Ещё</button>
+        <button onclick="openModal('more-modal')"><span class="nav-icon">🍔</span>Ещё <span id="ach-badge" class="badge" style="display:none;">!</span></button>
     </nav>
 
     <div id="more-modal" class="modal" style="z-index: 1050;">
@@ -558,14 +559,14 @@
 
             <div id="profile-friends-view" style="display:none; margin-top:15px; width:100%; box-sizing: border-box;">
                 <p style="font-size:12px; color:#888; margin-bottom:5px;">Мой ID (скопируй и отправь другу):</p>
-                <div style="display:flex; gap:10px; margin-bottom:15px; width:100%; box-sizing: border-box;">
-                    <input type="text" id="my-friend-code" readonly style="flex:1; padding:12px; border-radius:10px; background:#222; color:#00A3FF; font-weight:bold; border:none; text-align:center; min-width: 0;">
-                    <button class="btn small" style="background:#333; flex-shrink: 0;" onclick="copyMyCode()">Копия</button>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; width:100%; box-sizing: border-box;">
+                    <input type="text" id="my-friend-code" readonly style="flex:1; height:44px; padding:0 12px; border-radius:10px; background:#222; color:#00A3FF; font-weight:bold; border:none; text-align:center; min-width: 0; box-sizing: border-box;">
+                    <button class="btn small" style="width:80px; height:44px; margin:0; padding:0; background:#333; flex-shrink:0; display:flex; justify-content:center; align-items:center;" onclick="copyMyCode()">Копия</button>
                 </div>
                 <p style="font-size:12px; color:#888; margin-bottom:5px;">Добавить друга по ID:</p>
-                <div style="display:flex; gap:10px; margin-bottom:20px; width:100%; box-sizing: border-box;">
-                    <input type="text" id="add-friend-input" placeholder="Вставь ID" style="flex:1; padding:12px; border-radius:10px; background:#222; color:#fff; border:1px solid #444; outline:none; min-width: 0;">
-                    <button class="btn small" style="background:#34c759; flex-shrink: 0;" onclick="apiAddFriend()">Добавить</button>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; width:100%; box-sizing: border-box;">
+                    <input type="text" id="add-friend-input" placeholder="Вставь ID" style="flex:1; height:44px; padding:0 12px; border-radius:10px; background:#222; color:#fff; border:1px solid #444; outline:none; min-width: 0; box-sizing: border-box;">
+                    <button class="btn small" style="width:80px; height:44px; margin:0; padding:0; background:#34c759; flex-shrink:0; display:flex; justify-content:center; align-items:center;" onclick="apiAddFriend()">Добавить</button>
                 </div>
                 <h3 style="font-size:14px; margin-bottom:10px;">Список друзей:</h3>
                 <div id="friends-list-container" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -654,7 +655,7 @@
                     </div>
                     <div style="display:flex; gap:10px; margin-bottom:15px;">
                         <button id="change-expedition-pet-btn" class="btn" style="flex:1; background:#5856d6; font-size:14px;" onclick="openAvatarSelector()">Сменить Пета</button>
-                        <button id="expedition-radar-btn" class="btn" style="flex:1; background:transparent; border:2px solid #39ff14; color:#39ff14; font-size:14px;" onclick="buyMegaRadar()">Радар (100⭐️)</button>
+                        <button id="expedition-radar-btn" class="btn" style="flex:1; background:transparent; border:2px solid #39ff14; color:#39ff14; font-size:14px;" onclick="buyMegaRadar()">Радар (5⭐️)</button>
                     </div>
                     <button id="expedition-start-btn" class="btn" style="width:100%; background:linear-gradient(90deg, #34c759, #28a745);" onclick="startExpedition()">🚀 В Путь!</button>
                     <p id="expedition-waiting-msg" style="display:none; text-align:center; color:#ff9500; margin-top:15px; font-weight:bold;">Ожидаем команду лидера...</p>
@@ -747,9 +748,9 @@
             <input type="password" id="admin-password" placeholder="Секретный пароль" style="width:100%; padding:12px; margin-bottom:15px; background:#111; border:1px solid #444; color:#ff3b30; border-radius:8px; outline:none; text-align:center; font-family:monospace; box-sizing: border-box; min-width: 0;">
             <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px; width: 100%; box-sizing: border-box;">
                 <h3 style="font-size:14px; margin-bottom:10px; color:#ccc;">Генератор Промокодов:</h3>
-                <div style="display:flex; gap:10px; margin-bottom:10px; width: 100%; box-sizing: border-box;">
-                    <input type="text" id="admin-promo-code" placeholder="Код (FREE-123)" style="flex:1; padding:10px; background:#222; border:none; color:#fff; border-radius:8px; text-transform:uppercase; min-width:0; box-sizing: border-box;">
-                    <button class="btn small" style="background:#5856d6; flex-shrink:0; box-sizing: border-box; width: 50px; padding:0; display:flex; justify-content:center; align-items:center; font-size:20px;" onclick="generateRandomPromo()">🎲</button>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; width: 100%; box-sizing: border-box;">
+                    <input type="text" id="admin-promo-code" placeholder="Код (FREE-123)" style="flex:1; height:44px; padding:0 12px; background:#222; border:none; color:#fff; border-radius:10px; text-transform:uppercase; min-width:0; box-sizing: border-box;">
+                    <button class="btn small" style="background:#5856d6; width:50px; height:44px; padding:0; margin:0; flex-shrink:0; display:flex; justify-content:center; align-items:center; font-size:20px;" onclick="generateRandomPromo()">🎲</button>
                 </div>
                 <select id="admin-promo-type" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:none; color:#fff; border-radius:8px; outline:none; box-sizing: border-box; min-width: 0;">
                     <option value="money">Монеты 💰</option>
