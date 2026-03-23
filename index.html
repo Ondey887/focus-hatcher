@@ -26,7 +26,7 @@
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
 
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%); position: sticky; top: 0; z-index: 100; height: 80px; box-sizing: border-box; }
-        .profile-section { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .profile-section { display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; }
         .avatar-wrapper { width: 45px; height: 45px; border-radius: 50%; overflow: hidden; border: 2px solid var(--primary); background: #333; display: flex; align-items: center; justify-content: center; }
         .header-avatar { width: 100%; height: 100%; object-fit: contain; }
         .level-info { display: flex; flex-direction: column; }
@@ -368,16 +368,16 @@
             <span class="close-btn" onclick="closeModal('more-modal')">×</span>
             <h2 style="margin-bottom: 20px;">Ещё Меню 📱</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openAch();">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="openAch();">
                     <span style="font-size: 28px;">📜</span><span style="font-size: 13px;">Контракты</span>
                 </button>
-                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openCraft();">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="openCraft();">
                     <span style="font-size: 28px;">🧬</span><span style="font-size: 13px;">Лаба</span>
                 </button>
-                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openForbes();">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="openForbes();">
                     <span style="font-size: 28px;">🏆</span><span style="font-size: 13px;">Топ Форбс</span>
                 </button>
-                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="closeModal('more-modal'); openRouletteModal();">
+                <button class="btn secondary" style="padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;" onclick="openRouletteModal();">
                     <span style="font-size: 28px;">🎰</span><span style="font-size: 13px;">Рулетка</span>
                 </button>
             </div>
@@ -550,7 +550,10 @@
             <div id="profile-stats-view" style="margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:16px; width:100%; box-sizing: border-box;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Вылуплено:</span> <span id="stat-hatched" style="font-weight:bold;">0</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Уникальных:</span> <span id="stat-unique" style="font-weight:bold;">0</span></div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#888; flex-shrink: 0;">Заработано:</span> <span id="stat-earned" style="font-weight:bold; color:#ffd700; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">0</span></div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#888; flex-shrink: 0;">Монеты:</span> <span id="stat-earned-coins" style="font-weight:bold; color:#ffd700; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">0</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#888; flex-shrink: 0;">Звезды:</span> <span id="stat-earned-stars" style="font-weight:bold; color:#00A3FF; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">0</span></div>
+                
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Пыль:</span> <span id="total-dust" style="font-weight:bold; color:#a8a8a8;">✨ 0</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Приглашено:</span> <span id="stat-invites" style="font-weight:bold;">0</span></div>
                 <button class="btn" style="width:100%; margin-top:15px; background:rgba(255,255,255,0.1); border:1px solid #555;" onclick="openLevels()">Путь Фокуса 🏆</button>
@@ -586,7 +589,7 @@
             
             <div style="margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:16px; width:100%; box-sizing: border-box;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Вылуплено:</span> <span id="fp-hatched" style="font-weight:bold;">0</span></div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#888; flex-shrink: 0;">Заработано:</span> <span id="fp-earned" style="font-weight:bold; color:#ffd700; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">0</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#888; flex-shrink: 0;">Монеты:</span> <span id="fp-earned" style="font-weight:bold; color:#ffd700; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">0</span></div>
                 
                 <button id="fp-invite-btn" class="btn" style="width:100%; margin-top:15px; background:#00A3FF;" onclick="sendInviteToFriend()">Позвать в свою Пати 🎮</button>
                 <p id="fp-invite-hint" style="font-size:11px; color:#888; text-align:center; margin-top:10px; display:none;">Создай или зайди в Пати, чтобы пригласить друга.</p>
