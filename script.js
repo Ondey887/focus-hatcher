@@ -121,9 +121,12 @@ let usedCodes = [];
 let isVibrationOn = true;
 let isSoundOn = false;
 
-// Друзья
+// Друзья и Витрина (Showcase)
 let currentFriendsList = [];
 let currentViewingFriendId = null;
+let currentPublicUser = null;
+let userShowcase = { center: null, left: null, right: null };
+let currentShowcaseSlot = null;
 
 // Таймеры и механики
 let vipEndTime = 0;
@@ -755,6 +758,7 @@ function initGame() {
             
             claimedRewards = safeParse(localStorage.getItem('claimedRewards'), []);
             mythicTickets = parseInt(localStorage.getItem('mythicTickets')) || 0;
+            userShowcase = safeParse(localStorage.getItem('userShowcase'), { center: null, left: null, right: null });
             
             hatchStreak = parseInt(localStorage.getItem('hatchStreak')) || 0;
             lastHatchDate = localStorage.getItem('lastHatchDate') || "";
@@ -785,7 +789,6 @@ function initGame() {
             petStars = safeParse(localStorage.getItem('petStars'), {});
             activeContracts = safeParse(localStorage.getItem('activeContracts'), { date: '', allClaimed: false, tasks: [] });
             
-            // ИСПРАВЛЕНИЕ 6: Загружаем настройки кастомного яйца
             customEggConfig = safeParse(localStorage.getItem('customEggConfig'), { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 });
         }
     } catch(e) { 
@@ -831,7 +834,8 @@ function loadFromCloud() {
         'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 
         'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 
         'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress', 'petStars', 'activeContracts',
-        'hatchStreak', 'lastHatchDate', 'dustBalance', 'claimedRewards', 'mythicTickets', 'customEggConfig'
+        'hatchStreak', 'lastHatchDate', 'dustBalance', 'claimedRewards', 'mythicTickets', 
+        'customEggConfig', 'userShowcase'
     ];
     
     Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
@@ -852,6 +856,7 @@ function loadFromCloud() {
                 if (values.claimedRewards) claimedRewards = safeParse(values.claimedRewards, []);
                 if (values.mythicTickets) mythicTickets = parseInt(values.mythicTickets);
                 if (values.customEggConfig) customEggConfig = safeParse(values.customEggConfig, { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 });
+                if (values.userShowcase) userShowcase = safeParse(values.userShowcase, { center: null, left: null, right: null });
                 
                 if (values.hatchStreak) hatchStreak = parseInt(values.hatchStreak);
                 if (values.lastHatchDate) lastHatchDate = values.lastHatchDate;
@@ -931,6 +936,7 @@ function saveData(skipTimeUpdate = false) {
     localStorage.setItem('claimedRewards', JSON.stringify(claimedRewards));
     localStorage.setItem('mythicTickets', mythicTickets);
     localStorage.setItem('customEggConfig', JSON.stringify(customEggConfig));
+    localStorage.setItem('userShowcase', JSON.stringify(userShowcase));
     localStorage.setItem('hatchStreak', hatchStreak); 
     localStorage.setItem('lastHatchDate', lastHatchDate); 
     localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
@@ -963,6 +969,7 @@ function saveData(skipTimeUpdate = false) {
         Telegram.WebApp.CloudStorage.setItem('claimedRewards', JSON.stringify(claimedRewards));
         Telegram.WebApp.CloudStorage.setItem('mythicTickets', mythicTickets.toString());
         Telegram.WebApp.CloudStorage.setItem('customEggConfig', JSON.stringify(customEggConfig));
+        Telegram.WebApp.CloudStorage.setItem('userShowcase', JSON.stringify(userShowcase));
         Telegram.WebApp.CloudStorage.setItem('hatchStreak', hatchStreak.toString());
         Telegram.WebApp.CloudStorage.setItem('lastHatchDate', lastHatchDate);
         Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
@@ -1014,7 +1021,9 @@ async function apiSyncGlobalProfile() {
                 hatched: userStats.hatched || 0,
                 dust: dustBalance,
                 claimed_rewards: JSON.stringify(claimedRewards),
-                mythic_tickets: mythicTickets
+                mythic_tickets: mythicTickets,
+                active_theme: activeTheme,
+                showcase: JSON.stringify(userShowcase)
             })
         });
     } catch(e) {}
@@ -1123,7 +1132,6 @@ function openProfile() {
     let si = getEl('stat-invites'); 
     if (si) si.textContent = formatNumber(userStats.invites || 0);
     
-    // ИСПРАВЛЕНИЕ 2: РАЗДЕЛЯЕМ МОНЕТЫ И ЗВЕЗДЫ В ПРОФИЛЕ
     let netWorthCoins = walletBalance;
     collection.forEach(pet => {
         netWorthCoins += PRICES[getPetRarity(pet)] || 0;
@@ -1222,9 +1230,9 @@ async function apiLoadFriends() {
         currentFriendsList = data.friends;
         
         data.friends.forEach(f => {
-            // ИСПРАВЛЕНИЕ 1: ПЕРЕДАЕМ ТОЛЬКО ID ДЛЯ БЕЗОПАСНОСТИ
+            const encodedFriend = encodeURIComponent(JSON.stringify(f));
             container.innerHTML += `
-                <div class="achievement-card" style="cursor: pointer;" onclick="openFriendProfile('${f.user_id}')">
+                <div class="achievement-card" style="cursor: pointer;" onclick="openPublicProfileObj('${encodedFriend}')">
                     <div class="ach-icon"><img src="${getPetImg(f.avatar)}" onerror="this.src='assets/ui/icon-profile.png'"></div>
                     <div class="ach-info">
                         <div class="ach-title">${f.name}</div>
@@ -1238,61 +1246,165 @@ async function apiLoadFriends() {
     }
 }
 
-function openFriendProfile(userId) {
-    playSound('click'); 
-    const f = currentFriendsList.find(x => x.user_id === userId);
-    if (!f) return;
+// === НОВОЕ: НАСТРОЙКА ВИТРИНЫ ===
+window.openShowcaseSetup = function() {
+    renderSetupShowcaseSlot('left');
+    renderSetupShowcaseSlot('center');
+    renderSetupShowcaseSlot('right');
+    openModal('showcase-setup-modal');
+};
+
+function renderSetupShowcaseSlot(slot) {
+    const petId = userShowcase[slot];
+    const container = getEl(`setup-showcase-${slot}`);
+    if (!container) return;
     
-    currentViewingFriendId = f.user_id;
-    
-    let fpn = getEl('fp-name'); if (fpn) fpn.textContent = f.name; 
-    let fpa = getEl('fp-avatar'); if (fpa) fpa.src = getPetImg(f.avatar);
-    let fpl = getEl('fp-level'); if (fpl) fpl.textContent = `Уровень ${f.level}`; 
-    let fph = getEl('fp-hatched'); if (fph) fph.textContent = formatNumber(f.hatched || 0); 
-    let fpe = getEl('fp-earned'); if (fpe) fpe.textContent = formatNumber(f.earned || 0);
-    
-    let fib = getEl('fp-invite-btn');
-    let fih = getEl('fp-invite-hint');
-    
-    if (currentPartyCode) { 
-        if (fib) fib.style.display = 'block'; 
-        if (fih) fih.style.display = 'none'; 
-    } else { 
-        if (fib) fib.style.display = 'none'; 
-        if (fih) fih.style.display = 'block'; 
+    if (petId) {
+        const r = getPetRarity(petId);
+        container.innerHTML = `<img src="assets/pets/pet-${petId}.png" class="showcase-pet-img glow-${r}" onerror="this.src='assets/eggs/egg-default.png'">`;
+    } else {
+        container.innerHTML = `<div class="showcase-empty">?</div>`;
     }
-    openModal('friend-profile-modal');
 }
 
-async function sendInviteToFriend() {
-    playSound('click'); 
-    if (!currentPartyCode || !currentViewingFriendId) return;
+window.openShowcasePetSelector = function(slot) {
+    currentShowcaseSlot = slot;
+    const list = getEl('showcase-pet-list');
+    if (!list) return;
+    list.innerHTML = '';
     
-    const btn = getEl('fp-invite-btn'); 
-    if (btn) { 
-        btn.textContent = "Отправляем..."; 
-        btn.disabled = true; 
+    const uniquePets = [...new Set(collection)];
+    if (uniquePets.length === 0) { 
+        list.innerHTML = "<p style='color:#888; grid-column:span 4; text-align:center;'>У тебя еще нет питомцев!</p>"; 
     }
+    
+    uniquePets.forEach(pet => {
+        const r = getPetRarity(pet);
+        const div = document.createElement('div');
+        div.className = `pet-slot ${r}`;
+        div.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`;
+        
+        div.onclick = () => selectShowcasePet(pet);
+        list.appendChild(div);
+    });
+    
+    openModal('showcase-pet-selector-modal');
+};
+
+window.selectShowcasePet = function(petId) {
+    if (currentShowcaseSlot) {
+        userShowcase[currentShowcaseSlot] = petId;
+        renderSetupShowcaseSlot(currentShowcaseSlot);
+    }
+    closeModal('showcase-pet-selector-modal');
+    playSound('click');
+};
+
+window.saveShowcase = function() {
+    saveData();
+    apiSyncGlobalProfile();
+    closeModal('showcase-setup-modal');
+    showToast("Витрина обновлена!", "🏆");
+    playSound('win');
+};
+
+// === НОВОЕ: ПУБЛИЧНАЯ КАРТОЧКА ИГРОКА ===
+window.openPublicProfileObj = function(encodedUser) {
+    playSound('click');
+    const u = JSON.parse(decodeURIComponent(encodedUser));
+    currentPublicUser = u;
+
+    let pName = getEl('pub-name'); if (pName) pName.textContent = u.name;
+    let pLevel = getEl('pub-level'); if (pLevel) pLevel.textContent = `Уровень ${u.level}`;
+    let pHatched = getEl('pub-hatched'); if (pHatched) pHatched.textContent = formatNumber(u.hatched || 0);
+    let pEarned = getEl('pub-earned'); if (pEarned) pEarned.textContent = formatNumber(u.earned || 0);
+    let pAvatar = getEl('pub-avatar'); if (pAvatar) pAvatar.src = getPetImg(u.avatar);
+
+    let bgElem = getEl('public-card-bg');
+    if (bgElem) {
+        bgElem.style.backgroundImage = 'none';
+        bgElem.style.backgroundColor = 'var(--panel)';
+        if (u.active_theme && u.active_theme !== 'default' && u.active_theme !== 'matrix') {
+            const t = SHOP_DATA.themes.find(x => x.id === u.active_theme);
+            if (t && t.bgFile) bgElem.style.backgroundImage = `url('${t.bgFile}')`;
+        }
+    }
+
+    let sc = { center: null, left: null, right: null };
+    if (u.showcase) sc = safeParse(u.showcase, sc);
+
+    ['left', 'center', 'right'].forEach(slot => {
+        const petId = sc[slot];
+        const container = getEl(`pub-showcase-${slot}`);
+        if (!container) return;
+        
+        if (petId) {
+            const r = getPetRarity(petId);
+            container.innerHTML = `<img src="assets/pets/pet-${petId}.png" class="showcase-pet-img glow-${r}" onerror="this.src='assets/eggs/egg-default.png'">`;
+        } else {
+            container.innerHTML = `<div class="showcase-empty">?</div>`;
+        }
+    });
+
+    let friendBtn = getEl('pub-friend-btn');
+    if (friendBtn) {
+        if (String(u.user_id) === String(getTgUser().id)) {
+            friendBtn.style.display = 'none';
+        } else {
+            friendBtn.style.display = 'block';
+            let isFriend = currentFriendsList.some(f => String(f.user_id) === String(u.user_id));
+            if (isFriend) {
+                friendBtn.textContent = "В друзьях";
+                friendBtn.style.background = "#555";
+                friendBtn.onclick = () => showToast("Игрок уже в друзьях", "🤝");
+            } else {
+                friendBtn.textContent = "Добавить";
+                friendBtn.style.background = "#34c759";
+                friendBtn.onclick = () => pubToggleFriend();
+            }
+        }
+    }
+    
+    let inviteBtn = getEl('pub-invite-btn');
+    if (inviteBtn) {
+        if (String(u.user_id) === String(getTgUser().id)) {
+            inviteBtn.style.display = 'none';
+        } else {
+            inviteBtn.style.display = 'block';
+        }
+    }
+
+    openModal('public-player-modal');
+};
+
+window.pubToggleFriend = async function() {
+    if (!currentPublicUser) return;
+    playSound('click');
+    let input = getEl('add-friend-input');
+    if (input) {
+        input.value = currentPublicUser.user_id;
+        await apiAddFriend();
+        closeModal('public-player-modal');
+    }
+};
+
+window.pubInviteParty = async function() {
+    playSound('click');
+    if (!currentPartyCode) return showToast("Сначала создай Пати!", "❌");
+    if (!currentPublicUser) return;
     
     try {
         await fetch(`${API_URL}/invites/send`, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ sender_id: getTgUser().id, receiver_id: currentViewingFriendId, party_code: currentPartyCode }) 
+            body: JSON.stringify({ sender_id: getTgUser().id, receiver_id: currentPublicUser.user_id, party_code: currentPartyCode }) 
         });
         showToast("Приглашение отправлено!", "💌");
+        closeModal('public-player-modal');
     } catch(e) { 
         showToast("Ошибка", "❌"); 
     }
-    
-    setTimeout(() => { 
-        if (btn) { 
-            btn.textContent = "Позвать в свою Пати 🎮"; 
-            btn.disabled = false; 
-        } 
-        closeModal('friend-profile-modal'); 
-    }, 1000);
-}
+};
 
 // === ОТРИСОВКА BATTLE PASS И РАСПЫЛЕНИЕ ===
 function openLevels() {
@@ -1394,7 +1506,6 @@ function openLevels() {
         list.appendChild(col);
     });
     
-    // ИСПРАВЛЕНИЕ 4: СОХРАНЕНИЕ ПОЗИЦИИ СКРОЛЛА БАТЛ ПАССА
     let isBpOpen = modalStack.includes('levels-modal');
     openModal('levels-modal');
     
@@ -1547,58 +1658,6 @@ function checkAchievements() {
     }
 }
 
-function openAvatarSelector() {
-    const list = getEl('avatar-list'); 
-    if (!list) return;
-    
-    list.innerHTML = '';
-    const uniquePets = [...new Set(collection)];
-    
-    if (uniquePets.length === 0) { 
-        list.innerHTML = "<p style='color:#888; grid-column:span 4;'>Сначала выбей питомца!</p>"; 
-    }
-    
-    uniquePets.forEach(pet => {
-        const div = document.createElement('div');
-        div.className = `avatar-item ${selectedAvatar === pet ? 'selected' : ''}`;
-        div.innerHTML = `<img src="assets/pets/pet-${pet}.png" onerror="this.src='assets/eggs/egg-default.png'">`;
-        
-        div.onclick = () => {
-            selectedAvatar = pet; 
-            saveData();
-            
-            let pAvatar = getEl('profile-avatar'); 
-            if (pAvatar) pAvatar.src = getPetImg(pet);
-            
-            let hBtn = getEl('header-profile-btn'); 
-            if (hBtn) hBtn.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`;
-            
-            if (currentPartyCode) {
-                apiUpdatePlayerAvatar();
-            }
-            
-            closeModal('avatar-modal'); 
-            showToast("Аватар изменен!");
-        };
-        list.appendChild(div);
-    });
-    openModal('avatar-modal');
-}
-
-async function apiUpdatePlayerAvatar() {
-    let finalName = getTgUser().name;
-    if (isVip()) {
-        finalName += ' 👑';
-    }
-    try { 
-        await fetch(`${API_URL}/party/join`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code: currentPartyCode, user_id: getTgUser().id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin }) 
-        }); 
-    } catch(e) {}
-}
-
 // =============================================================
 // UI, МАГАЗИН И АЧИВКИ
 // =============================================================
@@ -1626,7 +1685,7 @@ function applyEggSkin() {
 
     egg.className = 'egg-img'; 
     egg.classList.remove('egg-locked');
-    egg.style.filter = ''; // ИСПРАВЛЕНИЕ 7: Сброс зависшего фильтра
+    egg.style.filter = ''; // Сброс залипшего фильтра
 
     const m = MODES[currentModeIndex] || MODES[0];
 
@@ -2103,9 +2162,10 @@ function renderForbesList(tab) {
         let rankNum = index + 1;
         let rankClass = rankNum <= 3 ? `top-${rankNum}` : '';
         let isMe = p.user_id === String(getTgUser().id) ? 'me' : '';
+        let encodedUser = encodeURIComponent(JSON.stringify(p));
         
         html += `
-            <div class="forbes-item ${isMe}">
+            <div class="forbes-item ${isMe}" style="cursor:pointer;" onclick="openPublicProfileObj('${encodedUser}')">
                 <div class="forbes-rank ${rankClass}">${rankNum}</div>
                 <img src="${getPetImg(p.avatar)}" class="forbes-avatar" onerror="this.src='assets/ui/icon-profile.png'">
                 <div class="forbes-info">
@@ -2123,7 +2183,6 @@ function renderForbesList(tab) {
 // =============================================================
 // РУЛЕТКА И РЕКЛАМА
 // =============================================================
-// ИСПРАВЛЕНИЕ 5: РУЛЕТКА БОЛЬШЕ НЕ СБРАСЫВАЕТСЯ НА КОРОБКУ 🎁
 function updateRouletteButtons() {
     let cost = 10; 
     let reqAds = 1;
@@ -3742,7 +3801,6 @@ async function apiLeaveParty(localOnly = false) {
     if (rgb) rgb.style.display = 'none';
 }
 
-// ИСПРАВЛЕНИЕ БАГА С ПРОПАДАЮЩИМ КОДОМ ПАТИ
 function renderPartyPlayers(players) {
     const container = getEl('party-players-list'); 
     if (!container) return;

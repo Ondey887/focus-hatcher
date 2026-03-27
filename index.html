@@ -159,7 +159,6 @@
         .pet-price { text-align: center; font-size: 18px; font-weight: bold; color: #ffd700; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; }
         .sell-action { background: linear-gradient(135deg, #34c759 0%, #28a745 100%); margin-top: 10px; }
 
-        /* ИСПРАВЛЕННЫЕ ДРУЗЬЯ (ШИРИНА 100%) */
         .achievement-card { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); width: 100%; box-sizing: border-box; }
         .achievement-card.unlocked { border-color: var(--success); background: rgba(52, 199, 89, 0.05); }
         .ach-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; flex-shrink: 0; }
@@ -206,7 +205,6 @@
         .tap-cell { background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); width: calc(33.33% - 5px); aspect-ratio: 1; pointer-events: none; }
         .tap-cell.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,163,255,0.2); }
         
-        /* ИСПРАВЛЕННЫЙ ТОП ФОРБС (ШИРИНА И ОТСТУПЫ) */
         .forbes-item { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px; width: 100%; box-sizing: border-box; }
         .forbes-item.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); }
         .forbes-rank { font-weight: 800; font-size: 14px; color: #888; width: 24px; text-align: center; flex-shrink: 0; }
@@ -246,7 +244,6 @@
         @keyframes pulseDanger { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.5; } }
         .shake-lose { animation: shakeHard 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         
-        /* === СТИЛИ ДЛЯ BATTLE PASS (ПУТЬ ФОКУСА) === */
         .bp-horizontal-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; scroll-snap-type: x mandatory; }
         .bp-col { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 100px; scroll-snap-align: center; }
         .bp-card { width: 100px; height: 110px; background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 5px; position: relative; overflow: hidden; }
@@ -265,6 +262,30 @@
         .bp-line.active { background: #00A3FF; box-shadow: 0 0 10px rgba(0,163,255,0.5); }
         .bp-lvl-badge { width: 30px; height: 30px; border-radius: 50%; background: #2c2c2e; border: 2px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; z-index: 2; margin: 0 auto; position: relative; }
         .bp-lvl-badge.active { border-color: #00A3FF; background: #00A3FF; color: white; box-shadow: 0 0 10px #00A3FF; }
+
+        /* === ВИТРИНА И ПУБЛИЧНЫЙ ПРОФИЛЬ === */
+        .showcase-container { display: flex; justify-content: center; align-items: flex-end; height: 160px; margin: 20px 0; position: relative; }
+        .showcase-slot { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        .showcase-slot.center { z-index: 10; margin: 0 -15px; padding-bottom: 20px; }
+        .showcase-slot.side { z-index: 5; transform: scale(0.9); }
+        .showcase-pet-img { width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5)); transition: transform 0.3s; cursor: pointer; }
+        .showcase-slot.center .showcase-pet-img { width: 110px; height: 110px; transform: scale(1.1); }
+        .showcase-empty { width: 60px; height: 60px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed #555; color: #888; font-size: 24px; font-weight: bold; margin-bottom: 10px;}
+        .showcase-slot.center .showcase-empty { width: 80px; height: 80px; font-size: 30px; }
+        .showcase-platform { width: 80px; height: 20px; background: linear-gradient(180deg, #444, #222); border-radius: 50%; position: absolute; bottom: 0; box-shadow: inset 0 -3px 5px rgba(0,0,0,0.8), 0 5px 10px rgba(0,0,0,0.5); border: 1px solid #555;}
+        .showcase-slot.center .showcase-platform { width: 110px; height: 25px; border-color: #ffd700; background: linear-gradient(180deg, #665500, #221100); }
+        
+        .glow-common { filter: drop-shadow(0 0 15px rgba(136,136,136,0.5)); }
+        .glow-rare { filter: drop-shadow(0 0 20px rgba(0,163,255,0.7)); }
+        .glow-epic { filter: drop-shadow(0 0 25px rgba(255,45,85,0.8)); }
+        .glow-legendary { filter: drop-shadow(0 0 30px rgba(255,215,0,0.9)); }
+        .glow-mythic { filter: drop-shadow(0 0 35px rgba(138,43,226,1)); }
+        .glow-mutant { filter: drop-shadow(0 0 35px rgba(57,255,20,1)); }
+        .glow-glitch { filter: drop-shadow(0 0 35px rgba(0,255,255,1)); }
+        
+        #public-player-modal .modal-content { overflow: hidden; position: relative; background-size: cover; background-position: center; padding: 0; display: flex; flex-direction: column; min-height: 80vh; }
+        .public-card-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(28,28,30,0.95) 60%, rgba(28,28,30,1) 100%); z-index: 1; pointer-events: none;}
+        .public-card-inner { position: relative; z-index: 2; padding: 25px; display: flex; flex-direction: column; height: 100%; overflow-y: auto;}
 
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
@@ -556,7 +577,9 @@
                 
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Пыль:</span> <span id="total-dust" style="font-weight:bold; color:#a8a8a8;">✨ 0</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Приглашено:</span> <span id="stat-invites" style="font-weight:bold;">0</span></div>
-                <button class="btn" style="width:100%; margin-top:15px; background:rgba(255,255,255,0.1); border:1px solid #555;" onclick="openLevels()">Путь Фокуса 🏆</button>
+                
+                <button class="btn" style="width:100%; margin-top:10px; background:linear-gradient(90deg, #8a2be2, #4b0082);" onclick="openShowcaseSetup()">Настроить Витрину 🏆</button>
+                <button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.1); border:1px solid #555;" onclick="openLevels()">Путь Фокуса 🏆</button>
                 <button class="btn" style="width:100%; margin-top:10px; background:#00A3FF;" onclick="openAvatarSelector()">Выбрать Аватар</button>
             </div>
 
@@ -577,22 +600,85 @@
         </div>
     </div>
 
-    <div id="friend-profile-modal" class="modal" style="z-index: 1060;">
+    <div id="showcase-setup-modal" class="modal" style="z-index: 1060;">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('friend-profile-modal')">×</span>
-            <h2>Профиль Друга</h2>
-            <div style="text-align:center; position:relative; margin-top:15px;">
-                <img id="fp-avatar" src="assets/ui/icon-profile.png" style="width:90px;height:90px;border-radius:50%;margin-bottom:10px; border:3px solid var(--primary); background:#333; object-fit:contain;">
-                <div id="fp-name" style="font-weight:900; font-size:22px; color:#fff;">Имя</div>
-                <div id="fp-level" style="color:#00A3FF; font-weight:bold; margin-top:5px;">Уровень 1</div>
+            <span class="close-btn" onclick="closeModal('showcase-setup-modal')">×</span>
+            <h2>Моя Витрина</h2>
+            <p style="font-size:12px; color:#888; text-align:center; margin-bottom:15px;">Выбери лучших петов, чтобы показать их всем!</p>
+            
+            <div class="showcase-container">
+                <div class="showcase-slot side" onclick="openShowcasePetSelector('left')">
+                    <div id="setup-showcase-left">
+                        <div class="showcase-empty">?</div>
+                    </div>
+                    <div class="showcase-platform"></div>
+                    <div style="margin-top:5px; font-size:10px; color:#aaa; font-weight:bold;">2 МЕСТО</div>
+                </div>
+                <div class="showcase-slot center" onclick="openShowcasePetSelector('center')">
+                    <div id="setup-showcase-center">
+                        <div class="showcase-empty">?</div>
+                    </div>
+                    <div class="showcase-platform"></div>
+                    <div style="margin-top:5px; font-size:12px; color:#ffd700; font-weight:bold; text-shadow:0 0 5px rgba(255,215,0,0.5);">1 МЕСТО</div>
+                </div>
+                <div class="showcase-slot side" onclick="openShowcasePetSelector('right')">
+                    <div id="setup-showcase-right">
+                        <div class="showcase-empty">?</div>
+                    </div>
+                    <div class="showcase-platform"></div>
+                    <div style="margin-top:5px; font-size:10px; color:#aaa; font-weight:bold;">3 МЕСТО</div>
+                </div>
             </div>
             
-            <div style="margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:16px; width:100%; box-sizing: border-box;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Вылуплено:</span> <span id="fp-hatched" style="font-weight:bold;">0</span></div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#888; flex-shrink: 0;">Монеты:</span> <span id="fp-earned" style="font-weight:bold; color:#ffd700; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">0</span></div>
+            <button class="btn" style="width:100%; margin-top:20px; background:#34c759;" onclick="saveShowcase()">Сохранить Витрину</button>
+        </div>
+    </div>
+
+    <div id="showcase-pet-selector-modal" class="modal" style="z-index: 1070;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('showcase-pet-selector-modal')">×</span>
+            <h2>Выбрать пета</h2>
+            <button class="btn small stop" style="margin-bottom:15px; width:100%;" onclick="selectShowcasePet(null)">Очистить слот</button>
+            <div id="showcase-pet-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:50vh; overflow-y:auto; padding-bottom:10px; width:100%; box-sizing: border-box;"></div>
+        </div>
+    </div>
+
+    <div id="public-player-modal" class="modal" style="z-index: 1060;">
+        <div class="modal-content" id="public-card-bg" style="background-color: var(--panel);">
+            <div class="public-card-overlay"></div>
+            <div class="public-card-inner">
+                <span class="close-btn" onclick="closeModal('public-player-modal')" style="z-index:10; background:rgba(0,0,0,0.5); color:#fff;">×</span>
                 
-                <button id="fp-invite-btn" class="btn" style="width:100%; margin-top:15px; background:#00A3FF;" onclick="sendInviteToFriend()">Позвать в свою Пати 🎮</button>
-                <p id="fp-invite-hint" style="font-size:11px; color:#888; text-align:center; margin-top:10px; display:none;">Создай или зайди в Пати, чтобы пригласить друга.</p>
+                <div style="text-align:center; position:relative; margin-top:10px; z-index:2;">
+                    <img id="pub-avatar" src="assets/ui/icon-profile.png" style="width:70px;height:70px;border-radius:50%;margin-bottom:5px; border:2px solid var(--primary); background:#333; object-fit:contain; box-shadow:0 0 15px rgba(0,163,255,0.5);">
+                    <div id="pub-name" style="font-weight:900; font-size:20px; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.8);">Игрок</div>
+                    <div id="pub-level" style="color:#00A3FF; font-weight:bold; font-size:12px; text-shadow:0 1px 3px rgba(0,0,0,0.8);">Уровень 1</div>
+                </div>
+
+                <div class="showcase-container" style="margin: 25px 0;">
+                    <div class="showcase-slot side">
+                        <div id="pub-showcase-left"><div class="showcase-empty">?</div></div>
+                        <div class="showcase-platform"></div>
+                    </div>
+                    <div class="showcase-slot center">
+                        <div id="pub-showcase-center"><div class="showcase-empty">?</div></div>
+                        <div class="showcase-platform"></div>
+                    </div>
+                    <div class="showcase-slot side">
+                        <div id="pub-showcase-right"><div class="showcase-empty">?</div></div>
+                        <div class="showcase-platform"></div>
+                    </div>
+                </div>
+
+                <div style="background:rgba(0,0,0,0.6); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); margin-bottom:15px; z-index:2; backdrop-filter:blur(5px);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span style="color:#aaa; font-size:13px;">Вылуплено:</span> <span id="pub-hatched" style="font-weight:bold; font-size:13px;">0</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span style="color:#aaa; font-size:13px;">Заработано:</span> <span id="pub-earned" style="font-weight:bold; color:#ffd700; font-size:13px;">0</span></div>
+                </div>
+
+                <div style="display:flex; gap:10px; z-index:2;">
+                    <button id="pub-friend-btn" class="btn" style="flex:1; background:#34c759; font-size:13px; padding:12px;" onclick="pubToggleFriend()">Добавить</button>
+                    <button id="pub-invite-btn" class="btn" style="flex:1; background:#00A3FF; font-size:13px; padding:12px;" onclick="pubInviteParty()">В Пати 🎮</button>
+                </div>
             </div>
         </div>
     </div>
