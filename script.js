@@ -1,5 +1,3 @@
-Фывфв
-
 // =============================================================
 // 1. ЛОВУШКА ОШИБОК И ЗВУК
 // =============================================================
@@ -5034,6 +5032,12 @@ async function checkMarketSales() {
             playSound('money');
         }
     } catch(e) {}
+    var collection = [];
+var userXP = 0;
+var userLevel = 1;
+var walletBalance = 0;
+var userStars = 0;
+// ... и так далее для всех глобальных переменных
 }
 
 setInterval(checkMarketSales, 5000);
