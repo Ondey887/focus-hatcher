@@ -1,3 +1,5 @@
+Фывфв
+
 // =============================================================
 // 1. ЛОВУШКА ОШИБОК И ЗВУК
 // =============================================================
@@ -121,12 +123,14 @@ let usedCodes = [];
 let isVibrationOn = true;
 let isSoundOn = false;
 
-// Друзья и Витрина (Showcase)
+// Друзья, Витрина и Синдикаты
 let currentFriendsList = [];
 let currentViewingFriendId = null;
 let currentPublicUser = null;
 let userShowcase = { center: null, left: null, right: null };
 let currentShowcaseSlot = null;
+let mySyndicateId = null;
+let createSynSelectedAvatar = 'default';
 
 // Таймеры и механики
 let vipEndTime = 0;
@@ -263,7 +267,7 @@ function getPetRarity(p) {
     return 'common';
 }
 
-// === BATTLE PASS 100 УРОВНЕЙ С БИЛЕТАМИ, ШПРИЦАМИ И ЛЕГЕНДАМИ ===
+// === BATTLE PASS ===
 const BATTLE_PASS_REWARDS = [];
 for (let i = 1; i <= 100; i++) {
     let free = { type: 'money', val: i * 500, icon: '💰', name: `${formatNumber(i*500)} Монет`, dustVal: i * 5 };
@@ -278,7 +282,6 @@ for (let i = 1; i <= 100; i++) {
         pro = { type: 'joker', val: 1, icon: '🧬', name: 'Ген Мутации', dustVal: 50 };
     }
 
-    // Глобальные Чекпоинты
     if (i === 25) { 
         free = { type: 'pet_and_ticket', pet: 'cyber_fox', ticket: 'epic', icon: '🦊', name: 'Кибер-лис + Билет', dustVal: 100 }; 
         pro = { type: 'bg_and_ticket', bg: 'cyberpunk', ticket: 'mythic', icon: '🌆', name: 'Cyberpunk + Билет', dustVal: 200 }; 
@@ -315,7 +318,6 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
-// ОБНОВЛЕННЫЕ ЦЕНЫ С ДИНАМИКОЙ
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
@@ -339,7 +341,6 @@ const SHOP_DATA = {
     ]
 };
 
-// НОВЫЕ ДИНАМИЧЕСКИЕ ЕЖЕДНЕВНЫЕ НАГРАДЫ
 function getDailyRewardsConfig() {
     let totalDays = userStats.totalDaysLogged || 0;
     let week = Math.floor(totalDays / 7);
@@ -360,6 +361,7 @@ function getDailyRewardsConfig() {
     ];
 }
 
+// === ОБНОВЛЕНИЕ 2: РУЛЕТКИ ТЕПЕРЬ ДАЮТ XP ===
 const ROULETTE_PRIZES = {
     base: [
         { n: "1 000 Монет", t: 'money', v: 1000, p: 40 },
@@ -370,17 +372,19 @@ const ROULETTE_PRIZES = {
         { n: "Осколок Пегаса", t: 'shard', v: 1, p: 5 }
     ],
     epic: [
-        { n: "5 000 Монет", t: 'money', v: 5000, p: 35 },
-        { n: "10 000 Монет", t: 'money', v: 10000, p: 24 },
-        { n: "Бустер Удачи x3", t: 'luck', v: 3, p: 15 },
-        { n: "Ген Мутации x2", t: 'joker', v: 2, p: 15 },
+        { n: "5 000 Монет", t: 'money', v: 5000, p: 30 },
+        { n: "10 000 Монет", t: 'money', v: 10000, p: 20 },
+        { n: "Опыт (50-100 XP)", t: 'xp', min: 50, max: 100, p: 15 },
+        { n: "Бустер Удачи x3", t: 'luck', v: 3, p: 10 },
+        { n: "Ген Мутации x2", t: 'joker', v: 2, p: 14 },
         { n: "Осколок Пегаса", t: 'shard', v: 1, p: 10 },
         { n: "СЛУЧАЙНАЯ ЛЕГЕНДА!", t: 'legendary_random', v: 1, p: 1 }
     ],
     mythic: [
-        { n: "15 000 Монет", t: 'money', v: 15000, p: 30 },
-        { n: "Ген Мутации x5", t: 'joker', v: 5, p: 25 },
-        { n: "Осколок Пегаса x2", t: 'shard', v: 2, p: 20 },
+        { n: "15 000 Монет", t: 'money', v: 15000, p: 25 },
+        { n: "Опыт (100-500 XP)", t: 'xp', min: 100, max: 500, p: 15 },
+        { n: "Ген Мутации x5", t: 'joker', v: 5, p: 20 },
+        { n: "Осколок Пегаса x2", t: 'shard', v: 2, p: 15 },
         { n: "50 Звезд", t: 'stars', v: 50, p: 15 },
         { n: "Бог Фокуса", t: 'pet', v: 'god', p: 5 },
         { n: "СЛУЧАЙНАЯ ЛЕГЕНДА!", t: 'legendary_random', v: 1, p: 5 }
@@ -436,7 +440,7 @@ function openModal(id) {
     playSound('click');
     if (modalStack.length > 0 && modalStack[modalStack.length - 1] === id) return;
     
-    if (modalStack.length > 0) {
+    if (modalStack.length > 0 && id !== 'more-modal') {
         const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
         if (prevEl) prevEl.style.display = 'none';
     }
@@ -456,8 +460,11 @@ function closeModal(id) {
     modalStack = modalStack.filter(m => m !== id);
     
     if (modalStack.length > 0) {
-        const prevEl = document.getElementById(modalStack[modalStack.length - 1]);
-        if (prevEl) prevEl.style.display = 'flex';
+        const prevId = modalStack[modalStack.length - 1];
+        const prevEl = document.getElementById(prevId);
+        if (prevEl) {
+            prevEl.style.display = 'flex';
+        }
     }
 }
 
@@ -671,7 +678,7 @@ function renderDailyModal(curr) {
         let v = '';
         if (r.type === 'money') v = `+${formatNumber(r.val)}`;
         else if (r.type === 'dust') v = `+${formatNumber(r.val)} Пыли`;
-        else if (r.type === 'stars') v = `+${r.val} Звезд`;
+        else if (r.type === 'stars') v = `+${formatNumber(r.val)} Звезд`;
         else if (r.type === 'shard') v = `Осколок!`;
         else if (r.type === 'booster') v = '+1 Буст';
         else if (r.type === 'mixed') v = `СУПЕР-ПРИЗ!`;
@@ -758,7 +765,6 @@ function initGame() {
             
             claimedRewards = safeParse(localStorage.getItem('claimedRewards'), []);
             mythicTickets = parseInt(localStorage.getItem('mythicTickets')) || 0;
-            userShowcase = safeParse(localStorage.getItem('userShowcase'), { center: null, left: null, right: null });
             
             hatchStreak = parseInt(localStorage.getItem('hatchStreak')) || 0;
             lastHatchDate = localStorage.getItem('lastHatchDate') || "";
@@ -790,6 +796,7 @@ function initGame() {
             activeContracts = safeParse(localStorage.getItem('activeContracts'), { date: '', allClaimed: false, tasks: [] });
             
             customEggConfig = safeParse(localStorage.getItem('customEggConfig'), { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 });
+            userShowcase = safeParse(localStorage.getItem('userShowcase'), { center: null, left: null, right: null });
         }
     } catch(e) { 
         console.error("Local Load Error", e); 
@@ -1246,7 +1253,268 @@ async function apiLoadFriends() {
     }
 }
 
-// === НОВОЕ: НАСТРОЙКА ВИТРИНЫ ===
+// === НОВОЕ: СИНДИКАТЫ (КЛАНЫ) ===
+async function openSyndicates() {
+    playSound('click');
+    closeModal('more-modal');
+    
+    try {
+        let res = await fetch(`${API_URL}/syndicates/my/${getTgUser().id}`);
+        let data = await res.json();
+        if (data.status === 'success' && data.syndicate_id) {
+            mySyndicateId = data.syndicate_id;
+            apiLoadSyndicateInfo(mySyndicateId);
+        } else {
+            mySyndicateId = null;
+            openModal('syndicates-list-modal');
+            apiLoadTopSyndicates();
+        }
+    } catch(e) {
+        showToast("Ошибка сети", "❌");
+    }
+}
+
+async function apiLoadTopSyndicates() {
+    let container = getEl('syndicates-list-container');
+    if(!container) return;
+    container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Загрузка топа... ⏳</div>';
+    
+    try {
+        let res = await fetch(`${API_URL}/syndicates/top`);
+        let data = await res.json();
+        container.innerHTML = '';
+        
+        if(!data.syndicates || data.syndicates.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Синдикатов пока нет. Стань первым!</div>';
+            return;
+        }
+        
+        data.syndicates.forEach((s, idx) => {
+            let rankNum = idx + 1;
+            let rankClass = rankNum <= 3 ? `top-${rankNum}` : '';
+            container.innerHTML += `
+                <div class="syndicate-card" onclick="apiLoadSyndicateInfo('${s.id}')">
+                    <div class="forbes-rank ${rankClass}" style="width:20px; font-size:16px;">${rankNum}</div>
+                    <img src="${getPetImg(s.avatar)}" class="syndicate-avatar">
+                    <div class="syndicate-info">
+                        <div class="syndicate-name">${s.name} <span class="syndicate-tag">[${s.tag}]</span></div>
+                        <div class="syndicate-stats">Уровень ${s.level} • 👥 ${s.members_count}/50</div>
+                    </div>
+                    <div style="font-weight:bold; color:#00A3FF; font-size:12px; text-align:right;">${formatNumber(s.total_minutes)}<br>мин</div>
+                </div>
+            `;
+        });
+    } catch(e) {
+        container.innerHTML = '<div style="text-align:center; color:#ff3b30; padding:20px;">Ошибка загрузки</div>';
+    }
+}
+
+function openSyndicateCreate() {
+    playSound('click');
+    createSynSelectedAvatar = selectedAvatar; 
+    let pvw = getEl('create-syn-avatar-preview');
+    if(pvw) pvw.src = getPetImg(createSynSelectedAvatar);
+    getEl('syn-name-input').value = '';
+    getEl('syn-tag-input').value = '';
+    openModal('syndicate-create-modal');
+}
+
+function openSynAvatarSelector() {
+    playSound('click');
+    const list = getEl('syn-avatar-list'); 
+    if (!list) return;
+    list.innerHTML = '';
+    const uniquePets = [...new Set(collection)];
+    
+    if (uniquePets.length === 0) { 
+        list.innerHTML = "<p style='color:#888; grid-column:span 4; text-align:center;'>У тебя еще нет питомцев!</p>"; 
+    }
+    
+    uniquePets.forEach(pet => {
+        const r = getPetRarity(pet);
+        const div = document.createElement('div');
+        div.className = `pet-slot ${r} ${createSynSelectedAvatar === pet ? 'selected' : ''}`;
+        div.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`;
+        
+        div.onclick = () => {
+            createSynSelectedAvatar = pet;
+            let pvw = getEl('create-syn-avatar-preview');
+            if(pvw) pvw.src = getPetImg(pet);
+            playSound('click');
+            closeModal('syn-avatar-selector-modal');
+        };
+        list.appendChild(div);
+    });
+    openModal('syn-avatar-selector-modal');
+}
+
+async function apiCreateSyndicate(currency) {
+    playSound('click');
+    let name = getEl('syn-name-input').value.trim();
+    let tag = getEl('syn-tag-input').value.trim().toUpperCase();
+    
+    if(name.length < 3) return showToast("Имя от 3 букв!", "❌");
+    if(tag.length < 3 || tag.length > 4) return showToast("Тег 3-4 буквы!", "❌");
+    
+    if(currency === 'coins') {
+        if(walletBalance < 100000) return showToast("Нужно 100 000 Монет!", "❌");
+    } else {
+        if(userStars < 250) return showToast("Нужно 250 Звезд!", "❌");
+    }
+    
+    try {
+        let res = await fetch(`${API_URL}/syndicates/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: getTgUser().id, name: name, tag: tag, avatar: createSynSelectedAvatar })
+        });
+        let data = await res.json();
+        if(data.status === 'success') {
+            if(currency === 'coins') walletBalance -= 100000;
+            else userStars -= 250;
+            
+            mySyndicateId = data.syndicate_id;
+            saveData();
+            updateBalanceUI();
+            
+            showToast("Синдикат создан!", "🛡️");
+            closeModal('syndicate-create-modal');
+            apiLoadSyndicateInfo(mySyndicateId);
+        } else {
+            showToast(data.detail, "❌");
+        }
+    } catch(e) {
+        showToast("Ошибка сети", "❌");
+    }
+}
+
+async function apiLoadSyndicateInfo(synId) {
+    try {
+        let res = await fetch(`${API_URL}/syndicates/info/${synId}`);
+        let data = await res.json();
+        
+        if(data.status === 'success') {
+            let s = data.syndicate;
+            getEl('syn-view-avatar').src = getPetImg(s.avatar);
+            getEl('syn-view-name').textContent = s.name;
+            getEl('syn-view-tag').textContent = `[${s.tag}]`;
+            getEl('syn-view-level').textContent = s.level;
+            getEl('syn-view-minutes').textContent = formatNumber(s.total_minutes);
+            
+            let progress = (s.total_minutes % 1000) / 1000 * 100;
+            getEl('syn-view-progress').style.width = `${progress}%`;
+            
+            getEl('syn-view-count').textContent = `${data.members.length}/50`;
+            
+            let mList = getEl('syn-members-list');
+            mList.innerHTML = '';
+            
+            data.members.forEach((m, idx) => {
+                let rank = idx + 1;
+                let roleHtml = m.user_id === s.leader_id ? `<span class="syn-role">Лидер 👑</span>` : '';
+                let isMe = m.user_id === getTgUser().id;
+                let bgStyle = isMe ? 'background: rgba(0, 163, 255, 0.1);' : '';
+                
+                mList.innerHTML += `
+                    <div class="syndicate-member" style="${bgStyle}">
+                        <div style="color:#888; font-size:12px; font-weight:bold; width:15px;">${rank}</div>
+                        <img src="${getPetImg(m.avatar)}" style="width:30px; height:30px; border-radius:50%; background:#333; object-fit:contain;">
+                        <div style="flex:1; overflow:hidden;">
+                            <div style="font-size:13px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.name} ${isMe ? '(Ты)' : ''}</div>
+                            <div style="font-size:11px; color:#888;">Уровень ${m.level} ${roleHtml}</div>
+                        </div>
+                        <div style="font-weight:bold; color:#34c759; font-size:12px; text-align:right;">${formatNumber(m.syndicate_minutes)}<br><span style="font-size:9px;color:#888;">мин</span></div>
+                    </div>
+                `;
+            });
+            
+            let actionBox = getEl('syn-action-buttons');
+            actionBox.innerHTML = '';
+            
+            if (mySyndicateId === synId) {
+                if (s.leader_id === getTgUser().id) {
+                    actionBox.innerHTML = `<button class="btn stop" style="flex:1;" onclick="apiLeaveSyndicate()">Удалить Синдикат</button>`;
+                } else {
+                    actionBox.innerHTML = `<button class="btn stop" style="flex:1; background:transparent; border:1px solid #ff3b30;" onclick="apiLeaveSyndicate()">Покинуть</button>`;
+                }
+            } else {
+                if(!mySyndicateId) {
+                    actionBox.innerHTML = `<button class="btn" style="flex:1; background:#34c759;" onclick="apiJoinSyndicate('${synId}')">Вступить</button>`;
+                }
+            }
+            
+            openModal('syndicate-view-modal');
+        } else {
+            showToast("Синдикат не найден", "❌");
+        }
+    } catch(e) {
+        showToast("Ошибка", "❌");
+    }
+}
+
+async function apiJoinSyndicate(synId) {
+    playSound('click');
+    try {
+        let res = await fetch(`${API_URL}/syndicates/join`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: getTgUser().id, syndicate_id: synId })
+        });
+        let data = await res.json();
+        if(data.status === 'success') {
+            mySyndicateId = synId;
+            showToast("Вы вступили в Синдикат!", "🤝");
+            apiLoadSyndicateInfo(synId);
+        } else {
+            showToast(data.detail, "❌");
+        }
+    } catch(e) {
+        showToast("Ошибка", "❌");
+    }
+}
+
+async function apiLeaveSyndicate() {
+    if(!confirm("Уверен, что хочешь покинуть/удалить Синдикат?")) return;
+    playSound('click');
+    try {
+        let res = await fetch(`${API_URL}/syndicates/leave`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: getTgUser().id })
+        });
+        let data = await res.json();
+        if(data.status === 'success') {
+            mySyndicateId = null;
+            showToast("Вы покинули Синдикат", "ℹ️");
+            closeModal('syndicate-view-modal');
+            openSyndicates(); 
+        }
+    } catch(e) {
+        showToast("Ошибка", "❌");
+    }
+}
+
+function copySynInvite() {
+    playSound('click');
+    let id = mySyndicateId;
+    if(!id) {
+        let text = getEl('syn-view-tag').textContent;
+        id = "Синдикат"; 
+    }
+    navigator.clipboard.writeText(id).then(() => showToast("ID Синдиката скопирован!", "📋"));
+}
+
+function sendSyndicateMinutes(minutes) {
+    try {
+        fetch(`${API_URL}/syndicates/add_minutes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: getTgUser().id, minutes: minutes })
+        });
+    } catch(e) {}
+}
+
+// === ВИТРИНА ===
 window.openShowcaseSetup = function() {
     renderSetupShowcaseSlot('left');
     renderSetupShowcaseSlot('center');
@@ -1308,7 +1576,7 @@ window.saveShowcase = function() {
     playSound('win');
 };
 
-// === НОВОЕ: ПУБЛИЧНАЯ КАРТОЧКА ИГРОКА ===
+// === ПУБЛИЧНАЯ КАРТОЧКА ИГРОКА ===
 window.openPublicProfileObj = function(encodedUser) {
     playSound('click');
     const u = JSON.parse(decodeURIComponent(encodedUser));
@@ -1406,7 +1674,9 @@ window.pubInviteParty = async function() {
     }
 };
 
-// === ОТРИСОВКА BATTLE PASS И РАСПЫЛЕНИЕ ===
+// === ОТРИСОВКА BATTLE PASS ===
+let lastBpScroll = 0;
+
 function openLevels() {
     const list = getEl('battle-pass-list'); 
     if (!list) return;
@@ -1506,6 +1776,7 @@ function openLevels() {
         list.appendChild(col);
     });
     
+    // ИСПРАВЛЕНИЕ 4: СОХРАНЕНИЕ ПОЗИЦИИ СКРОЛЛА БАТЛ ПАССА
     let isBpOpen = modalStack.includes('levels-modal');
     openModal('levels-modal');
     
@@ -1519,7 +1790,11 @@ function openLevels() {
                 }
             }
         }, 100);
+    } else {
+        list.scrollTo({ left: lastBpScroll, behavior: 'instant' });
     }
+    
+    list.onscroll = () => { lastBpScroll = list.scrollLeft; };
 }
 
 window.dustBpReward = function(level, type) {
@@ -2398,6 +2673,20 @@ function spinRoulette(method) {
             box.textContent = "🐲";
             resText.textContent = `ДЖЕКПОТ: ${PET_NAMES[randLeg]}`;
         }
+        else if (selectedPrize.t === 'xp') {
+            let gainedXP = Math.floor(Math.random() * (selectedPrize.max - selectedPrize.min + 1)) + selectedPrize.min;
+            userXP += gainedXP;
+            while (userXP >= userLevel * 200) { 
+                userXP -= userLevel * 200; 
+                userLevel++; 
+                showToast(`Lvl UP: ${userLevel} 🏆`, "🎉"); 
+                playSound('win'); 
+            }
+            updateLevelUI();
+            showToast(`Вы выиграли +${gainedXP} XP!`, "🌟");
+            box.textContent = "🌟";
+            resText.textContent = `Выпало: ${gainedXP} Опыта`;
+        }
         else if (selectedPrize.t === 'money') { 
             walletBalance += selectedPrize.v; 
             showToast(`+${formatNumber(selectedPrize.v)} монет!`, "💰"); 
@@ -3159,6 +3448,13 @@ function finishTimer(fromOffline = false) {
     
     let finalXP = Math.floor((baseXP + (baseXP * avatarBonus)) * streakMult * vipMult);
     userXP += finalXP; 
+    
+    // --- ОТПРАВКА МИНУТ В СИНДИКАТ ---
+    let timeOnlineBase = m.timeOnline; 
+    if (currentModeIndex === 2) timeOnlineBase = customEggConfig.timeOnline;
+    let gainedMinutes = Math.max(1, Math.floor(timeOnlineBase / 60));
+    sendSyndicateMinutes(gainedMinutes);
+    // ----------------------------------
     
     while (userXP >= userLevel * 200) { 
         userXP -= userLevel * 200; 
@@ -4695,239 +4991,6 @@ async function claimExpedition() {
     if (isPartyLeader) {
         requestStopMiniGame(); 
     }
-}
-
-// =============================================================
-// ГЛОБАЛЬНЫЙ РЫНОК (MARKET)
-// =============================================================
-let currentMarketTab = 'all';
-let selectedPetForSale = null;
-
-async function openMarketModal() {
-    openModal('market-modal');
-    switchMarketTab('all');
-    await loadMarket();
-}
-
-function switchMarketTab(tab) {
-    currentMarketTab = tab;
-    document.querySelectorAll('#market-modal .tab-btn').forEach(b => b.classList.remove('active'));
-    let activeBtn = getEl(`market-tab-${tab}`);
-    if (activeBtn) activeBtn.classList.add('active');
-    loadMarket();
-}
-
-async function loadMarket() {
-    const grid = getEl('market-items-grid');
-    if (!grid) return;
-    grid.innerHTML = '<div style="text-align:center; color:#888; grid-column: 1 / -1; padding: 20px;">Загрузка товаров... ⏳</div>';
-    
-    try {
-        const res = await fetch(`${API_URL}/market/list`);
-        const data = await res.json();
-        let lots = data.lots || [];
-        
-        if (currentMarketTab !== 'all') {
-            lots = lots.filter(l => l.currency === currentMarketTab);
-        }
-        
-        if (lots.length === 0) {
-            grid.innerHTML = '<div style="text-align:center; color:#888; grid-column: 1 / -1; padding: 20px;">Рынок пуст. Стань первым продавцом! 💸</div>';
-            return;
-        }
-        
-        grid.innerHTML = '';
-        lots.forEach(lot => {
-            const r = getPetRarity(lot.pet_id);
-            const p = PRICES[r] || 0;
-            const petName = PET_NAMES[lot.pet_id] || "Питомец";
-            const stars = lot.pet_stars || 1;
-            let starStr = stars > 1 ? `<div class="star-badge" style="top:5px; right:5px; left:auto;">⭐️${stars}</div>` : '';
-            
-            const isMyLot = lot.seller_id === String(getTgUser().id);
-            let btnHtml = '';
-            
-            if (isMyLot) {
-                btnHtml = `<button class="btn locked" style="padding: 8px; font-size: 12px; margin-top: 10px;">Твой лот</button>`;
-            } else {
-                const currIcon = lot.currency === 'coins' ? '💰' : '⭐️';
-                btnHtml = `<button class="btn" style="background: #00A3FF; padding: 8px; font-size: 12px; margin-top: 10px; box-shadow:0 2px 10px rgba(0,163,255,0.4);" onclick="buyMarketLot('${lot.lot_id}', ${lot.price}, '${lot.currency}')">Купить за ${formatNumber(lot.price)} ${currIcon}</button>`;
-            }
-
-            const d = document.createElement('div');
-            d.className = `pet-slot ${r}`;
-            d.style.display = 'flex';
-            d.style.flexDirection = 'column';
-            d.style.height = 'auto';
-            d.style.padding = '15px 10px';
-            
-            d.innerHTML = `
-                <div style="position:relative; width:100%; display:flex; justify-content:center;">
-                    <img src="assets/pets/pet-${lot.pet_id}.png" style="width: 70px; height: 70px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));" onerror="this.src='assets/eggs/egg-default.png'">
-                    ${starStr}
-                </div>
-                <div style="font-size: 13px; font-weight: bold; margin-top: 10px; text-align:center;">${petName}</div>
-                <div style="font-size: 10px; color: #888; text-align:center; margin-top: 4px;">Продавец: ${lot.seller_name}</div>
-                ${btnHtml}
-            `;
-            grid.appendChild(d);
-        });
-    } catch(e) {
-        grid.innerHTML = '<div style="text-align:center; color:#ff3b30; grid-column: 1 / -1; padding: 20px;">Ошибка сети. Сервер недоступен.</div>';
-    }
-}
-
-async function buyMarketLot(lotId, price, currency) {
-    if (currency === 'coins' && walletBalance < price) return showToast("Мало монет!", "❌");
-    if (currency === 'stars' && userStars < price) return showToast("Мало звезд!", "❌");
-    
-    playSound('click');
-    
-    try {
-        const res = await fetch(`${API_URL}/market/buy`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lot_id: lotId, buyer_id: String(getTgUser().id) })
-        });
-        
-        const data = await res.json();
-        
-        if (data.status === 'success') {
-            if (currency === 'coins') walletBalance -= price;
-            if (currency === 'stars') userStars -= price;
-            
-            const boughtPet = data.lot.pet_id;
-            const boughtStars = data.lot.pet_stars || 1;
-            
-            collection.push(boughtPet);
-            
-            if (!petStars[boughtPet] || petStars[boughtPet] < boughtStars) {
-                petStars[boughtPet] = boughtStars;
-            }
-            
-            saveData();
-            updateBalanceUI();
-            loadMarket();
-            
-            showToast(`Успешная покупка: ${PET_NAMES[boughtPet]}!`, "🎉");
-            playSound('win');
-            fireConfetti();
-        } else {
-            showToast(data.detail, "❌");
-            loadMarket();
-        }
-    } catch(e) {
-        showToast("Ошибка транзакции", "❌");
-    }
-}
-
-function openSellModal() {
-    selectedPetForSale = null;
-    const sel = getEl('sell-pet-selector');
-    if (!sel) return;
-    sel.innerHTML = '';
-    
-    const uniquePets = [...new Set(collection)];
-    if (uniquePets.length === 0) {
-        sel.innerHTML = '<div style="color:#888; font-size:12px;">У вас нет питомцев для продажи.</div>';
-    } else {
-        uniquePets.forEach(pet => {
-            const r = getPetRarity(pet);
-            const stars = petStars[pet] || 1;
-            const d = document.createElement('div');
-            d.className = `pet-slot ${r}`;
-            d.style.minWidth = '65px';
-            d.style.height = '65px';
-            d.style.borderRadius = '12px';
-            d.style.cursor = 'pointer';
-            
-            let starStr = stars > 1 ? `<div class="star-badge" style="font-size:8px;">⭐️${stars}</div>` : '';
-            
-            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" style="width:70%;height:70%;object-fit:contain;" onerror="this.src='assets/eggs/egg-default.png'">${starStr}`;
-            d.onclick = () => selectPetToSell(pet, stars);
-            sel.appendChild(d);
-        });
-    }
-    
-    getEl('selected-pet-to-sell').style.display = 'none';
-    getEl('confirm-sell-btn').disabled = true;
-    getEl('sell-price-input').value = '';
-    
-    openModal('sell-pet-modal');
-}
-
-function selectPetToSell(pet, stars) {
-    selectedPetForSale = pet;
-    playSound('click');
-    
-    getEl('selected-pet-to-sell').style.display = 'block';
-    getEl('sell-preview-img').src = `assets/pets/pet-${pet}.png`;
-    getEl('sell-preview-name').textContent = PET_NAMES[pet] || "Питомец";
-    getEl('sell-preview-stars').textContent = stars > 1 ? `Уровень: ⭐️${stars}` : '';
-    
-    getEl('confirm-sell-btn').disabled = false;
-}
-
-async function submitSellPet() {
-    if (!selectedPetForSale) return;
-    
-    const priceInput = getEl('sell-price-input').value;
-    const price = parseInt(priceInput);
-    const currency = getEl('sell-currency-select').value;
-    
-    if (!price || price <= 0) return showToast("Укажите корректную цену!", "❌");
-    
-    const user = getTgUser();
-    let finalName = user.name;
-    if (isVip()) finalName += ' 👑';
-    
-    const stars = petStars[selectedPetForSale] || 1;
-    
-    const btn = getEl('confirm-sell-btn');
-    const origText = btn.textContent;
-    btn.textContent = "Публикация...";
-    btn.disabled = true;
-    
-    try {
-        const res = await fetch(`${API_URL}/market/sell`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                seller_id: user.id,
-                seller_name: finalName,
-                pet_id: selectedPetForSale,
-                pet_stars: stars,
-                price: price,
-                currency: currency
-            })
-        });
-        
-        const data = await res.json();
-        
-        if (data.status === 'success') {
-            const idx = collection.indexOf(selectedPetForSale);
-            if (idx > -1) collection.splice(idx, 1);
-            
-            if (!collection.includes(selectedPetForSale)) {
-                delete petStars[selectedPetForSale];
-            }
-            
-            saveData();
-            updateBalanceUI();
-            closeModal('sell-pet-modal');
-            showToast("Питомец выставлен на продажу!", "✅");
-            playSound('money');
-            
-            loadMarket();
-        } else {
-            showToast("Ошибка при создании лота", "❌");
-        }
-    } catch(e) {
-        showToast("Сбой сети", "❌");
-    }
-    
-    btn.textContent = origText;
-    btn.disabled = false;
 }
 
 // =============================================================
