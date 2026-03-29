@@ -446,13 +446,15 @@ window.isVip = function() {
 
 window.openModal = function(id) {
     window.playSound('click');
+    
     if (modalStack.length > 0 && modalStack[modalStack.length - 1] === id) {
         return;
     }
     
     if (modalStack.length > 0) {
         let prevId = modalStack[modalStack.length - 1];
-        // ФИКС UX Синдикатов: модалки поверх клана и меню "Ещё" не скрывают предыдущее окно, чтобы оно осталось фоном.
+        
+        // Оставляем открытыми фоном: бургер, просмотр синдиката и витрину
         if (prevId !== 'more-modal' && prevId !== 'syndicate-view-modal' && prevId !== 'showcase-setup-modal' && id !== 'syn-avatar-selector-modal' && id !== 'syndicate-settings-modal') {
             const prevEl = window.getEl(prevId);
             if (prevEl) {
@@ -463,6 +465,11 @@ window.openModal = function(id) {
     
     const el = window.getEl(id);
     if (el) { 
+        // 🔥 ФИКС: Если бургер-меню открыто, динамически выносим новое окно поверх него!
+        if (modalStack.includes('more-modal')) {
+            el.style.zIndex = '1060';
+        }
+        
         el.style.display = 'flex'; 
         modalStack.push(id); 
     }
