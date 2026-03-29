@@ -310,6 +310,13 @@
         .syndicate-member:last-child { border-bottom: none; }
         .syn-role { font-size: 10px; padding: 2px 5px; border-radius: 4px; background: rgba(255,215,0,0.2); color: #ffd700; font-weight: bold; }
 
+        /* === МУТАТОР (НОВОЕ) === */
+        .mutator-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 20px 0; }
+        .mutator-slot { width: 70px; height: 70px; background: rgba(0,0,0,0.4); border: 2px dashed #555; border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; color: #888; position: relative; transition: all 0.2s; }
+        .mutator-slot.filled { border: 2px solid #00A3FF; background: rgba(0,163,255,0.1); }
+        .mutator-slot img { width: 80%; height: 80%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); pointer-events: none; }
+        .mutator-slot.catalyst.filled { border-color: #39ff14; background: rgba(57,255,20,0.1); box-shadow: inset 0 0 10px rgba(57,255,20,0.3); }
+
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
@@ -629,16 +636,58 @@
     </div>
 
     <div id="craft-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height: 90vh; display: flex; flex-direction: column;">
             <span class="close-btn" onclick="closeModal('craft-modal')">×</span>
             <h2>Лаборатория 🧬</h2>
-            <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; margin-bottom:15px;">
-                <p style="font-size:14px;">Осколков Пегаса: <span id="pegasus-shards-count" style="font-weight:bold; color:#00A3FF;">0</span></p>
-                <p style="font-size:14px;">Ген Мутации: <span id="joker-count-display" style="font-weight:bold; color:#ff3b30;">0</span></p>
+            
+            <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; margin-bottom:15px; display:flex; justify-content:space-around;">
+                <div style="font-size:13px;">Осколки: <span id="pegasus-shards-count" style="font-weight:bold; color:#00A3FF;">0</span> 🧩</div>
+                <div style="font-size:13px;">Гены: <span id="joker-count-display" style="font-weight:bold; color:#ff3b30;">0</span> 🧬</div>
             </div>
-            <button id="craft-mythic-btn" class="btn locked" onclick="startDnaPuzzle()">Скрафтить Мифика (10 🧩)</button>
-            <h3 style="margin-top:20px; font-size:14px; color:#888;">Синтез обычных петов:</h3>
-            <div id="craft-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px; width:100%; box-sizing: border-box;"></div>
+
+            <div class="tabs" style="width: 100%; box-sizing: border-box; overflow-x: auto; white-space: nowrap; padding-bottom: 5px;">
+                <button class="tab-btn active" id="lab-tab-upgrade" onclick="switchLabTab('upgrade')">Прокачка</button>
+                <button class="tab-btn" id="lab-tab-splinter" onclick="switchLabTab('splinter')">Расщепление</button>
+                <button class="tab-btn" id="lab-tab-mythic" onclick="switchLabTab('mythic')">Мифик</button>
+                <button class="tab-btn" id="lab-tab-mutate" onclick="switchLabTab('mutate')" style="color: #39ff14;">Мутатор ☣️</button>
+            </div>
+
+            <div id="lab-upgrade-view" style="flex: 1; overflow-y: auto;">
+                <p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">Выберите питомца для прокачки уровня</p>
+                <div id="lab-upgrade-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; width:100%; box-sizing: border-box;"></div>
+            </div>
+
+            <div id="lab-splinter-view" style="display:none; flex: 1; overflow-y: auto;">
+                <p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">Выберите питомцев на распыление (Пыль/Осколки)</p>
+                <div id="lab-splinter-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; width:100%; box-sizing: border-box;"></div>
+            </div>
+
+            <div id="lab-mythic-view" style="display:none; flex: 1; overflow-y: auto; text-align: center;">
+                <p style="font-size:13px; color:#ccc; margin-bottom:15px;">Создай Мифического питомца!<br>Стоимость: 10 🧩 Осколков Пегаса.</p>
+                <button id="craft-mythic-btn" class="btn locked" onclick="startDnaPuzzle()">Начать Синтез (10 🧩)</button>
+            </div>
+
+            <div id="lab-mutate-view" style="display:none; flex: 1; overflow-y: auto; text-align: center;">
+                <p style="font-size:12px; color:#888; margin-bottom:15px;">Смешивай петов и катализаторы, чтобы открыть секретные Аномалии!</p>
+                
+                <div class="mutator-container">
+                    <div id="mutator-slot-1" class="mutator-slot" onclick="openMutatorSelect(1)">?</div>
+                    <div style="font-weight:bold; color:#555;">+</div>
+                    <div id="mutator-slot-2" class="mutator-slot" onclick="openMutatorSelect(2)">?</div>
+                    <div style="font-weight:bold; color:#555;">+</div>
+                    <div id="mutator-slot-cat" class="mutator-slot catalyst" onclick="openMutatorSelect('cat')">🧪</div>
+                </div>
+                
+                <button id="mutate-btn" class="btn locked" onclick="executeMutation()" style="width: 100%;">Синтезировать ☣️</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="mutator-select-modal" class="modal" style="z-index: 1080;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('mutator-select-modal')">×</span>
+            <h2 id="mutator-select-title">Выберите объект</h2>
+            <div id="mutator-select-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:50vh; overflow-y:auto; padding-bottom:10px; width:100%; box-sizing: border-box;"></div>
         </div>
     </div>
     
@@ -692,9 +741,7 @@
             <h2>Мой Профиль</h2>
             <div style="text-align:center; position:relative; margin-top:15px;">
                 <img id="profile-avatar" src="assets/ui/icon-profile.png" style="width:90px;height:90px;border-radius:50%;margin-bottom:10px; border:3px solid var(--primary); background:#333; object-fit:contain;">
-                
                 <div id="profile-rank" style="font-weight:900; font-size:22px; color:#fff;"></div>
-                
                 <div id="profile-level" style="color:#00A3FF; font-weight:bold; margin-top:5px;"></div>
             </div>
             
@@ -706,10 +753,8 @@
             <div id="profile-stats-view" style="margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:16px; width:100%; box-sizing: border-box;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Вылуплено:</span> <span id="stat-hatched" style="font-weight:bold;">0</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Уникальных:</span> <span id="stat-unique" style="font-weight:bold;">0</span></div>
-                
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#888; flex-shrink: 0;">Монеты:</span> <span id="stat-earned-coins" style="font-weight:bold; color:#ffd700; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">0</span></div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="color:#888; flex-shrink: 0;">Звезды:</span> <span id="stat-earned-stars" style="font-weight:bold; color:#00A3FF; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right;">0</span></div>
-                
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Пыль:</span> <span id="total-dust" style="font-weight:bold; color:#a8a8a8;">✨ 0</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Приглашено:</span> <span id="stat-invites" style="font-weight:bold;">0</span></div>
                 
@@ -787,9 +832,7 @@
                 
                 <div style="text-align:center; position:relative; margin-top:10px; z-index:2;">
                     <img id="pub-avatar" src="assets/ui/icon-profile.png" style="width:70px;height:70px;border-radius:50%;margin-bottom:5px; border:2px solid var(--primary); background:#333; object-fit:contain; box-shadow:0 0 15px rgba(0,163,255,0.5);">
-                    
                     <div id="pub-name" style="font-weight:900; font-size:20px; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.8);">Игрок</div>
-                    
                     <div id="pub-level" style="color:#00A3FF; font-weight:bold; font-size:12px; text-shadow:0 1px 3px rgba(0,0,0,0.8);">Уровень 1</div>
                 </div>
 

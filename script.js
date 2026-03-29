@@ -1,6 +1,7 @@
 // =============================================================
-// 1. ЛОВУШКА ОШИБОК И ЗВУК
+// 1. ЛОВУШКА ОШИБОК И ЗВУКОВОЙ ДВИЖОК
 // =============================================================
+
 const debugConsole = document.getElementById('debug-console');
 
 window.onerror = function(msg, source, lineno) {
@@ -11,8 +12,15 @@ window.onerror = function(msg, source, lineno) {
     return false;
 };
 
+window.addEventListener('unhandledrejection', function(event) {
+    if (debugConsole) {
+        debugConsole.style.display = 'block';
+        debugConsole.innerHTML += `<div class="error-msg">⚠️ Promise Error: ${event.reason}</div>`;
+    }
+});
+
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioCtx = null;
+var audioCtx = null;
 
 try {
     audioCtx = new AudioContext();
@@ -21,7 +29,13 @@ try {
 }
 
 window.playSound = function(type) {
-    if (!isSoundOn || !audioCtx) return;
+    if (!isSoundOn) {
+        return;
+    }
+    
+    if (!audioCtx) {
+        return;
+    }
     
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
@@ -43,7 +57,8 @@ window.playSound = function(type) {
         gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
         osc.start(now); 
         osc.stop(now + 0.1);
-    } else if (type === 'money') {
+    } 
+    else if (type === 'money') {
         osc.type = 'sine'; 
         osc.frequency.setValueAtTime(1200, now); 
         osc.frequency.setValueAtTime(1600, now + 0.1);
@@ -51,11 +66,13 @@ window.playSound = function(type) {
         gainNode.gain.linearRampToValueAtTime(0.01, now + 0.3);
         osc.start(now); 
         osc.stop(now + 0.3);
-    } else if (type === 'win') {
+    } 
+    else if (type === 'win') {
         window.playNote(523.25, now, 0.1); 
         window.playNote(659.25, now + 0.1, 0.1); 
         window.playNote(783.99, now + 0.2, 0.4);
-    } else if (type === 'legendary') {
+    } 
+    else if (type === 'legendary') {
         osc.type = 'triangle'; 
         osc.frequency.setValueAtTime(200, now); 
         osc.frequency.linearRampToValueAtTime(600, now + 1);
@@ -63,7 +80,8 @@ window.playSound = function(type) {
         gainNode.gain.linearRampToValueAtTime(0.01, now + 1.5);
         osc.start(now); 
         osc.stop(now + 1.5);
-    } else if (type === 'wrong') {
+    } 
+    else if (type === 'wrong') {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(150, now);
         osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
@@ -75,7 +93,10 @@ window.playSound = function(type) {
 };
 
 window.playNote = function(freq, time, duration) {
-    if (!audioCtx) return;
+    if (!audioCtx) {
+        return;
+    }
+    
     const osc = audioCtx.createOscillator(); 
     const gain = audioCtx.createGain();
     
@@ -91,8 +112,9 @@ window.playNote = function(freq, time, duration) {
 };
 
 // =============================================================
-// 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+// 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (ПОЛНЫЙ СПИСОК)
 // =============================================================
+
 var API_URL = "https://focushatcher-ondey.amvera.io/api"; 
 var botLink = "https://t.me/FocusHatcher_Ondey_bot/game"; 
 
@@ -115,6 +137,7 @@ var lastHatchDate = "";
 // Данные Battle Pass
 var claimedRewards = [];
 var mythicTickets = 0;
+var lastBpScroll = 0;
 
 // === ДОСТИЖЕНИЯ И ТИТУЛЫ ===
 var focusHours = 0;
@@ -124,12 +147,31 @@ var equippedTitle = "";
 var unlockedTitles = [];
 
 // Инвентарь и настройки
-var ownedItems = { themes: ['default'], eggs: ['default'] };
+var ownedItems = { 
+    themes: ['default'], 
+    eggs: ['default'] 
+};
+
 var activeTheme = 'default';
 var activeEggSkin = 'default';
 var selectedAvatar = 'default';
-var userStats = { hatched: 0, earned: 0, invites: 0, crafts: 0, totalDaysLogged: 0, baseTickets: 0, epicTickets: 0 };
-var myBoosters = { luck: 0, speed: 0, bio: 0 };
+
+var userStats = { 
+    hatched: 0, 
+    earned: 0, 
+    invites: 0, 
+    crafts: 0, 
+    totalDaysLogged: 0, 
+    baseTickets: 0, 
+    epicTickets: 0 
+};
+
+var myBoosters = { 
+    luck: 0, 
+    speed: 0, 
+    bio: 0 
+};
+
 var claimedAchievements = [];
 var claimedQuests = [];
 var usedCodes = [];
@@ -140,8 +182,13 @@ var isSoundOn = false;
 var currentFriendsList = [];
 var currentViewingFriendId = null;
 var currentPublicUser = null;
-var userShowcase = { center: null, left: null, right: null };
+var userShowcase = { 
+    center: null, 
+    left: null, 
+    right: null 
+};
 var currentShowcaseSlot = null;
+
 var mySyndicateId = null;
 var createSynSelectedAvatar = 'default';
 var isEditingSyndicate = false;
@@ -155,15 +202,24 @@ var currentModeIndex = 0;
 var timerInterval = null;
 var isRunning = false;
 var timeLeft = 10;
-var activeBoosters = { luck: false, speed: false, bio: false };
+var activeBoosters = { 
+    luck: false, 
+    speed: false, 
+    bio: false 
+};
 var currentHatchMode = 'none'; 
 var currentShopTab = 'themes';
 var currentAchTab = 'achievements';
 var selectedPet = null;
-var customEggConfig = { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 };
+
+var customEggConfig = { 
+    target: 'all', 
+    timeOnline: 3600, 
+    timeOffline: 5 * 3600 
+};
+
 var resurrectCountdownInterval = null;
 var secondSlotInterval = null;
-var lastBpScroll = 0;
 
 // Мультиплеер (Пати)
 var currentPartyCode = null;
@@ -187,23 +243,42 @@ var isMegaRadarActive = false;
 
 // Рулетка и Forbes
 var lastRouletteDate = ""; 
-var boxAdsProgress = { epic: 0, mythic: 0 };
+var boxAdsProgress = { 
+    epic: 0, 
+    mythic: 0 
+};
 var currentBoxType = 'base';
 var secretTaps = 0;
 var secretTapTimer = null;
 var forbesDataCache = null;
 var currentForbesTab = 'global';
 
-// Новые механики (ДНК, Паразиты, Уровни петов, Контракты)
+// ДНК, Паразиты, Уровни петов, Контракты
 var dnaGrid = [];
 var isStunned = false;
 var parasiteInterval = null;
 var petStars = {}; 
-var activeContracts = { date: '', allClaimed: false, tasks: [] }; 
+var activeContracts = { 
+    date: '', 
+    allClaimed: false, 
+    tasks: [] 
+}; 
+
+// === НОВЫЕ ПЕРЕМЕННЫЕ ЛАБОРАТОРИИ И МУТАТОРА ===
+var currentLabTab = 'upgrade';
+var mutatorSlot1 = null;
+var mutatorSlot2 = null;
+var mutatorCatalyst = null;
+var currentMutatorSelecting = null; 
+
+// Глобальный Рынок
+var currentMarketTab = 'all';
+var selectedPetForSale = null;
 
 // =============================================================
-// БЕЗОПАСНЫЙ ПАРСИНГ ДАННЫХ И ФОРМАТИРОВАНИЕ (ЗАЩИТА)
+// БЕЗОПАСНЫЙ ПАРСИНГ ДАННЫХ И ФОРМАТИРОВАНИЕ
 // =============================================================
+
 window.safeParse = function(val, def) {
     if (!val || val === 'undefined' || val === 'null') {
         return def;
@@ -216,7 +291,9 @@ window.safeParse = function(val, def) {
 };
 
 window.formatNumber = function(num) {
-    if (num === undefined || num === null) return 0;
+    if (num === undefined || num === null) {
+        return 0;
+    }
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 };
 
@@ -232,105 +309,335 @@ window.formatTime = function(s) {
 };
 
 window.getPetImg = function(id) { 
-    return id === 'default' ? 'assets/ui/icon-profile.png' : `assets/pets/pet-${id}.png`; 
+    if (id === 'default') {
+        return 'assets/ui/icon-profile.png';
+    }
+    return `assets/pets/pet-${id}.png`; 
 };
 
 // =============================================================
 // 3. БАЗЫ ДАННЫХ И КОНСТАНТЫ
 // =============================================================
+
 const MODES = [
-    { id: 'short', timeOnline: 25 * 60, timeOffline: 6 * 3600, xpReward: 250, egg: 'default', title: 'Базовое Яйцо (25 мин)', sub: 'Шанс Легендарки: 1%', reqLevel: 1 },
-    { id: 'long', timeOnline: 60 * 60, timeOffline: 12 * 3600, xpReward: 1000, egg: 'diamond', title: 'Алмазное (60 мин)', sub: 'Шанс Легендарки: 5% 🔥', reqLevel: 3 },
-    { id: 'custom', timeOnline: 3600, timeOffline: 5 * 3600, xpReward: 500, egg: 'default', title: 'Кастомное яйцо', sub: 'Настрой редкость', reqLevel: 5 },
-    { id: 'alien', timeOnline: 2 * 3600, timeOffline: 14 * 3600, xpReward: 3000, egg: 'glitch', title: 'Инопланетное (2 ч)', sub: 'Только Легенды и Мифики', reqLevel: 30 },
-    { id: 'radio', timeOnline: 5 * 60, timeOffline: 1 * 3600, xpReward: 500, egg: 'glow', title: 'Радиоактивное (5 мин)', sub: 'Только Мутанты ☢️ (Нужен бустер 💉)', reqLevel: 50 },
-    { id: 'anomal', timeOnline: 45 * 60, timeOffline: 45 * 60, xpReward: 2000, egg: 'glitch', title: 'Аномальное (45 мин)', sub: 'Только в выходные (50 ✨)', reqLevel: 1 }
+    { 
+        id: 'short', 
+        timeOnline: 25 * 60, 
+        timeOffline: 6 * 3600, 
+        xpReward: 250, 
+        egg: 'default', 
+        title: 'Базовое Яйцо (25 мин)', 
+        sub: 'Шанс Легендарки: 1%', 
+        reqLevel: 1 
+    },
+    { 
+        id: 'long', 
+        timeOnline: 60 * 60, 
+        timeOffline: 12 * 3600, 
+        xpReward: 1000, 
+        egg: 'diamond', 
+        title: 'Алмазное (60 мин)', 
+        sub: 'Шанс Легендарки: 5% 🔥', 
+        reqLevel: 3 
+    },
+    { 
+        id: 'custom', 
+        timeOnline: 3600, 
+        timeOffline: 5 * 3600, 
+        xpReward: 500, 
+        egg: 'default', 
+        title: 'Кастомное яйцо', 
+        sub: 'Настрой редкость', 
+        reqLevel: 5 
+    },
+    { 
+        id: 'alien', 
+        timeOnline: 2 * 3600, 
+        timeOffline: 14 * 3600, 
+        xpReward: 3000, 
+        egg: 'glitch', 
+        title: 'Инопланетное (2 ч)', 
+        sub: 'Только Легенды и Мифики', 
+        reqLevel: 30 
+    },
+    { 
+        id: 'radio', 
+        timeOnline: 5 * 60, 
+        timeOffline: 1 * 3600, 
+        xpReward: 500, 
+        egg: 'glow', 
+        title: 'Радиоактивное (5 мин)', 
+        sub: 'Только Мутанты ☢️ (Нужен бустер 💉)', 
+        reqLevel: 50 
+    },
+    { 
+        id: 'anomal', 
+        timeOnline: 45 * 60, 
+        timeOffline: 45 * 60, 
+        xpReward: 2000, 
+        egg: 'glitch', 
+        title: 'Аномальное (45 мин)', 
+        sub: 'Только в выходные (50 ✨)', 
+        reqLevel: 1 
+    }
 ];
 
 const PRICES = { 
-    common: 15, rare: 150, epic: 1500, legendary: 5000, mythic: 50000, mutant: 10000, glitch: 7777
+    common: 15, 
+    rare: 150, 
+    epic: 1500, 
+    legendary: 5000, 
+    mythic: 50000, 
+    mutant: 10000, 
+    glitch: 7777
 };
 
 const RANKS = [
-    "Новичок", "Искатель", "Укротитель", "Мастер", "Ниндзя", "Легенда", "Мифик", "Создатель"
+    "Новичок", 
+    "Искатель", 
+    "Укротитель", 
+    "Мастер", 
+    "Ниндзя", 
+    "Легенда", 
+    "Мифик", 
+    "Создатель"
 ];
 
+// === ДОБАВЛЕНЫ НОВЫЕ АНОМАЛИИ В БАЗУ ===
 const PET_NAMES = {
-    "chick": "Цыпленок", "kitten": "Котенок", "puppy": "Щенок", "hamster": "Хомяк", "bunny": "Зайчик",
-    "frog": "Лягушка", "bear": "Мишка", "koala": "Коала", "duck": "Утенок", "caterpillar": "Гусеница",
-    "fox": "Лисенок", "panda": "Панда", "tiger": "Тигренок", "lion": "Львенок", "cow": "Коровка",
-    "pig": "Свинка", "monkey": "Обезьянка", "owl": "Сова",
-    "raccoon": "Енот", "panther": "Пантера", "cyber_fox": "Кибер-лис",
-    "unicorn": "Единорог", "dragon": "Дракон", "alien": "Пришелец", "robot": "Робот", "dino": "Динозавр",
-    "fireball": "Огонек", "god": "Бог Фокуса", "pegasus": "Мифический Пегас",
-    "cerberus": "Цербер", "dark_dragon": "Темный Дракон", "neon_dragon": "Неоновый Дракон",
-    "mutant_cat": "Мутакот ☢️", "mutant_dog": "Токси-Пёс ☢️", "mutant_dragon": "Гамма-Ящер ☢️",
-    "cyber_cat": "Кибер-Кот 👾", "matrix_dog": "Матричный Пёс 👾"
+    "chick": "Цыпленок", 
+    "kitten": "Котенок", 
+    "puppy": "Щенок", 
+    "hamster": "Хомяк", 
+    "bunny": "Зайчик",
+    "frog": "Лягушка", 
+    "bear": "Мишка", 
+    "koala": "Коала", 
+    "duck": "Утенок", 
+    "caterpillar": "Гусеница",
+    "fox": "Лисенок", 
+    "panda": "Панда", 
+    "tiger": "Тигренок", 
+    "lion": "Львенок", 
+    "cow": "Коровка",
+    "pig": "Свинка", 
+    "monkey": "Обезьянка", 
+    "owl": "Сова",
+    "raccoon": "Енот", 
+    "panther": "Пантера", 
+    "cyber_fox": "Кибер-лис",
+    "unicorn": "Единорог", 
+    "dragon": "Дракон", 
+    "alien": "Пришелец", 
+    "robot": "Робот", 
+    "dino": "Динозавр",
+    "fireball": "Огонек", 
+    "god": "Бог Фокуса", 
+    "pegasus": "Мифический Пегас",
+    "cerberus": "Цербер", 
+    "dark_dragon": "Темный Дракон", 
+    "neon_dragon": "Неоновый Дракон",
+    "mutant_cat": "Мутакот ☢️", 
+    "mutant_dog": "Токси-Пёс ☢️", 
+    "mutant_dragon": "Гамма-Ящер ☢️",
+    "cyber_cat": "Кибер-Кот 👾", 
+    "matrix_dog": "Матричный Пёс 👾", 
+    "cyber_pig": "Кибер-Хрюшка 👾", 
+    "toxic_caterpillar": "Токсичная Гусеница ☢️", 
+    "quantum_kitten": "Квантовый Кот ⚛️"
 };
 
 const petDatabase = {
-    common: ["chick", "kitten", "puppy", "hamster", "bunny", "frog", "bear", "koala", "duck", "caterpillar"],
-    rare: ["fox", "panda", "tiger", "lion", "cow", "pig", "monkey", "owl"],
-    epic: ["raccoon", "panther", "cyber_fox"],
-    legendary: ["unicorn", "dragon", "alien", "robot", "dino", "fireball"],
-    mythic: ["pegasus", "cerberus", "dark_dragon", "neon_dragon"],
-    mutant: ["mutant_cat", "mutant_dog", "mutant_dragon"],
-    glitch: ["cyber_cat", "matrix_dog"]
+    common: [
+        "chick", "kitten", "puppy", "hamster", "bunny", 
+        "frog", "bear", "koala", "duck", "caterpillar"
+    ],
+    rare: [
+        "fox", "panda", "tiger", "lion", 
+        "cow", "pig", "monkey", "owl"
+    ],
+    epic: [
+        "raccoon", "panther", "cyber_fox"
+    ],
+    legendary: [
+        "unicorn", "dragon", "alien", "robot", 
+        "dino", "fireball"
+    ],
+    mythic: [
+        "pegasus", "cerberus", "dark_dragon", "neon_dragon"
+    ],
+    mutant: [
+        "mutant_cat", "mutant_dog", "mutant_dragon", "toxic_caterpillar"
+    ],
+    glitch: [
+        "cyber_cat", "matrix_dog", "cyber_pig", "quantum_kitten"
+    ]
 };
 
 const ALL_PETS_FLAT = [
-    ...petDatabase.common, ...petDatabase.rare, ...petDatabase.epic, 
-    ...petDatabase.legendary, ...petDatabase.mythic, ...petDatabase.mutant,
-    ...petDatabase.glitch, "god"
+    ...petDatabase.common, 
+    ...petDatabase.rare, 
+    ...petDatabase.epic, 
+    ...petDatabase.legendary, 
+    ...petDatabase.mythic, 
+    ...petDatabase.mutant,
+    ...petDatabase.glitch, 
+    "god"
 ];
 
 const TOTAL_PETS_COUNT = ALL_PETS_FLAT.length;
 
 window.getPetRarity = function(p) {
-    if (p === "god") return 'legendary';
-    if (petDatabase.mythic.includes(p)) return 'mythic';
-    if (petDatabase.mutant.includes(p)) return 'mutant';
-    if (petDatabase.glitch.includes(p)) return 'glitch'; 
-    if (petDatabase.legendary.includes(p)) return 'legendary';
-    if (petDatabase.epic.includes(p)) return 'epic'; 
-    if (petDatabase.rare.includes(p)) return 'rare';
+    if (p === "god") {
+        return 'legendary';
+    }
+    if (petDatabase.mythic.includes(p)) {
+        return 'mythic';
+    }
+    if (petDatabase.mutant.includes(p)) {
+        return 'mutant';
+    }
+    if (petDatabase.glitch.includes(p)) {
+        return 'glitch'; 
+    }
+    if (petDatabase.legendary.includes(p)) {
+        return 'legendary';
+    }
+    if (petDatabase.epic.includes(p)) {
+        return 'epic'; 
+    }
+    if (petDatabase.rare.includes(p)) {
+        return 'rare';
+    }
     return 'common';
 };
 
-// === BATTLE PASS 100 УРОВНЕЙ С БИЛЕТАМИ, ШПРИЦАМИ И ЛЕГЕНДАМИ ===
+// === BATTLE PASS 100 УРОВНЕЙ ===
 const BATTLE_PASS_REWARDS = [];
+
 for (let i = 1; i <= 100; i++) {
-    let free = { type: 'money', val: i * 500, icon: '💰', name: `${window.formatNumber(i*500)} Монет`, dustVal: i * 5 };
-    let pro = { type: 'dust', val: i * 5, icon: '✨', name: `${i*5} Пыли`, dustVal: 0 }; 
+    let free = { 
+        type: 'money', 
+        val: i * 500, 
+        icon: '💰', 
+        name: `${window.formatNumber(i*500)} Монет`, 
+        dustVal: i * 5 
+    };
+    
+    let pro = { 
+        type: 'dust', 
+        val: i * 5, 
+        icon: '✨', 
+        name: `${i*5} Пыли`, 
+        dustVal: 0 
+    }; 
 
     if (i % 10 === 5) { 
-        free = { type: 'roulette_ticket', val: 'base', icon: '🎟️', name: 'Обычный Билет', dustVal: 10 };
-        pro = { type: 'stars', val: 15, icon: '⭐️', name: '15 Звезд', dustVal: 10 };
+        free = { 
+            type: 'roulette_ticket', 
+            val: 'base', 
+            icon: '🎟️', 
+            name: 'Обычный Билет', 
+            dustVal: 10 
+        };
+        pro = { 
+            type: 'stars', 
+            val: 15, 
+            icon: '⭐️', 
+            name: '15 Звезд', 
+            dustVal: 10 
+        };
     }
+    
     if (i % 10 === 0) { 
-        free = { type: 'roulette_ticket', val: 'epic', icon: '🎫', name: 'Эпик Билет', dustVal: 20 };
-        pro = { type: 'joker', val: 1, icon: '🧬', name: 'Ген Мутации', dustVal: 50 };
+        free = { 
+            type: 'roulette_ticket', 
+            val: 'epic', 
+            icon: '🎫', 
+            name: 'Эпик Билет', 
+            dustVal: 20 
+        };
+        pro = { 
+            type: 'joker', 
+            val: 1, 
+            icon: '🧬', 
+            name: 'Ген Мутации', 
+            dustVal: 50 
+        };
     }
 
-    // Глобальные Чекпоинты
     if (i === 25) { 
-        free = { type: 'pet_and_ticket', pet: 'cyber_fox', ticket: 'epic', icon: '🦊', name: 'Кибер-лис + Билет', dustVal: 100 }; 
-        pro = { type: 'bg_and_ticket', bg: 'cyberpunk', ticket: 'mythic', icon: '🌆', name: 'Cyberpunk + Билет', dustVal: 200 }; 
+        free = { 
+            type: 'pet_and_ticket', 
+            pet: 'cyber_fox', 
+            ticket: 'epic', 
+            icon: '🦊', 
+            name: 'Кибер-лис + Билет', 
+            dustVal: 100 
+        }; 
+        pro = { 
+            type: 'bg_and_ticket', 
+            bg: 'cyberpunk', 
+            ticket: 'mythic', 
+            icon: '🌆', 
+            name: 'Cyberpunk + Билет', 
+            dustVal: 200 
+        }; 
     }
+    
     if (i === 50) { 
-        free = { type: 'pet', val: 'god', icon: 'assets/pets/pet-god.png', name: 'Бог Фокуса', dustVal: 200 }; 
-        pro = { type: 'bundle_50', icon: '🎁', name: '2 Гена + 50 ⭐️ + Билет', dustVal: 300 }; 
+        free = { 
+            type: 'pet', 
+            val: 'god', 
+            icon: 'assets/pets/pet-god.png', 
+            name: 'Бог Фокуса', 
+            dustVal: 200 
+        }; 
+        pro = { 
+            type: 'bundle_50', 
+            icon: '🎁', 
+            name: '2 Гена + 50 ⭐️ + Билет', 
+            dustVal: 300 
+        }; 
     }
+    
     if (i === 75) { 
-        free = { type: 'pet', val: 'pegasus', icon: 'assets/pets/pet-pegasus.png', name: 'Пегас', dustVal: 300 }; 
-        pro = { type: 'bundle_75', icon: '🎁', name: 'Яйцо Голограмма + 3 Гена', dustVal: 400 }; 
+        free = { 
+            type: 'pet', 
+            val: 'pegasus', 
+            icon: 'assets/pets/pet-pegasus.png', 
+            name: 'Пегас', 
+            dustVal: 300 
+        }; 
+        pro = { 
+            type: 'bundle_75', 
+            icon: '🎁', 
+            name: 'Яйцо Голограмма + 3 Гена', 
+            dustVal: 400 
+        }; 
     }
+    
     if (i === 100) { 
-        free = { type: 'pet', val: 'dark_dragon', icon: 'assets/pets/pet-dark_dragon.png', name: 'Тёмный Дракон', dustVal: 500 }; 
-        pro = { type: 'bundle_100', icon: '🎁', name: 'Матрица + 150⭐️ + Неон Дракон', dustVal: 1000 }; 
+        free = { 
+            type: 'pet', 
+            val: 'dark_dragon', 
+            icon: 'assets/pets/pet-dark_dragon.png', 
+            name: 'Тёмный Дракон', 
+            dustVal: 500 
+        }; 
+        pro = { 
+            type: 'bundle_100', 
+            icon: '🎁', 
+            name: 'Матрица + 150⭐️ + Неон Дракон', 
+            dustVal: 1000 
+        }; 
     }
 
-    BATTLE_PASS_REWARDS.push({ level: i, free: free, pro: pro });
+    BATTLE_PASS_REWARDS.push({ 
+        level: i, 
+        free: free, 
+        pro: pro 
+    });
 }
 
 const ACHIEVEMENTS_DATA = [
@@ -349,7 +656,7 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
-// === НОВЫЕ ТИТУЛЫ ===
+// === ТИТУЛЫ ===
 const TITLES_DATA = [
     { id: 'time_lord', req: 100, type: 'focus', title: '👑 Повелитель Времени', desc: '100 часов фокуса' },
     { id: 'mad_scientist', req: 5, type: 'mythic', title: '☢️ Безумный Ученый', desc: 'Скрафтить 5 мификов' },
@@ -427,8 +734,9 @@ const ROULETTE_PRIZES = {
 };
 
 // =============================================================
-// ОБЩИЕ ФУНКЦИИ (СБРОС, АВТОРИЗАЦИЯ, МОДАЛКИ)
+// 4. ОБЩИЕ ФУНКЦИИ (СБРОС, АВТОРИЗАЦИЯ, МОДАЛКИ И ФИКС Z-INDEX)
 // =============================================================
+
 window.hardReset = function() { 
     if (confirm("Сбросить все?")) { 
         localStorage.clear(); 
@@ -458,6 +766,7 @@ window.isVip = function() {
 
 window.openModal = function(id) {
     window.playSound('click');
+    
     if (modalStack.length > 0 && modalStack[modalStack.length - 1] === id) {
         return;
     }
@@ -501,14 +810,18 @@ window.closeModal = function(id) {
 
 window.showToast = function(msg, icon='🔔') {
     const c = window.getEl('toast-container'); 
-    if (!c) return;
+    if (!c) {
+        return;
+    }
     
     const d = document.createElement('div');
     let content = icon === 'img' ? `<img src="assets/ui/coin.png"> <span>${msg}</span>` : `<span>${icon}</span> <span>${msg}</span>`;
+    
     d.className = 'toast'; 
     d.innerHTML = content;
     
     c.appendChild(d); 
+    
     setTimeout(() => { 
         d.classList.add('fade-out'); 
         setTimeout(() => {
@@ -519,7 +832,9 @@ window.showToast = function(msg, icon='🔔') {
 
 window.fireConfetti = function() {
     const canvas = document.getElementById('confetti-canvas'); 
-    if (!canvas) return;
+    if (!canvas) {
+        return;
+    }
     
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth; 
@@ -543,16 +858,19 @@ window.fireConfetti = function() {
     
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         particles.forEach((p, index) => {
             p.x += p.vx; 
             p.y += p.vy; 
             p.vy += p.grav;
             ctx.fillStyle = p.color; 
             ctx.fillRect(p.x, p.y, p.w, p.h);
+            
             if (p.y > canvas.height) {
                 particles.splice(index, 1);
             }
         });
+        
         if (particles.length > 0) {
             requestAnimationFrame(draw); 
         } else {
@@ -563,10 +881,11 @@ window.fireConfetti = function() {
 };
 
 // =============================================================
-// КОНТРАКТЫ И НАГРАДЫ
+// 5. КОНТРАКТЫ И ЕЖЕДНЕВНЫЕ НАГРАДЫ
 // =============================================================
 window.checkContracts = function() {
     const today = new Date().toDateString();
+    
     if (activeContracts.date !== today) {
         const pools = [
             { t: 'hatch', g: 5, r: { t: 'money', v: 3000 }, d: 'Вырасти 5 петов' },
@@ -577,7 +896,8 @@ window.checkContracts = function() {
         ];
         
         let shuffled = pools.sort(() => 0.5 - Math.random()).slice(0, 3);
-        activeContracts.date = today;
+        
+        activeContracts.date = today; 
         activeContracts.allClaimed = false; 
         activeContracts.tasks = shuffled.map(x => ({ ...x, p: 0, c: false }));
         
@@ -586,19 +906,22 @@ window.checkContracts = function() {
 };
 
 window.updateContract = function(type, val) {
-    if (!activeContracts.tasks) return;
+    if (!activeContracts.tasks) {
+        return;
+    }
     
     let updated = false;
+    
     activeContracts.tasks.forEach(t => {
         if (t.t === type && !t.c && t.p < t.g) {
-            t.p += val;
+            t.p += val; 
             if (t.p > t.g) {
                 t.p = t.g;
             }
             if (t.p === t.g && !t.notified) { 
                 window.showToast('Контракт выполнен!', '📜'); 
                 t.notified = true; 
-                window.playSound('win');
+                window.playSound('win'); 
             }
             updated = true;
         }
@@ -610,35 +933,39 @@ window.updateContract = function(type, val) {
 };
 
 window.claimContract = function(idx) {
-    let t = activeContracts.tasks[idx];
-    if (t.c) return;
+    let t = activeContracts.tasks[idx]; 
+    if (t.c) {
+        return;
+    }
     
     t.c = true;
-    if (t.r.t === 'money') walletBalance += t.r.v;
-    if (t.r.t === 'stars') userStars += t.r.v;
-    if (t.r.t === 'joker') userJokers += t.r.v;
     
-    if (t.r.t === 'luck') {
-        if (!myBoosters.luck) {
-            myBoosters.luck = 0;
-        }
-        myBoosters.luck += t.r.v;
+    if (t.r.t === 'money') {
+        walletBalance += t.r.v;
     }
-    if (t.r.t === 'speed') {
-        if (!myBoosters.speed) {
-            myBoosters.speed = 0;
-        }
-        myBoosters.speed += t.r.v;
+    if (t.r.t === 'stars') {
+        userStars += t.r.v;
+    }
+    if (t.r.t === 'joker') {
+        userJokers += t.r.v;
+    }
+    if (t.r.t === 'luck') { 
+        if (!myBoosters.luck) myBoosters.luck = 0; 
+        myBoosters.luck += t.r.v; 
+    }
+    if (t.r.t === 'speed') { 
+        if (!myBoosters.speed) myBoosters.speed = 0; 
+        myBoosters.speed += t.r.v; 
     }
     
     userXP += 30;
-    
     let allCompleted = activeContracts.tasks.every(task => task.c);
+    
     if (allCompleted && !activeContracts.allClaimed) {
-        userXP += 500;
+        userXP += 500; 
         activeContracts.allClaimed = true;
-        setTimeout(() => {
-            window.showToast('БОНУС +500 XP за 3 контракта!', '🔥');
+        setTimeout(() => { 
+            window.showToast('БОНУС +500 XP за 3 контракта!', '🔥'); 
         }, 1000);
     }
     
@@ -648,12 +975,11 @@ window.claimContract = function(idx) {
         window.showToast(`Lvl UP: ${userLevel} 🏆`, "🎉"); 
         window.playSound('win'); 
     }
-
+    
     window.saveData(); 
     window.updateBalanceUI(); 
-    window.updateLevelUI();
-    window.renderQuests();
-    
+    window.updateLevelUI(); 
+    window.renderQuests(); 
     window.showToast(`Награда получена! (+30 XP)`, '🎁'); 
     window.playSound('money');
 };
@@ -671,11 +997,13 @@ window.closeTutorial = function() {
 };
 
 window.checkDailyReward = function() {
-    const today = new Date().toDateString();
+    const today = new Date().toDateString(); 
     const lastLogin = localStorage.getItem('lastLoginDate');
     let streak = parseInt(localStorage.getItem('dailyStreak')) || 0;
     
-    if (lastLogin === today) return; 
+    if (lastLogin === today) {
+        return; 
+    }
     
     const yesterday = new Date(); 
     yesterday.setDate(yesterday.getDate() - 1);
@@ -691,15 +1019,16 @@ window.checkDailyReward = function() {
 
 window.renderDailyModal = function(curr) {
     const g = window.getEl('daily-grid'); 
-    if (!g) return;
+    if (!g) {
+        return;
+    }
     
-    g.innerHTML = '';
+    g.innerHTML = ''; 
     const D_REWARDS = window.getDailyRewardsConfig();
     
     D_REWARDS.forEach((r, i) => {
-        const d = document.createElement('div');
+        const d = document.createElement('div'); 
         let st = ''; 
-        
         if (i < curr) {
             st = 'claimed'; 
         }
@@ -726,27 +1055,27 @@ window.renderDailyModal = function(curr) {
         
         let v = '';
         if (r.type === 'money') {
-            v = `+${window.formatNumber(r.val)}`;
+            v = `+${window.formatNumber(r.val)}`; 
         } else if (r.type === 'dust') {
             v = `+${window.formatNumber(r.val)} Пыли`;
         } else if (r.type === 'stars') {
-            v = `+${r.val} Звезд`;
+            v = `+${r.val} Звезд`; 
         } else if (r.type === 'shard') {
             v = `Осколок!`;
         } else if (r.type === 'booster') {
-            v = '+1 Буст';
+            v = '+1 Буст'; 
         } else if (r.type === 'mixed') {
             v = `СУПЕР-ПРИЗ!`;
         }
         
-        d.innerHTML = `<div class="daily-day">День ${r.day}</div>${iconHTML}<div class="daily-val">${v}</div>`;
+        d.innerHTML = `<div class="daily-day">День ${r.day}</div>${iconHTML}<div class="daily-val">${v}</div>`; 
         g.appendChild(d);
     });
 };
 
 window.claimDaily = function() {
     let s = parseInt(localStorage.getItem('dailyStreak')) || 0;
-    const t = new Date().toDateString();
+    const t = new Date().toDateString(); 
     const l = localStorage.getItem('lastLoginDate');
     const y = new Date(); 
     y.setDate(y.getDate() - 1);
@@ -760,8 +1089,8 @@ window.claimDaily = function() {
     }
     userStats.totalDaysLogged++;
 
-    const D_REWARDS = window.getDailyRewardsConfig();
-    const r = D_REWARDS[s];
+    const D_REWARDS = window.getDailyRewardsConfig(); 
+    const r = D_REWARDS[s]; 
     let bonusMult = window.isVip() ? 1.2 : 1;
     
     if (r.type === 'money') {
@@ -773,15 +1102,11 @@ window.claimDaily = function() {
     } else if (r.type === 'shard') {
         pegasusShards++;
     } else if (r.type === 'booster') { 
-        if (!myBoosters[r.id]) {
-            myBoosters[r.id] = 0; 
-        }
+        if (!myBoosters[r.id]) myBoosters[r.id] = 0; 
         myBoosters[r.id]++; 
     } else if (r.type === 'mixed') { 
         dustBalance += Math.floor(r.dust * bonusMult); 
-        if (!myBoosters[r.booster]) {
-            myBoosters[r.booster] = 0; 
-        }
+        if (!myBoosters[r.booster]) myBoosters[r.booster] = 0; 
         myBoosters[r.booster]++; 
     }
     
@@ -801,8 +1126,9 @@ window.claimDaily = function() {
 };
 
 // =============================================================
-// ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЕ 
+// 6. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЕ В ОБЛАКО
 // =============================================================
+
 window.initGame = function() {
     if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.expand(); 
@@ -816,23 +1142,20 @@ window.initGame = function() {
         let savedLevel = parseInt(localStorage.getItem('userLevel'));
         
         if (savedLevel && savedLevel >= 1) {
-            userLevel = savedLevel;
+            userLevel = savedLevel; 
             collection = window.safeParse(localStorage.getItem('myCollection'), []);
-            userXP = parseInt(localStorage.getItem('userXP')) || 0;
+            userXP = parseInt(localStorage.getItem('userXP')) || 0; 
             walletBalance = parseInt(localStorage.getItem('walletBalance')) || 0;
-            userStars = parseInt(localStorage.getItem('userStars')) || 0;
+            userStars = parseInt(localStorage.getItem('userStars')) || 0; 
             pegasusShards = parseInt(localStorage.getItem('pegasusShards')) || 0; 
             userJokers = parseInt(localStorage.getItem('userJokers')) || 0; 
             dustBalance = parseInt(localStorage.getItem('dustBalance')) || 0; 
-            
-            claimedRewards = window.safeParse(localStorage.getItem('claimedRewards'), []);
+            claimedRewards = window.safeParse(localStorage.getItem('claimedRewards'), []); 
             mythicTickets = parseInt(localStorage.getItem('mythicTickets')) || 0;
-            
-            hatchStreak = parseInt(localStorage.getItem('hatchStreak')) || 0;
+            hatchStreak = parseInt(localStorage.getItem('hatchStreak')) || 0; 
             lastHatchDate = localStorage.getItem('lastHatchDate') || "";
-            
             ownedItems = window.safeParse(localStorage.getItem('ownedItems'), { themes: ['default'], eggs: ['default'] });
-            activeTheme = localStorage.getItem('activeTheme') || 'default';
+            activeTheme = localStorage.getItem('activeTheme') || 'default'; 
             activeEggSkin = localStorage.getItem('activeEggSkin') || 'default';
             selectedAvatar = localStorage.getItem('selectedAvatar') || 'default'; 
             
@@ -842,21 +1165,20 @@ window.initGame = function() {
             let b = window.safeParse(localStorage.getItem('myBoosters'), {}); 
             myBoosters = { luck: b.luck || 0, speed: b.speed || 0, bio: b.bio || 0 };
             
-            claimedAchievements = window.safeParse(localStorage.getItem('claimedAchievements'), []);
+            claimedAchievements = window.safeParse(localStorage.getItem('claimedAchievements'), []); 
             claimedQuests = window.safeParse(localStorage.getItem('claimedQuests'), []);
-            usedCodes = window.safeParse(localStorage.getItem('usedCodes'), []);
+            usedCodes = window.safeParse(localStorage.getItem('usedCodes'), []); 
             
             isVibrationOn = localStorage.getItem('isVibrationOn') !== 'false';
-            isSoundOn = localStorage.getItem('isSoundOn') === 'true';
+            isSoundOn = localStorage.getItem('isSoundOn') === 'true'; 
+            
             vipEndTime = parseInt(localStorage.getItem('vipEndTime')) || 0;
-            hasSecondSlot = localStorage.getItem('hasSecondSlot') === 'true';
+            hasSecondSlot = localStorage.getItem('hasSecondSlot') === 'true'; 
             secondSlotEndTime = parseInt(localStorage.getItem('secondSlotEndTime')) || 0;
-            lastRouletteDate = localStorage.getItem('lastRouletteDate') || "";
+            lastRouletteDate = localStorage.getItem('lastRouletteDate') || ""; 
             boxAdsProgress = window.safeParse(localStorage.getItem('boxAdsProgress'), { epic: 0, mythic: 0 });
-            
-            petStars = window.safeParse(localStorage.getItem('petStars'), {});
+            petStars = window.safeParse(localStorage.getItem('petStars'), {}); 
             activeContracts = window.safeParse(localStorage.getItem('activeContracts'), { date: '', allClaimed: false, tasks: [] });
-            
             customEggConfig = window.safeParse(localStorage.getItem('customEggConfig'), { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 });
             userShowcase = window.safeParse(localStorage.getItem('userShowcase'), { center: null, left: null, right: null });
             
@@ -867,12 +1189,12 @@ window.initGame = function() {
             equippedTitle = localStorage.getItem('equippedTitle') || "";
             unlockedTitles = window.safeParse(localStorage.getItem('unlockedTitles'), []);
         }
-    } catch(e) { 
-        console.error("Local Load Error", e); 
+    } catch(e) {
+        console.error("Storage read error", e);
     }
 
     let profileBtn = window.getEl('header-profile-btn');
-    if (selectedAvatar !== 'default' && profileBtn) { 
+    if (selectedAvatar !== 'default' && profileBtn) {
         profileBtn.innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`; 
     }
     
@@ -899,7 +1221,7 @@ window.initGame = function() {
     }
     
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        window.loadFromCloud();
+        window.loadFromCloud(); 
     } else {
         window.postInit();
     }
@@ -911,106 +1233,51 @@ window.loadFromCloud = function() {
         'ownedItems', 'activeTheme', 'activeEggSkin', 'userStats', 'myBoosters', 
         'claimedAchievements', 'claimedQuests', 'selectedAvatar', 'pegasusShards', 
         'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 
-        'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress', 'petStars', 'activeContracts',
+        'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress', 'petStars', 'activeContracts', 
         'hatchStreak', 'lastHatchDate', 'dustBalance', 'claimedRewards', 'mythicTickets', 
-        'customEggConfig', 'userShowcase', 'focusHours', 'mythicsCrafted', 'reactorWins', 'equippedTitle', 'unlockedTitles'
+        'customEggConfig', 'userShowcase', 'focusHours', 'mythicsCrafted', 'reactorWins', 
+        'equippedTitle', 'unlockedTitles'
     ];
     
     Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
         if (!err && values && values.userLevel) {
-            let cloudLevel = parseInt(values.userLevel) || 1;
+            let cloudLevel = parseInt(values.userLevel) || 1; 
             let cloudTime = parseInt(values.lastSaveTime) || 0;
             
             if (cloudLevel > userLevel || (cloudLevel === userLevel && cloudTime >= localSaveTime)) {
-                walletBalance = parseInt(values.walletBalance) || 0;
-                userStars = parseInt(values.userStars) || 0;
-                userXP = parseInt(values.userXP) || 0;
+                walletBalance = parseInt(values.walletBalance) || 0; 
+                userStars = parseInt(values.userStars) || 0; 
+                userXP = parseInt(values.userXP) || 0; 
                 userLevel = cloudLevel;
                 
-                if (values.pegasusShards) {
-                    pegasusShards = parseInt(values.pegasusShards);
+                if (values.pegasusShards) pegasusShards = parseInt(values.pegasusShards); 
+                if (values.userJokers) userJokers = parseInt(values.userJokers);
+                if (values.dustBalance) dustBalance = parseInt(values.dustBalance); 
+                if (values.claimedRewards) claimedRewards = window.safeParse(values.claimedRewards, []);
+                if (values.mythicTickets) mythicTickets = parseInt(values.mythicTickets); 
+                if (values.customEggConfig) customEggConfig = window.safeParse(values.customEggConfig, { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 });
+                if (values.userShowcase) userShowcase = window.safeParse(values.userShowcase, { center: null, left: null, right: null });
+                if (values.hatchStreak) hatchStreak = parseInt(values.hatchStreak); 
+                if (values.lastHatchDate) lastHatchDate = values.lastHatchDate;
+                if (values.myCollection) collection = window.safeParse(values.myCollection, []); 
+                if (values.ownedItems) ownedItems = window.safeParse(values.ownedItems, { themes: ['default'], eggs: ['default'] });
+                if (values.activeTheme) activeTheme = values.activeTheme; 
+                if (values.activeEggSkin) activeEggSkin = values.activeEggSkin; 
+                if (values.selectedAvatar) selectedAvatar = values.selectedAvatar;
+                if (values.userStats) userStats = {...userStats, ...window.safeParse(values.userStats, {})};
+                if (values.myBoosters) { 
+                    let cb = window.safeParse(values.myBoosters, {}); 
+                    myBoosters = { luck: cb.luck || 0, speed: cb.speed || 0, bio: cb.bio || 0 }; 
                 }
-                if (values.userJokers) {
-                    userJokers = parseInt(values.userJokers);
-                }
-                if (values.dustBalance) {
-                    dustBalance = parseInt(values.dustBalance);
-                }
-                
-                if (values.claimedRewards) {
-                    claimedRewards = window.safeParse(values.claimedRewards, []);
-                }
-                if (values.mythicTickets) {
-                    mythicTickets = parseInt(values.mythicTickets);
-                }
-                if (values.customEggConfig) {
-                    customEggConfig = window.safeParse(values.customEggConfig, { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 });
-                }
-                if (values.userShowcase) {
-                    userShowcase = window.safeParse(values.userShowcase, { center: null, left: null, right: null });
-                }
-                
-                if (values.hatchStreak) {
-                    hatchStreak = parseInt(values.hatchStreak);
-                }
-                if (values.lastHatchDate) {
-                    lastHatchDate = values.lastHatchDate;
-                }
-                
-                if (values.myCollection) {
-                    collection = window.safeParse(values.myCollection, []);
-                }
-                if (values.ownedItems) {
-                    ownedItems = window.safeParse(values.ownedItems, { themes: ['default'], eggs: ['default'] });
-                }
-                if (values.activeTheme) {
-                    activeTheme = values.activeTheme;
-                }
-                if (values.activeEggSkin) {
-                    activeEggSkin = values.activeEggSkin;
-                }
-                if (values.selectedAvatar) {
-                    selectedAvatar = values.selectedAvatar;
-                }
-                
-                if (values.userStats) {
-                    userStats = {...userStats, ...window.safeParse(values.userStats, {})};
-                }
-                
-                if (values.myBoosters) {
-                    let cb = window.safeParse(values.myBoosters, {});
-                    myBoosters = { luck: cb.luck || 0, speed: cb.speed || 0, bio: cb.bio || 0 };
-                }
-                
-                if (values.claimedAchievements) {
-                    claimedAchievements = window.safeParse(values.claimedAchievements, []);
-                }
-                if (values.claimedQuests) {
-                    claimedQuests = window.safeParse(values.claimedQuests, []);
-                }
-                
-                if (values.vipEndTime) {
-                    vipEndTime = parseInt(values.vipEndTime);
-                }
-                if (values.hasSecondSlot) {
-                    hasSecondSlot = values.hasSecondSlot === 'true';
-                }
-                if (values.secondSlotEndTime) {
-                    secondSlotEndTime = parseInt(values.secondSlotEndTime);
-                }
-                if (values.lastRouletteDate) {
-                    lastRouletteDate = values.lastRouletteDate;
-                }
-                if (values.boxAdsProgress) {
-                    boxAdsProgress = window.safeParse(values.boxAdsProgress, { epic: 0, mythic: 0 });
-                }
-                
-                if (values.petStars) {
-                    petStars = window.safeParse(values.petStars, {});
-                }
-                if (values.activeContracts) {
-                    activeContracts = window.safeParse(values.activeContracts, { date: '', allClaimed: false, tasks: [] });
-                }
+                if (values.claimedAchievements) claimedAchievements = window.safeParse(values.claimedAchievements, []); 
+                if (values.claimedQuests) claimedQuests = window.safeParse(values.claimedQuests, []);
+                if (values.vipEndTime) vipEndTime = parseInt(values.vipEndTime); 
+                if (values.hasSecondSlot) hasSecondSlot = values.hasSecondSlot === 'true';
+                if (values.secondSlotEndTime) secondSlotEndTime = parseInt(values.secondSlotEndTime); 
+                if (values.lastRouletteDate) lastRouletteDate = values.lastRouletteDate;
+                if (values.boxAdsProgress) boxAdsProgress = window.safeParse(values.boxAdsProgress, { epic: 0, mythic: 0 }); 
+                if (values.petStars) petStars = window.safeParse(values.petStars, {});
+                if (values.activeContracts) activeContracts = window.safeParse(values.activeContracts, { date: '', allClaimed: false, tasks: [] });
                 
                 if (values.focusHours) focusHours = parseFloat(values.focusHours);
                 if (values.mythicsCrafted) mythicsCrafted = parseInt(values.mythicsCrafted);
@@ -1019,19 +1286,18 @@ window.loadFromCloud = function() {
                 if (values.unlockedTitles) unlockedTitles = window.safeParse(values.unlockedTitles, []);
 
                 let profileBtn = window.getEl('header-profile-btn');
-                if (selectedAvatar !== 'default' && profileBtn) { 
+                if (selectedAvatar !== 'default' && profileBtn) {
                     profileBtn.innerHTML = `<img src="assets/pets/pet-${selectedAvatar}.png" class="header-icon-img header-avatar" onerror="this.src='assets/ui/icon-profile.png'">`; 
                 }
                 window.saveData(true); 
             } else if (userLevel > cloudLevel) {
                 window.saveData(false); 
             }
-        } else if (!err && (!values || !values.userLevel)) {
+        } else if (!err && (!values || !values.userLevel)) { 
             if (userLevel > 1) {
-                window.saveData(false);
+                window.saveData(false); 
             }
         }
-        
         window.postInit();
     });
 };
@@ -1048,48 +1314,48 @@ window.postInit = function() {
     try { window.apiSyncGlobalProfile(); } catch(e) {}
     try { window.startInvitesPolling(); } catch(e) {}
     
-    if (localStorage.getItem('tutorialSeen')) {
-        try { window.checkDailyReward(); } catch(e) {}
-    } else {
-        window.openModal('tutorial-modal');
+    if (localStorage.getItem('tutorialSeen')) { 
+        try { window.checkDailyReward(); } catch(e) {} 
+    } else { 
+        window.openModal('tutorial-modal'); 
     }
 };
 
 window.saveData = function(skipTimeUpdate = false) {
-    let now = Date.now();
+    let now = Date.now(); 
     if (!skipTimeUpdate) {
         localSaveTime = now;
     }
 
-    localStorage.setItem('lastSaveTime', localSaveTime);
+    localStorage.setItem('lastSaveTime', localSaveTime); 
     localStorage.setItem('walletBalance', walletBalance);
-    localStorage.setItem('userStars', userStars);
+    localStorage.setItem('userStars', userStars); 
     localStorage.setItem('pegasusShards', pegasusShards);
-    localStorage.setItem('userJokers', userJokers);
+    localStorage.setItem('userJokers', userJokers); 
     localStorage.setItem('dustBalance', dustBalance); 
-    localStorage.setItem('claimedRewards', JSON.stringify(claimedRewards));
+    localStorage.setItem('claimedRewards', JSON.stringify(claimedRewards)); 
     localStorage.setItem('mythicTickets', mythicTickets);
-    localStorage.setItem('customEggConfig', JSON.stringify(customEggConfig));
+    localStorage.setItem('customEggConfig', JSON.stringify(customEggConfig)); 
     localStorage.setItem('userShowcase', JSON.stringify(userShowcase));
     localStorage.setItem('hatchStreak', hatchStreak); 
     localStorage.setItem('lastHatchDate', lastHatchDate); 
-    localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
+    localStorage.setItem('ownedItems', JSON.stringify(ownedItems)); 
     localStorage.setItem('activeTheme', activeTheme);
-    localStorage.setItem('activeEggSkin', activeEggSkin);
+    localStorage.setItem('activeEggSkin', activeEggSkin); 
     localStorage.setItem('selectedAvatar', selectedAvatar);
-    localStorage.setItem('userStats', JSON.stringify(userStats));
+    localStorage.setItem('userStats', JSON.stringify(userStats)); 
     localStorage.setItem('myBoosters', JSON.stringify(myBoosters));
-    localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
+    localStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements)); 
     localStorage.setItem('claimedQuests', JSON.stringify(claimedQuests));
-    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
+    localStorage.setItem('usedCodes', JSON.stringify(usedCodes)); 
     localStorage.setItem('myCollection', JSON.stringify(collection));
-    localStorage.setItem('userXP', userXP);
+    localStorage.setItem('userXP', userXP); 
     localStorage.setItem('userLevel', userLevel);
-    localStorage.setItem('vipEndTime', vipEndTime);
+    localStorage.setItem('vipEndTime', vipEndTime); 
     localStorage.setItem('hasSecondSlot', hasSecondSlot);
-    localStorage.setItem('secondSlotEndTime', secondSlotEndTime);
+    localStorage.setItem('secondSlotEndTime', secondSlotEndTime); 
     localStorage.setItem('lastRouletteDate', lastRouletteDate);
-    localStorage.setItem('boxAdsProgress', JSON.stringify(boxAdsProgress));
+    localStorage.setItem('boxAdsProgress', JSON.stringify(boxAdsProgress)); 
     localStorage.setItem('petStars', JSON.stringify(petStars));
     localStorage.setItem('activeContracts', JSON.stringify(activeContracts));
     
@@ -1100,33 +1366,33 @@ window.saveData = function(skipTimeUpdate = false) {
     localStorage.setItem('unlockedTitles', JSON.stringify(unlockedTitles));
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
-        Telegram.WebApp.CloudStorage.setItem('lastSaveTime', localSaveTime.toString());
+        Telegram.WebApp.CloudStorage.setItem('lastSaveTime', localSaveTime.toString()); 
         Telegram.WebApp.CloudStorage.setItem('walletBalance', walletBalance.toString());
-        Telegram.WebApp.CloudStorage.setItem('userStars', userStars.toString());
+        Telegram.WebApp.CloudStorage.setItem('userStars', userStars.toString()); 
         Telegram.WebApp.CloudStorage.setItem('pegasusShards', pegasusShards.toString());
-        Telegram.WebApp.CloudStorage.setItem('userJokers', userJokers.toString());
+        Telegram.WebApp.CloudStorage.setItem('userJokers', userJokers.toString()); 
         Telegram.WebApp.CloudStorage.setItem('dustBalance', dustBalance.toString());
-        Telegram.WebApp.CloudStorage.setItem('claimedRewards', JSON.stringify(claimedRewards));
+        Telegram.WebApp.CloudStorage.setItem('claimedRewards', JSON.stringify(claimedRewards)); 
         Telegram.WebApp.CloudStorage.setItem('mythicTickets', mythicTickets.toString());
-        Telegram.WebApp.CloudStorage.setItem('customEggConfig', JSON.stringify(customEggConfig));
+        Telegram.WebApp.CloudStorage.setItem('customEggConfig', JSON.stringify(customEggConfig)); 
         Telegram.WebApp.CloudStorage.setItem('userShowcase', JSON.stringify(userShowcase));
-        Telegram.WebApp.CloudStorage.setItem('hatchStreak', hatchStreak.toString());
+        Telegram.WebApp.CloudStorage.setItem('hatchStreak', hatchStreak.toString()); 
         Telegram.WebApp.CloudStorage.setItem('lastHatchDate', lastHatchDate);
-        Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString());
+        Telegram.WebApp.CloudStorage.setItem('userXP', userXP.toString()); 
         Telegram.WebApp.CloudStorage.setItem('userLevel', userLevel.toString());
-        Telegram.WebApp.CloudStorage.setItem('myCollection', JSON.stringify(collection));
+        Telegram.WebApp.CloudStorage.setItem('myCollection', JSON.stringify(collection)); 
         Telegram.WebApp.CloudStorage.setItem('ownedItems', JSON.stringify(ownedItems));
-        Telegram.WebApp.CloudStorage.setItem('activeTheme', activeTheme);
+        Telegram.WebApp.CloudStorage.setItem('activeTheme', activeTheme); 
         Telegram.WebApp.CloudStorage.setItem('activeEggSkin', activeEggSkin);
-        Telegram.WebApp.CloudStorage.setItem('selectedAvatar', selectedAvatar);
+        Telegram.WebApp.CloudStorage.setItem('selectedAvatar', selectedAvatar); 
         Telegram.WebApp.CloudStorage.setItem('userStats', JSON.stringify(userStats));
-        Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters));
+        Telegram.WebApp.CloudStorage.setItem('myBoosters', JSON.stringify(myBoosters)); 
         Telegram.WebApp.CloudStorage.setItem('claimedAchievements', JSON.stringify(claimedAchievements));
-        Telegram.WebApp.CloudStorage.setItem('vipEndTime', vipEndTime.toString());
+        Telegram.WebApp.CloudStorage.setItem('vipEndTime', vipEndTime.toString()); 
         Telegram.WebApp.CloudStorage.setItem('hasSecondSlot', hasSecondSlot.toString());
-        Telegram.WebApp.CloudStorage.setItem('secondSlotEndTime', secondSlotEndTime.toString());
+        Telegram.WebApp.CloudStorage.setItem('secondSlotEndTime', secondSlotEndTime.toString()); 
         Telegram.WebApp.CloudStorage.setItem('lastRouletteDate', lastRouletteDate);
-        Telegram.WebApp.CloudStorage.setItem('boxAdsProgress', JSON.stringify(boxAdsProgress));
+        Telegram.WebApp.CloudStorage.setItem('boxAdsProgress', JSON.stringify(boxAdsProgress)); 
         Telegram.WebApp.CloudStorage.setItem('petStars', JSON.stringify(petStars));
         Telegram.WebApp.CloudStorage.setItem('activeContracts', JSON.stringify(activeContracts));
         
@@ -1139,39 +1405,36 @@ window.saveData = function(skipTimeUpdate = false) {
 };
 
 // =============================================================
-// 8. ПРОФИЛЬ, ДРУЗЬЯ И ТИТУЛЫ
+// 7. ПРОФИЛЬ, ДРУЗЬЯ И ТИТУЛЫ
 // =============================================================
 window.apiSyncGlobalProfile = async function() {
     const user = window.getTgUser(); 
-    
     let netWorthCoins = walletBalance; 
     
-    collection.forEach(pet => {
-        netWorthCoins += PRICES[window.getPetRarity(pet)] || 0;
+    collection.forEach(pet => { 
+        netWorthCoins += PRICES[window.getPetRarity(pet)] || 0; 
     });
     
     ownedItems.themes.forEach(t => { 
         const item = SHOP_DATA.themes.find(x => x.id === t); 
         if (item && typeof item.price === 'number') {
-            netWorthCoins += item.price;
+            netWorthCoins += item.price; 
         }
     });
     
     ownedItems.eggs.forEach(e => { 
         const item = SHOP_DATA.eggs.find(x => x.id === e); 
         if (item && typeof item.price === 'number') {
-            netWorthCoins += item.price;
+            netWorthCoins += item.price; 
         }
     });
     
     if (myBoosters.luck > 0) {
         netWorthCoins += myBoosters.luck * 5000;
     }
-    
     if (myBoosters.speed > 0) {
         netWorthCoins += myBoosters.speed * 5000;
     }
-    
     if (myBoosters.bio > 0) {
         netWorthCoins += myBoosters.bio * 15000;
     }
@@ -1191,16 +1454,16 @@ window.apiSyncGlobalProfile = async function() {
                 avatar: selectedAvatar, 
                 level: userLevel, 
                 earned: netWorthCoins, 
-                hatched: userStats.hatched || 0,
+                hatched: userStats.hatched || 0, 
                 dust: dustBalance,
-                claimed_rewards: JSON.stringify(claimedRewards),
+                claimed_rewards: JSON.stringify(claimedRewards), 
                 mythic_tickets: mythicTickets,
-                active_theme: activeTheme,
+                active_theme: activeTheme, 
                 showcase: JSON.stringify(userShowcase),
-                focus_hours: focusHours,
-                mythics_crafted: mythicsCrafted,
+                focus_hours: focusHours, 
+                mythics_crafted: mythicsCrafted, 
                 reactor_wins: reactorWins,
-                equipped_title: equippedTitle,
+                equipped_title: equippedTitle, 
                 unlocked_titles: JSON.stringify(unlockedTitles)
             })
         });
@@ -1235,7 +1498,7 @@ window.startInvitesPolling = function() {
                     iim.setAttribute('data-party', data.invite.party_code);
                 }
                 
-                window.playSound('win');
+                window.playSound('win'); 
                 window.openModal('incoming-invite-modal');
             }
         } catch(e) {}
@@ -1270,7 +1533,7 @@ window.acceptInvite = async function() {
         pci.value = code;
     }
     
-    await window.apiJoinParty(code);
+    await window.apiJoinParty(code); 
     window.openModal('party-modal');
 };
 
@@ -1285,29 +1548,20 @@ window.switchProfileTab = function(tab) {
     
     window.playSound('click');
     
-    let psv = window.getEl('profile-stats-view');
+    let psv = window.getEl('profile-stats-view'); 
     let pfv = window.getEl('profile-friends-view');
     
     if (tab === 'stats') {
-        if (psv) {
-            psv.style.display = 'block'; 
-        }
-        if (pfv) {
-            pfv.style.display = 'none';
-        }
+        if (psv) psv.style.display = 'block'; 
+        if (pfv) pfv.style.display = 'none';
     } else {
-        if (psv) {
-            psv.style.display = 'none'; 
-        }
-        if (pfv) {
-            pfv.style.display = 'block';
-        }
+        if (psv) psv.style.display = 'none'; 
+        if (pfv) pfv.style.display = 'block';
         
         let mfc = window.getEl('my-friend-code'); 
         if (mfc) {
             mfc.value = window.getTgUser().id; 
         }
-        
         window.apiLoadFriends(); 
     }
 };
@@ -1316,10 +1570,10 @@ window.openProfile = function() {
     window.apiSyncGlobalProfile(); 
     
     let pr = window.getEl('profile-rank'); 
-    if (pr) {
-        pr.innerHTML = (equippedTitle ? `<span class="player-title" style="font-size: 14px; display: block; margin-bottom: 5px;">${equippedTitle}</span>` : '') + (RANKS[Math.floor(userLevel / 5)] || "Создатель");
+    if (pr) { 
+        pr.innerHTML = (equippedTitle ? `<span class="player-title" style="font-size: 14px; display: block; margin-bottom: 5px;">${equippedTitle}</span>` : '') + (RANKS[Math.floor(userLevel / 5)] || "Создатель"); 
         if (window.isVip()) {
-            pr.innerHTML += ' <span style="color:#ffd700">👑 PRO</span>';
+            pr.innerHTML += ' <span style="color:#ffd700">👑 PRO</span>'; 
         }
     }
     
@@ -1344,47 +1598,41 @@ window.openProfile = function() {
     }
     
     let netWorthCoins = walletBalance;
-    collection.forEach(pet => {
-        netWorthCoins += PRICES[window.getPetRarity(pet)] || 0;
+    collection.forEach(pet => { 
+        netWorthCoins += PRICES[window.getPetRarity(pet)] || 0; 
     });
     
     ownedItems.themes.forEach(t => { 
         const item = SHOP_DATA.themes.find(x => x.id === t); 
         if (item && typeof item.price === 'number') {
-            netWorthCoins += item.price;
+            netWorthCoins += item.price; 
         }
     });
     
     ownedItems.eggs.forEach(e => { 
         const item = SHOP_DATA.eggs.find(x => x.id === e); 
         if (item && typeof item.price === 'number') {
-            netWorthCoins += item.price;
+            netWorthCoins += item.price; 
         }
     });
     
-    if (myBoosters.luck > 0) {
-        netWorthCoins += myBoosters.luck * 5000;
-    }
-    if (myBoosters.speed > 0) {
-        netWorthCoins += myBoosters.speed * 5000;
-    }
-    if (myBoosters.bio > 0) {
-        netWorthCoins += myBoosters.bio * 15000;
-    }
+    if (myBoosters.luck > 0) netWorthCoins += myBoosters.luck * 5000;
+    if (myBoosters.speed > 0) netWorthCoins += myBoosters.speed * 5000;
+    if (myBoosters.bio > 0) netWorthCoins += myBoosters.bio * 15000;
 
     let netWorthStars = userStars;
     
     ownedItems.themes.forEach(t => { 
         const item = SHOP_DATA.themes.find(x => x.id === t); 
         if (item && typeof item.price === 'string' && item.price.includes('⭐️')) {
-            netWorthStars += parseInt(item.price.replace(' ⭐️', ''));
+            netWorthStars += parseInt(item.price.replace(' ⭐️', '')); 
         }
     });
     
     ownedItems.eggs.forEach(e => { 
         const item = SHOP_DATA.eggs.find(x => x.id === e); 
         if (item && typeof item.price === 'string' && item.price.includes('⭐️')) {
-            netWorthStars += parseInt(item.price.replace(' ⭐️', ''));
+            netWorthStars += parseInt(item.price.replace(' ⭐️', '')); 
         }
     });
     
@@ -1418,16 +1666,16 @@ window.openProfile = function() {
     }
     
     let tabs = document.querySelectorAll('#profile-modal .tab-btn');
-    if (tabs.length >= 2) {
-        tabs[0].classList.add('active');
-        tabs[1].classList.remove('active');
+    if (tabs.length >= 2) { 
+        tabs[0].classList.add('active'); 
+        tabs[1].classList.remove('active'); 
     }
     
     window.openModal('profile-modal');
 };
 
 window.copyMyCode = function() {
-    let mfc = window.getEl('my-friend-code');
+    let mfc = window.getEl('my-friend-code'); 
     if (!mfc) {
         return;
     }
@@ -1436,13 +1684,13 @@ window.copyMyCode = function() {
 
 window.apiAddFriend = async function() {
     window.playSound('click'); 
-    
     let input = window.getEl('add-friend-input'); 
     if (!input) {
         return;
     }
     
     const friendId = input.value.trim();
+    
     if (!friendId || friendId === window.getTgUser().id) {
         return window.showToast("Неверный ID", "❌");
     }
@@ -1481,6 +1729,7 @@ window.apiLoadFriends = async function() {
         const data = await res.json();
         
         container.innerHTML = '';
+        
         if (data.friends.length === 0) { 
             container.innerHTML = '<div style="text-align:center; color:#888;">У вас пока нет друзей</div>'; 
             return; 
@@ -1508,29 +1757,28 @@ window.apiLoadFriends = async function() {
     }
 };
 
-// === СИНДИКАТЫ (КЛАНЫ) И НАСТРОЙКИ ===
+// === СИНДИКАТЫ (КЛАНЫ) ===
 window.openSyndicates = async function() {
     window.playSound('click');
-    
     try {
         let res = await fetch(`${API_URL}/syndicates/my/${window.getTgUser().id}`);
         let data = await res.json();
         
         if (data.status === 'success' && data.syndicate_id) {
-            mySyndicateId = data.syndicate_id;
+            mySyndicateId = data.syndicate_id; 
             window.apiLoadSyndicateInfo(mySyndicateId);
         } else {
-            mySyndicateId = null;
-            window.openModal('syndicates-list-modal');
+            mySyndicateId = null; 
+            window.openModal('syndicates-list-modal'); 
             window.apiLoadTopSyndicates();
         }
-    } catch(e) {
-        window.showToast("Ошибка сети", "❌");
+    } catch(e) { 
+        window.showToast("Ошибка сети", "❌"); 
     }
 };
 
 window.apiLoadTopSyndicates = async function() {
-    let container = window.getEl('syndicates-list-container');
+    let container = window.getEl('syndicates-list-container'); 
     if(!container) {
         return;
     }
@@ -1540,15 +1788,16 @@ window.apiLoadTopSyndicates = async function() {
     try {
         let res = await fetch(`${API_URL}/syndicates/top`);
         let data = await res.json();
+        
         container.innerHTML = '';
         
         if(!data.syndicates || data.syndicates.length === 0) {
-            container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Синдикатов пока нет. Стань первым!</div>';
+            container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Синдикатов пока нет. Стань первым!</div>'; 
             return;
         }
         
         data.syndicates.forEach((s, idx) => {
-            let rankNum = idx + 1;
+            let rankNum = idx + 1; 
             let rankClass = rankNum <= 3 ? `top-${rankNum}` : '';
             
             container.innerHTML += `
@@ -1560,29 +1809,28 @@ window.apiLoadTopSyndicates = async function() {
                         <div class="syndicate-stats">Уровень ${s.level} • 👥 ${s.members_count}/50</div>
                     </div>
                     <div style="font-weight:bold; color:#00A3FF; font-size:12px; text-align:right;">${window.formatNumber(s.total_minutes)}<br>мин</div>
-                </div>
-            `;
+                </div>`;
         });
-    } catch(e) {
-        container.innerHTML = '<div style="text-align:center; color:#ff3b30; padding:20px;">Ошибка загрузки</div>';
+    } catch(e) { 
+        container.innerHTML = '<div style="text-align:center; color:#ff3b30; padding:20px;">Ошибка загрузки</div>'; 
     }
 };
 
 window.openSyndicateCreate = function() {
-    window.playSound('click');
+    window.playSound('click'); 
     createSynSelectedAvatar = selectedAvatar; 
     
-    let pvw = window.getEl('create-syn-avatar-preview');
+    let pvw = window.getEl('create-syn-avatar-preview'); 
     if(pvw) {
         pvw.src = window.getPetImg(createSynSelectedAvatar);
     }
     
-    let nameInp = window.getEl('syn-name-input');
+    let nameInp = window.getEl('syn-name-input'); 
     if (nameInp) {
         nameInp.value = '';
     }
     
-    let tagInp = window.getEl('syn-tag-input');
+    let tagInp = window.getEl('syn-tag-input'); 
     if (tagInp) {
         tagInp.value = '';
     }
@@ -1591,7 +1839,7 @@ window.openSyndicateCreate = function() {
 };
 
 window.openSynAvatarSelector = function(isEditing = false) {
-    window.playSound('click');
+    window.playSound('click'); 
     isEditingSyndicate = isEditing;
     
     const list = window.getEl('syn-avatar-list'); 
@@ -1599,7 +1847,7 @@ window.openSynAvatarSelector = function(isEditing = false) {
         return;
     }
     
-    list.innerHTML = '';
+    list.innerHTML = ''; 
     const uniquePets = [...new Set(collection)];
     
     if (uniquePets.length === 0) { 
@@ -1607,24 +1855,23 @@ window.openSynAvatarSelector = function(isEditing = false) {
     }
     
     uniquePets.forEach(pet => {
-        const r = window.getPetRarity(pet);
+        const r = window.getPetRarity(pet); 
         const div = document.createElement('div');
         div.className = `pet-slot ${r} ${createSynSelectedAvatar === pet ? 'selected' : ''}`;
         div.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`;
         
         div.onclick = () => {
-            createSynSelectedAvatar = pet;
+            createSynSelectedAvatar = pet; 
             let targetId = isEditingSyndicate ? 'edit-syn-avatar-preview' : 'create-syn-avatar-preview';
-            let pvw = window.getEl(targetId);
+            let pvw = window.getEl(targetId); 
             
             if(pvw) {
                 pvw.src = window.getPetImg(pet);
             }
             
-            window.playSound('click');
+            window.playSound('click'); 
             window.closeModal('syn-avatar-selector-modal');
         };
-        
         list.appendChild(div);
     });
     
@@ -1633,7 +1880,7 @@ window.openSynAvatarSelector = function(isEditing = false) {
 
 window.apiCreateSyndicate = async function(currency) {
     window.playSound('click');
-    let name = window.getEl('syn-name-input').value.trim();
+    let name = window.getEl('syn-name-input').value.trim(); 
     let tag = window.getEl('syn-tag-input').value.trim().toUpperCase();
     
     if(name.length < 3) {
@@ -1643,43 +1890,43 @@ window.apiCreateSyndicate = async function(currency) {
         return window.showToast("Тег 3-4 буквы!", "❌");
     }
     
-    if(currency === 'coins') {
+    if(currency === 'coins') { 
         if(walletBalance < 100000) {
-            return window.showToast("Нужно 100 000 Монет!", "❌");
+            return window.showToast("Нужно 100 000 Монет!", "❌"); 
         }
-    } else {
+    } else { 
         if(userStars < 250) {
-            return window.showToast("Нужно 250 Звезд!", "❌");
+            return window.showToast("Нужно 250 Звезд!", "❌"); 
         }
     }
     
     try {
         let res = await fetch(`${API_URL}/syndicates/create`, {
-            method: 'POST',
+            method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: window.getTgUser().id, name: name, tag: tag, avatar: createSynSelectedAvatar })
         });
+        
         let data = await res.json();
         
         if(data.status === 'success') {
             if(currency === 'coins') {
-                walletBalance -= 100000;
+                walletBalance -= 100000; 
             } else {
                 userStars -= 250;
             }
             
-            mySyndicateId = data.syndicate_id;
-            window.saveData();
+            mySyndicateId = data.syndicate_id; 
+            window.saveData(); 
             window.updateBalanceUI();
-            
-            window.showToast("Синдикат создан!", "🛡️");
-            window.closeModal('syndicate-create-modal');
+            window.showToast("Синдикат создан!", "🛡️"); 
+            window.closeModal('syndicate-create-modal'); 
             window.apiLoadSyndicateInfo(mySyndicateId);
-        } else {
-            window.showToast(data.detail, "❌");
+        } else { 
+            window.showToast(data.detail, "❌"); 
         }
-    } catch(e) {
-        window.showToast("Ошибка сети", "❌");
+    } catch(e) { 
+        window.showToast("Ошибка сети", "❌"); 
     }
 };
 
@@ -1690,40 +1937,36 @@ window.apiLoadSyndicateInfo = async function(synId) {
         
         if(data.status === 'success') {
             let s = data.syndicate;
-            window.getEl('syn-view-avatar').src = window.getPetImg(s.avatar);
+            window.getEl('syn-view-avatar').src = window.getPetImg(s.avatar); 
             window.getEl('syn-view-name').textContent = s.name;
-            window.getEl('syn-view-tag').textContent = `[${s.tag}]`;
+            window.getEl('syn-view-tag').textContent = `[${s.tag}]`; 
             window.getEl('syn-view-level').textContent = s.level;
             window.getEl('syn-view-minutes').textContent = window.formatNumber(s.total_minutes);
             
-            let progress = (s.total_minutes % 1000) / 1000 * 100;
+            let progress = (s.total_minutes % 1000) / 1000 * 100; 
             window.getEl('syn-view-progress').style.width = `${progress}%`;
-            
             window.getEl('syn-view-count').textContent = `${data.members.length}/50`;
             
             let isLeader = (s.leader_id === window.getTgUser().id);
             let settingsBtn = window.getEl('syn-settings-btn');
             
             if (settingsBtn) {
-                if (isLeader) {
-                    settingsBtn.style.display = 'block';
-                    settingsBtn.onclick = () => { 
-                        window.openSyndicateSettings(s.name, s.tag, s.avatar); 
-                    };
-                } else {
-                    settingsBtn.style.display = 'none';
+                if (isLeader) { 
+                    settingsBtn.style.display = 'block'; 
+                    settingsBtn.onclick = () => { window.openSyndicateSettings(s.name, s.tag, s.avatar); }; 
+                } else { 
+                    settingsBtn.style.display = 'none'; 
                 }
             }
             
-            let mList = window.getEl('syn-members-list');
+            let mList = window.getEl('syn-members-list'); 
             mList.innerHTML = '';
             
             data.members.forEach((m, idx) => {
-                let rank = idx + 1;
+                let rank = idx + 1; 
                 let roleHtml = m.user_id === s.leader_id ? `<span class="syn-role">Лидер 👑</span>` : '';
-                let isMe = m.user_id === window.getTgUser().id;
+                let isMe = m.user_id === window.getTgUser().id; 
                 let bgStyle = isMe ? 'background: rgba(0, 163, 255, 0.1);' : '';
-                
                 let encodedUser = encodeURIComponent(JSON.stringify(m));
                 let titleHtml = m.equipped_title ? `<span class="player-title">${m.equipped_title}</span>` : '';
                 
@@ -1733,17 +1976,14 @@ window.apiLoadSyndicateInfo = async function(synId) {
                         <img src="${window.getPetImg(m.avatar)}" style="width:30px; height:30px; border-radius:50%; background:#333; object-fit:contain;">
                         <div style="flex:1; overflow:hidden;">
                             ${titleHtml}
-                            <div style="font-size:13px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                ${m.name} <span style="color:#ffd700; font-size:10px;">${s.tag ? `[${s.tag}]` : ''}</span> ${isMe ? '(Ты)' : ''}
-                            </div>
+                            <div style="font-size:13px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.name} <span style="color:#ffd700; font-size:10px;">${s.tag ? `[${s.tag}]` : ''}</span> ${isMe ? '(Ты)' : ''}</div>
                             <div style="font-size:11px; color:#888;">Уровень ${m.level} ${roleHtml}</div>
                         </div>
                         <div style="font-weight:bold; color:#34c759; font-size:12px; text-align:right;">${window.formatNumber(m.syndicate_minutes)}<br><span style="font-size:9px;color:#888;">мин</span></div>
-                    </div>
-                `;
+                    </div>`;
             });
             
-            let actionBox = window.getEl('syn-action-buttons');
+            let actionBox = window.getEl('syn-action-buttons'); 
             actionBox.innerHTML = '';
             
             if (mySyndicateId === synId) {
@@ -1755,31 +1995,29 @@ window.apiLoadSyndicateInfo = async function(synId) {
                     actionBox.innerHTML = `<button class="btn" style="flex:1; background:#34c759;" onclick="window.apiJoinSyndicate('${synId}')">Вступить</button>`;
                 }
             }
-            
             window.openModal('syndicate-view-modal');
-        } else {
-            window.showToast("Синдикат не найден", "❌");
+        } else { 
+            window.showToast("Синдикат не найден", "❌"); 
         }
-    } catch(e) {
-        window.showToast("Ошибка", "❌");
+    } catch(e) { 
+        window.showToast("Ошибка", "❌"); 
     }
 };
 
 window.openSyndicateSettings = function(currentName, currentTag, currentAvatar) {
-    window.playSound('click');
+    window.playSound('click'); 
     createSynSelectedAvatar = currentAvatar;
-    
-    let pvw = window.getEl('edit-syn-avatar-preview');
+    let pvw = window.getEl('edit-syn-avatar-preview'); 
     if (pvw) {
         pvw.src = window.getPetImg(createSynSelectedAvatar);
     }
     
-    let nInput = window.getEl('edit-syn-name-input');
+    let nInput = window.getEl('edit-syn-name-input'); 
     if (nInput) {
         nInput.value = currentName;
     }
     
-    let tInput = window.getEl('edit-syn-tag-input');
+    let tInput = window.getEl('edit-syn-tag-input'); 
     if (tInput) {
         tInput.value = currentTag;
     }
@@ -1789,8 +2027,7 @@ window.openSyndicateSettings = function(currentName, currentTag, currentAvatar) 
 
 window.apiSaveSyndicateSettings = async function(currency) {
     window.playSound('click');
-    
-    let name = window.getEl('edit-syn-name-input').value.trim();
+    let name = window.getEl('edit-syn-name-input').value.trim(); 
     let tag = window.getEl('edit-syn-tag-input').value.trim().toUpperCase();
     
     if(name.length < 3) {
@@ -1800,19 +2037,19 @@ window.apiSaveSyndicateSettings = async function(currency) {
         return window.showToast("Тег 3-4 буквы!", "❌");
     }
     
-    if(currency === 'coins') {
+    if(currency === 'coins') { 
         if(walletBalance < 10000) {
-            return window.showToast("Нужно 10 000 Монет!", "❌");
+            return window.showToast("Нужно 10 000 Монет!", "❌"); 
         }
-    } else {
+    } else { 
         if(userStars < 100) {
-            return window.showToast("Нужно 100 Звезд!", "❌");
+            return window.showToast("Нужно 100 Звезд!", "❌"); 
         }
     }
     
     try {
         let res = await fetch(`${API_URL}/syndicates/edit`, {
-            method: 'POST',
+            method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: window.getTgUser().id, name: name, tag: tag, avatar: createSynSelectedAvatar })
         });
@@ -1821,46 +2058,42 @@ window.apiSaveSyndicateSettings = async function(currency) {
         
         if (data.status === 'success') {
             if(currency === 'coins') {
-                walletBalance -= 10000;
+                walletBalance -= 10000; 
             } else {
                 userStars -= 100;
             }
-            
-            window.saveData();
-            window.updateBalanceUI();
-            
+            window.saveData(); 
+            window.updateBalanceUI(); 
             window.showToast("Настройки сохранены!", "⚙️");
-            window.closeModal('syndicate-settings-modal');
+            window.closeModal('syndicate-settings-modal'); 
             window.apiLoadSyndicateInfo(mySyndicateId);
-        } else {
-            window.showToast(data.detail || "Ошибка сервера", "❌");
+        } else { 
+            window.showToast(data.detail || "Ошибка сервера", "❌"); 
         }
-    } catch(e) {
-        window.showToast("Ошибка сети", "❌");
+    } catch(e) { 
+        window.showToast("Ошибка сети", "❌"); 
     }
 };
 
 window.apiJoinSyndicate = async function(synId) {
     window.playSound('click');
-    
     try {
         let res = await fetch(`${API_URL}/syndicates/join`, {
-            method: 'POST',
+            method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: window.getTgUser().id, syndicate_id: synId })
         });
-        
         let data = await res.json();
         
         if(data.status === 'success') {
-            mySyndicateId = synId;
-            window.showToast("Вы вступили в Синдикат!", "🤝");
+            mySyndicateId = synId; 
+            window.showToast("Вы вступили в Синдикат!", "🤝"); 
             window.apiLoadSyndicateInfo(synId);
-        } else {
-            window.showToast(data.detail, "❌");
+        } else { 
+            window.showToast(data.detail, "❌"); 
         }
-    } catch(e) {
-        window.showToast("Ошибка", "❌");
+    } catch(e) { 
+        window.showToast("Ошибка", "❌"); 
     }
 };
 
@@ -1873,7 +2106,7 @@ window.apiLeaveSyndicate = async function() {
     
     try {
         let res = await fetch(`${API_URL}/syndicates/leave`, {
-            method: 'POST',
+            method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: window.getTgUser().id })
         });
@@ -1881,33 +2114,31 @@ window.apiLeaveSyndicate = async function() {
         let data = await res.json();
         
         if(data.status === 'success') {
-            mySyndicateId = null;
+            mySyndicateId = null; 
             window.showToast("Вы покинули Синдикат", "ℹ️");
-            window.closeModal('syndicate-settings-modal');
-            window.closeModal('syndicate-view-modal');
+            window.closeModal('syndicate-settings-modal'); 
+            window.closeModal('syndicate-view-modal'); 
             window.openSyndicates(); 
         }
-    } catch(e) {
-        window.showToast("Ошибка", "❌");
+    } catch(e) { 
+        window.showToast("Ошибка", "❌"); 
     }
 };
 
 window.copySynInvite = function() {
-    window.playSound('click');
+    window.playSound('click'); 
     let id = mySyndicateId;
-    
-    if(!id) {
-        let text = window.getEl('syn-view-tag').textContent;
+    if(!id) { 
+        let text = window.getEl('syn-view-tag').textContent; 
         id = "Синдикат"; 
     }
-    
     navigator.clipboard.writeText(id).then(() => window.showToast("ID Синдиката скопирован!", "📋"));
 };
 
 window.sendSyndicateMinutes = function(minutes) {
     try {
         fetch(`${API_URL}/syndicates/add_minutes`, {
-            method: 'POST',
+            method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: window.getTgUser().id, minutes: minutes })
         });
@@ -1918,19 +2149,16 @@ window.sendSyndicateMinutes = function(minutes) {
 // ВИТРИНА ПЕТОВ И ПУБЛИЧНАЯ КАРТОЧКА
 // =============================================================
 window.openShowcaseSetup = function() {
-    window.renderSetupShowcaseSlot('left');
-    window.renderSetupShowcaseSlot('center');
+    window.renderSetupShowcaseSlot('left'); 
+    window.renderSetupShowcaseSlot('center'); 
     window.renderSetupShowcaseSlot('right');
     window.openModal('showcase-setup-modal');
 };
 
 window.renderSetupShowcaseSlot = function(slot) {
-    const petId = userShowcase[slot];
-    const container = window.getEl(`setup-showcase-${slot}`);
-    
-    if (!container) {
-        return;
-    }
+    const petId = userShowcase[slot]; 
+    const container = window.getEl(`setup-showcase-${slot}`); 
+    if (!container) return;
     
     if (petId) {
         const r = window.getPetRarity(petId);
@@ -1941,14 +2169,11 @@ window.renderSetupShowcaseSlot = function(slot) {
 };
 
 window.openShowcasePetSelector = function(slot) {
-    currentShowcaseSlot = slot;
-    const list = window.getEl('showcase-pet-list');
+    currentShowcaseSlot = slot; 
+    const list = window.getEl('showcase-pet-list'); 
+    if (!list) return;
     
-    if (!list) {
-        return;
-    }
-    
-    list.innerHTML = '';
+    list.innerHTML = ''; 
     const uniquePets = [...new Set(collection)];
     
     if (uniquePets.length === 0) { 
@@ -1956,12 +2181,11 @@ window.openShowcasePetSelector = function(slot) {
     }
     
     uniquePets.forEach(pet => {
-        const r = window.getPetRarity(pet);
-        const div = document.createElement('div');
+        const r = window.getPetRarity(pet); 
+        const div = document.createElement('div'); 
         div.className = `pet-slot ${r}`;
         div.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`;
-        
-        div.onclick = () => window.selectShowcasePet(pet);
+        div.onclick = () => window.selectShowcasePet(pet); 
         list.appendChild(div);
     });
     
@@ -1969,27 +2193,27 @@ window.openShowcasePetSelector = function(slot) {
 };
 
 window.selectShowcasePet = function(petId) {
-    if (currentShowcaseSlot) {
-        userShowcase[currentShowcaseSlot] = petId;
-        window.renderSetupShowcaseSlot(currentShowcaseSlot);
+    if (currentShowcaseSlot) { 
+        userShowcase[currentShowcaseSlot] = petId; 
+        window.renderSetupShowcaseSlot(currentShowcaseSlot); 
     }
-    window.closeModal('showcase-pet-selector-modal');
+    window.closeModal('showcase-pet-selector-modal'); 
     window.playSound('click');
 };
 
 window.saveShowcase = function() {
-    window.saveData();
-    window.apiSyncGlobalProfile();
-    window.closeModal('showcase-setup-modal');
-    window.showToast("Витрина обновлена!", "🏆");
+    window.saveData(); 
+    window.apiSyncGlobalProfile(); 
+    window.closeModal('showcase-setup-modal'); 
+    window.showToast("Витрина обновлена!", "🏆"); 
     window.playSound('win');
 };
 
 window.openPublicProfileObj = function(encodedUser) {
-    window.playSound('click');
-    const u = JSON.parse(decodeURIComponent(encodedUser));
+    window.playSound('click'); 
+    const u = JSON.parse(decodeURIComponent(encodedUser)); 
     currentPublicUser = u;
-
+    
     let pName = window.getEl('pub-name'); 
     if (pName) {
         let titleHtml = u.equipped_title ? `<span class="player-title">${u.equipped_title}</span>` : '';
@@ -2018,7 +2242,7 @@ window.openPublicProfileObj = function(encodedUser) {
 
     let bgElem = window.getEl('public-card-bg');
     if (bgElem) {
-        bgElem.style.backgroundImage = 'none';
+        bgElem.style.backgroundImage = 'none'; 
         bgElem.style.backgroundColor = 'var(--panel)';
         
         if (u.active_theme && u.active_theme !== 'default' && u.active_theme !== 'matrix') {
@@ -2029,14 +2253,14 @@ window.openPublicProfileObj = function(encodedUser) {
         }
     }
 
-    let sc = { center: null, left: null, right: null };
+    let sc = { center: null, left: null, right: null }; 
     if (u.showcase) {
         sc = window.safeParse(u.showcase, sc);
     }
-
+    
     ['left', 'center', 'right'].forEach(slot => {
-        const petId = sc[slot];
-        const container = window.getEl(`pub-showcase-${slot}`);
+        const petId = sc[slot]; 
+        const container = window.getEl(`pub-showcase-${slot}`); 
         if (!container) return;
         
         if (petId) {
@@ -2054,15 +2278,14 @@ window.openPublicProfileObj = function(encodedUser) {
         } else {
             friendBtn.style.display = 'block';
             let isFriend = currentFriendsList.some(f => String(f.user_id) === String(u.user_id));
-            
             if (isFriend) {
-                friendBtn.textContent = "В друзьях";
+                friendBtn.textContent = "В друзьях"; 
                 friendBtn.style.background = "#555";
                 friendBtn.onclick = () => window.showToast("Игрок уже в друзьях", "🤝");
             } else {
-                friendBtn.textContent = "Добавить";
-                friendBtn.style.background = "#34c759";
-                friendBtn.onclick = () => window.pubToggleFriend();
+                friendBtn.textContent = "Добавить"; 
+                friendBtn.style.background = "#34c759"; 
+                window.getEl('pub-friend-btn').onclick = () => window.pubToggleFriend();
             }
         }
     }
@@ -2075,28 +2298,25 @@ window.openPublicProfileObj = function(encodedUser) {
             inviteBtn.style.display = 'block';
         }
     }
-
+    
     window.openModal('public-player-modal');
 };
 
 window.pubToggleFriend = async function() {
-    if (!currentPublicUser) {
-        return;
-    }
+    if (!currentPublicUser) return;
     
-    window.playSound('click');
+    window.playSound('click'); 
     let input = window.getEl('add-friend-input');
     
-    if (input) {
-        input.value = currentPublicUser.user_id;
-        await window.apiAddFriend();
-        window.closeModal('public-player-modal');
+    if (input) { 
+        input.value = currentPublicUser.user_id; 
+        await window.apiAddFriend(); 
+        window.closeModal('public-player-modal'); 
     }
 };
 
 window.pubInviteParty = async function() {
     window.playSound('click');
-    
     if (!currentPartyCode) {
         return window.showToast("Сначала создай Пати!", "❌");
     }
@@ -2111,7 +2331,7 @@ window.pubInviteParty = async function() {
             headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ sender_id: window.getTgUser().id, receiver_id: currentPublicUser.user_id, party_code: currentPartyCode }) 
         });
-        window.showToast("Приглашение отправлено!", "💌");
+        window.showToast("Приглашение отправлено!", "💌"); 
         window.closeModal('public-player-modal');
     } catch(e) { 
         window.showToast("Ошибка", "❌"); 
@@ -2123,27 +2343,14 @@ window.pubInviteParty = async function() {
 // =============================================================
 window.openLevels = function() {
     const list = window.getEl('battle-pass-list'); 
-    if (!list) {
-        return;
-    }
+    if (!list) return;
     
     let banner = window.getEl('pro-pass-banner');
     if (banner) {
         if (window.isVip()) {
-            banner.innerHTML = `
-                <div style="text-align: left;">
-                    <div style="font-weight: bold; color: #ffd700; font-size: 14px;">Focus PRO 👑 Активен</div>
-                    <div style="font-size: 10px; color: #ccc;">Все премиум-награды доступны!</div>
-                </div>
-            `;
+            banner.innerHTML = `<div style="text-align: left;"><div style="font-weight: bold; color: #ffd700; font-size: 14px;">Focus PRO 👑 Активен</div><div style="font-size: 10px; color: #ccc;">Все премиум-награды доступны!</div></div>`;
         } else {
-            banner.innerHTML = `
-                <div style="text-align: left;">
-                    <div style="font-weight: bold; color: #00A3FF; font-size: 14px;">Focus PRO 👑</div>
-                    <div style="font-size: 10px; color: #ccc;">Разблокируй нижнюю линию наград!</div>
-                </div>
-                <button id="buy-pro-pass-btn" class="btn small" style="background: #00A3FF; width: auto; margin: 0;" onclick="window.closeModal('levels-modal'); window.openShop();">Купить PRO</button>
-            `;
+            banner.innerHTML = `<div style="text-align: left;"><div style="font-weight: bold; color: #00A3FF; font-size: 14px;">Focus PRO 👑</div><div style="font-size: 10px; color: #ccc;">Разблокируй нижнюю линию наград!</div></div><button id="buy-pro-pass-btn" class="btn small" style="background: #00A3FF; width: auto; margin: 0;" onclick="window.closeModal('levels-modal'); window.openShop();">Купить PRO</button>`;
         }
     }
 
@@ -2158,69 +2365,24 @@ window.openLevels = function() {
         col.className = 'bp-col';
         
         let freeIcon = bp.free.icon.includes('.') ? `<img src="${bp.free.icon}" class="bp-icon">` : `<div class="bp-icon">${bp.free.icon}</div>`;
-        let freeBtnHtml = '';
-        
-        if (freeClaimed) {
-            freeBtnHtml = `<button class="bp-btn claimed" disabled>✅</button>`;
-        } else if (isReached) {
-            freeBtnHtml = `
-                <div style="display:flex; width:100%; gap:2px; justify-content:center;">
-                    <button class="bp-btn" style="flex:1;" onclick="window.claimBpReward(${bp.level}, 'free')">Взять</button>
-                    ${bp.free.type !== 'dust' ? `<button class="bp-btn dust" style="flex:1;" onclick="window.dustBpReward(${bp.level}, 'free')">✨${bp.free.dustVal}</button>` : ''}
-                </div>`;
-        } else {
-            freeBtnHtml = `<button class="bp-btn" disabled>🔒</button>`;
-        }
-        
-        let freeCard = `
-            <div class="bp-card">
-                ${freeIcon}
-                <div class="bp-text">${bp.free.name}</div>
-                ${freeBtnHtml}
-            </div>
-        `;
+        let freeBtnHtml = freeClaimed ? `<button class="bp-btn claimed" disabled>✅</button>` : (isReached ? `<div style="display:flex; width:100%; gap:2px; justify-content:center;"><button class="bp-btn" style="flex:1;" onclick="window.claimBpReward(${bp.level}, 'free')">Взять</button>${bp.free.type !== 'dust' ? `<button class="bp-btn dust" style="flex:1;" onclick="window.dustBpReward(${bp.level}, 'free')">✨${bp.free.dustVal}</button>` : ''}</div>` : `<button class="bp-btn" disabled>🔒</button>`);
+        let freeCard = `<div class="bp-card">${freeIcon}<div class="bp-text">${bp.free.name}</div>${freeBtnHtml}</div>`;
 
         let lineClass = isReached ? 'bp-line active' : 'bp-line';
         let badgeClass = isReached ? 'bp-lvl-badge active' : 'bp-lvl-badge';
-        
-        let divider = `
-            <div class="bp-level-divider">
-                <div class="${lineClass}"></div>
-                <div class="${badgeClass}">${bp.level}</div>
-            </div>
-        `;
+        let divider = `<div class="bp-level-divider"><div class="${lineClass}"></div><div class="${badgeClass}">${bp.level}</div></div>`;
 
         let proIcon = bp.pro.icon.includes('.') ? `<img src="${bp.pro.icon}" class="bp-icon">` : `<div class="bp-icon">${bp.pro.icon}</div>`;
-        let proBtnHtml = '';
         let proLockedClass = !window.isVip() ? 'locked' : '';
         let proLockOverlay = !window.isVip() ? `<div class="bp-lock-icon">🔒</div>` : '';
-        
-        if (proClaimed) {
-            proBtnHtml = `<button class="bp-btn claimed" disabled>✅</button>`;
-        } else if (isReached && window.isVip()) {
-            proBtnHtml = `
-                <div style="display:flex; width:100%; gap:2px; justify-content:center;">
-                    <button class="bp-btn" style="flex:1;" onclick="window.claimBpReward(${bp.level}, 'pro')">Взять</button>
-                    ${bp.pro.type !== 'dust' ? `<button class="bp-btn dust" style="flex:1;" onclick="window.dustBpReward(${bp.level}, 'pro')">✨${bp.pro.dustVal}</button>` : ''}
-                </div>`;
-        } else {
-            proBtnHtml = `<button class="bp-btn" disabled>🔒</button>`;
-        }
+        let proBtnHtml = proClaimed ? `<button class="bp-btn claimed" disabled>✅</button>` : ((isReached && window.isVip()) ? `<div style="display:flex; width:100%; gap:2px; justify-content:center;"><button class="bp-btn" style="flex:1;" onclick="window.claimBpReward(${bp.level}, 'pro')">Взять</button>${bp.pro.type !== 'dust' ? `<button class="bp-btn dust" style="flex:1;" onclick="window.dustBpReward(${bp.level}, 'pro')">✨${bp.pro.dustVal}</button>` : ''}</div>` : `<button class="bp-btn" disabled>🔒</button>`);
+        let proCard = `<div class="bp-card pro ${proLockedClass}">${proLockOverlay}${proIcon}<div class="bp-text">${bp.pro.name}</div>${proBtnHtml}</div>`;
 
-        let proCard = `
-            <div class="bp-card pro ${proLockedClass}">
-                ${proLockOverlay}
-                ${proIcon}
-                <div class="bp-text">${bp.pro.name}</div>
-                ${proBtnHtml}
-            </div>
-        `;
-
-        col.innerHTML = freeCard + divider + proCard;
+        col.innerHTML = freeCard + divider + proCard; 
         list.appendChild(col);
     });
     
-    let isBpOpen = modalStack.includes('levels-modal');
+    let isBpOpen = modalStack.includes('levels-modal'); 
     window.openModal('levels-modal');
     
     if (!isBpOpen) {
@@ -2233,8 +2395,8 @@ window.openLevels = function() {
                 }
             }
         }, 100);
-    } else {
-        list.scrollTo({ left: lastBpScroll, behavior: 'instant' });
+    } else { 
+        list.scrollTo({ left: lastBpScroll, behavior: 'instant' }); 
     }
     
     list.onscroll = () => { lastBpScroll = list.scrollLeft; };
@@ -2242,35 +2404,26 @@ window.openLevels = function() {
 
 window.dustBpReward = function(level, type) {
     if (userLevel < level) return;
-    
     if (type === 'pro' && !window.isVip()) {
         return window.showToast("Нужен статус Focus PRO!", "👑");
     }
     
-    let claimKey = `${level}_${type}`;
+    let claimKey = `${level}_${type}`; 
+    if (claimedRewards.includes(claimKey)) return;
     
-    if (claimedRewards.includes(claimKey)) {
-        return;
-    }
-    
-    let bp = BATTLE_PASS_REWARDS.find(x => x.level === level);
+    let bp = BATTLE_PASS_REWARDS.find(x => x.level === level); 
     if (!bp) return;
     
-    let reward = type === 'free' ? bp.free : bp.pro;
-    
-    if (reward.type === 'dust') {
-        return; 
-    }
+    let reward = type === 'free' ? bp.free : bp.pro; 
+    if (reward.type === 'dust') return; 
     
     if (confirm(`Распылить награду "${reward.name}" и получить ${reward.dustVal} ✨?`)) {
-        dustBalance += reward.dustVal;
+        dustBalance += reward.dustVal; 
         claimedRewards.push(claimKey);
-        
-        window.saveData();
-        window.updateBalanceUI();
-        window.openLevels();
-        window.playSound('win');
-        
+        window.saveData(); 
+        window.updateBalanceUI(); 
+        window.openLevels(); 
+        window.playSound('win'); 
         window.showToast(`Награда распылена! +${reward.dustVal} ✨`, "✨");
     }
 };
@@ -2282,13 +2435,10 @@ window.claimBpReward = function(level, type) {
         return window.showToast("Нужен статус Focus PRO!", "👑");
     }
     
-    let claimKey = `${level}_${type}`;
+    let claimKey = `${level}_${type}`; 
+    if (claimedRewards.includes(claimKey)) return;
     
-    if (claimedRewards.includes(claimKey)) {
-        return;
-    }
-    
-    let bp = BATTLE_PASS_REWARDS.find(x => x.level === level);
+    let bp = BATTLE_PASS_REWARDS.find(x => x.level === level); 
     if (!bp) return;
     
     let reward = type === 'free' ? bp.free : bp.pro;
@@ -2300,92 +2450,84 @@ window.claimBpReward = function(level, type) {
     if (reward.type === 'luck') { 
         myBoosters.luck = (myBoosters.luck || 0) + reward.val; 
     }
-    
     if (reward.type === 'speed') { 
         myBoosters.speed = (myBoosters.speed || 0) + reward.val; 
     }
-    
     if (reward.type === 'bio') { 
         myBoosters.bio = (myBoosters.bio || 0) + reward.val; 
     }
-    
     if (reward.type === 'joker') { 
         userJokers += reward.val; 
     }
-    
     if (reward.type === 'mythic_ticket') { 
         mythicTickets += reward.val; 
     }
     
     if (reward.type === 'roulette_ticket') {
-        if (reward.val === 'base') {
-            userStats.baseTickets = (userStats.baseTickets || 0) + 1;
-        }
-        if (reward.val === 'epic') {
-            userStats.epicTickets = (userStats.epicTickets || 0) + 1;
-        }
+        if (reward.val === 'base') userStats.baseTickets = (userStats.baseTickets || 0) + 1;
+        if (reward.val === 'epic') userStats.epicTickets = (userStats.epicTickets || 0) + 1;
     }
     
-    if (reward.type === 'pet') {
-        collection.push(reward.val);
-        window.showToast(`Получен уникальный питомец: ${PET_NAMES[reward.val]}!`, "🎁");
+    if (reward.type === 'pet') { 
+        collection.push(reward.val); 
+        window.showToast(`Получен уникальный питомец: ${PET_NAMES[reward.val]}!`, "🎁"); 
     }
     
-    if (reward.type === 'theme') {
+    if (reward.type === 'theme') { 
         if (!ownedItems.themes.includes(reward.val)) {
-            ownedItems.themes.push(reward.val);
+            ownedItems.themes.push(reward.val); 
         }
-        window.showToast(`Новый фон разблокирован!`, "🌌");
+        window.showToast(`Новый фон разблокирован!`, "🌌"); 
     }
-
-    if (reward.type === 'bundle_50') {
+    
+    if (reward.type === 'bundle_50') { 
         userJokers += 2; 
         userStars += 50; 
-        mythicTickets += 1;
-        window.showToast("Получен Супер-Набор 50 ур!", "🎁");
+        mythicTickets += 1; 
+        window.showToast("Получен Супер-Набор 50 ур!", "🎁"); 
     }
     
-    if (reward.type === 'bundle_75') {
+    if (reward.type === 'bundle_75') { 
         if (!ownedItems.eggs.includes('holo')) {
-            ownedItems.eggs.push('holo');
+            ownedItems.eggs.push('holo'); 
         }
         userJokers += 3; 
-        dustBalance += 100;
-        window.showToast("Получено Яйцо Голограмма + Лут!", "🎁");
+        dustBalance += 100; 
+        window.showToast("Получено Яйцо Голограмма + Лут!", "🎁"); 
     }
     
-    if (reward.type === 'bundle_100') {
+    if (reward.type === 'bundle_100') { 
         if (!ownedItems.themes.includes('matrix')) {
-            ownedItems.themes.push('matrix');
+            ownedItems.themes.push('matrix'); 
         }
-        userStars += 150;
-        collection.push('neon_dragon');
-        window.showToast("ТЕМНЫЙ ПРО-НАБОР ПОЛУЧЕН!", "🎁");
+        userStars += 150; 
+        collection.push('neon_dragon'); 
+        window.showToast("ТЕМНЫЙ ПРО-НАБОР ПОЛУЧЕН!", "🎁"); 
     }
     
-    if (reward.type === 'pet_and_ticket') {
-        collection.push(reward.pet);
+    if (reward.type === 'pet_and_ticket') { 
+        collection.push(reward.pet); 
         if (reward.ticket === 'epic') {
-            userStats.epicTickets = (userStats.epicTickets || 0) + 1;
+            userStats.epicTickets = (userStats.epicTickets || 0) + 1; 
         }
-        window.showToast(`Получен ${PET_NAMES[reward.pet]} и Билет!`, "🎁");
+        window.showToast(`Получен ${PET_NAMES[reward.pet]} и Билет!`, "🎁"); 
     }
     
-    if (reward.type === 'bg_and_ticket') {
+    if (reward.type === 'bg_and_ticket') { 
         if (!ownedItems.themes.includes(reward.bg)) {
-            ownedItems.themes.push(reward.bg);
+            ownedItems.themes.push(reward.bg); 
         }
         if (reward.ticket === 'mythic') {
-            mythicTickets++;
+            mythicTickets++; 
         }
-        window.showToast("Получен эксклюзивный фон и Билет!", "🎁");
+        window.showToast("Получен эксклюзивный фон и Билет!", "🎁"); 
     }
 
-    claimedRewards.push(claimKey);
-    window.saveData();
-    window.updateBalanceUI();
+    claimedRewards.push(claimKey); 
+    window.saveData(); 
+    window.updateBalanceUI(); 
     window.openLevels(); 
-    window.playSound('win');
+    window.playSound('win'); 
     window.fireConfetti();
     
     if (!reward.type.includes('bundle') && !reward.type.includes('and')) {
@@ -2408,9 +2550,9 @@ window.checkAchievements = function() {
         } 
     });
     
-    if (activeContracts && activeContracts.tasks) {
+    if (activeContracts && activeContracts.tasks) { 
         if (activeContracts.tasks.some(t => t.p >= t.g && !t.c)) {
-            hasAch = true;
+            hasAch = true; 
         }
     }
     
@@ -2438,12 +2580,12 @@ window.checkAchievements = function() {
         }
     });
 
-    let achBadge = window.getEl('ach-badge');
+    let achBadge = window.getEl('ach-badge'); 
     if (achBadge) {
         achBadge.style.display = hasAch ? 'flex' : 'none';
     }
     
-    let bpBadge = window.getEl('bp-badge');
+    let bpBadge = window.getEl('bp-badge'); 
     if (bpBadge) {
         bpBadge.style.display = hasBpReward ? 'flex' : 'none';
     }
@@ -2453,10 +2595,10 @@ window.checkAchievements = function() {
 // МАГАЗИН И ТЕМЫ
 // =============================================================
 window.applyTheme = function() { 
-    if (activeTheme === 'matrix') {
-        document.body.className = 'theme-matrix';
-        document.body.style.backgroundImage = 'none';
-        return;
+    if (activeTheme === 'matrix') { 
+        document.body.className = 'theme-matrix'; 
+        document.body.style.backgroundImage = 'none'; 
+        return; 
     }
     
     document.body.className = '';
@@ -2472,30 +2614,30 @@ window.applyTheme = function() {
 
 window.applyEggSkin = function() { 
     const egg = window.getEl('egg-display'); 
-    if (!egg) {
-        return;
-    }
-
+    if (!egg) return;
+    
     egg.className = 'egg-img'; 
-    egg.classList.remove('egg-locked');
+    egg.classList.remove('egg-locked'); 
     egg.style.filter = ''; 
 
     const m = MODES[currentModeIndex] || MODES[0];
-
-    if (userLevel < m.reqLevel) {
-        egg.classList.add('egg-locked');
-        egg.src = 'assets/eggs/egg-default.png';
-        return;
+    
+    if (userLevel < m.reqLevel) { 
+        egg.classList.add('egg-locked'); 
+        egg.src = 'assets/eggs/egg-default.png'; 
+        return; 
     }
 
     if (m.egg !== 'default') {
         egg.src = `assets/eggs/egg-${m.egg}.png`;
-    } else if (activeEggSkin === 'holo') {
-        egg.classList.add('holo-egg');
-        egg.src = 'assets/eggs/egg-ice.png';
-    } else {
+    }
+    else if (activeEggSkin === 'holo') { 
+        egg.classList.add('holo-egg'); 
+        egg.src = 'assets/eggs/egg-ice.png'; 
+    } 
+    else { 
         const s = SHOP_DATA.eggs.find(x => x.id === activeEggSkin); 
-        egg.src = s ? s.img : 'assets/eggs/egg-default.png';
+        egg.src = s ? s.img : 'assets/eggs/egg-default.png'; 
     }
     
     if (isRunning) {
@@ -2506,10 +2648,7 @@ window.applyEggSkin = function() {
 window.updateLevelUI = function() { 
     const max = userLevel * 200; 
     let p = (userXP / max) * 100; 
-    
-    if (p > 100) {
-        p = 100; 
-    }
+    if (p > 100) p = 100; 
     
     let xpBar = window.getEl('xp-bar'); 
     if (xpBar) {
@@ -2523,7 +2662,6 @@ window.updateLevelUI = function() {
     
     let r = Math.floor(userLevel / 5); 
     let rankEl = window.getEl('rank-name'); 
-    
     if (rankEl) {
         rankEl.textContent = RANKS[Math.min(r, RANKS.length - 1)] || "Создатель"; 
     }
@@ -2531,7 +2669,6 @@ window.updateLevelUI = function() {
 
 window.switchShopTab = function(t) { 
     currentShopTab = t; 
-    
     document.querySelectorAll('#shop-modal .tab-btn').forEach(b => {
         b.classList.remove('active');
     }); 
@@ -2556,93 +2693,46 @@ window.openAch = function() {
 
 window.renderShop = function() {
     const c = window.getEl('shop-items'); 
-    if (!c) {
-        return;
-    }
+    if (!c) return;
     
     c.innerHTML = '';
     
     if (currentShopTab === 'shadow') {
         c.innerHTML = `
             <div class="shop-item" style="grid-column: span 1; background: rgba(138, 43, 226, 0.1); border: 1px solid #8a2be2;">
-                <div style="font-size: 30px;">🧩</div>
-                <div class="shop-item-name">Осколок Пегаса</div>
-                <div style="font-size:10px;color:#ccc;margin-bottom:10px;">Для крафта Мифика</div>
-                <div style="display:flex; gap:5px; width:100%;">
-                    <button class="buy-btn" style="background: #8a2be2; flex:1; font-size:11px;" onclick="window.buyShadowItem('shard', 400, 'dust')">400 ✨</button>
-                    <button class="buy-btn" style="background: #ffd700; color:#000; flex:1; font-size:11px;" onclick="window.buyShadowItem('shard', 40, 'stars')">40 ⭐️</button>
-                </div>
+                <div style="font-size: 30px;">🧩</div><div class="shop-item-name">Осколок Пегаса</div><div style="font-size:10px;color:#ccc;margin-bottom:10px;">Для крафта Мифика</div>
+                <div style="display:flex; gap:5px; width:100%;"><button class="buy-btn" style="background: #8a2be2; flex:1; font-size:11px;" onclick="window.buyShadowItem('shard', 400, 'dust')">400 ✨</button><button class="buy-btn" style="background: #ffd700; color:#000; flex:1; font-size:11px;" onclick="window.buyShadowItem('shard', 40, 'stars')">40 ⭐️</button></div>
             </div>
             <div class="shop-item" style="grid-column: span 1; background: rgba(57, 255, 20, 0.1); border: 1px solid #39ff14;">
-                <div style="font-size: 30px;">🧬</div>
-                <div class="shop-item-name">Ген Мутации</div>
-                <div style="font-size:10px;color:#ccc;margin-bottom:10px;">Джокер для синтеза</div>
-                <div style="display:flex; gap:5px; width:100%;">
-                    <button class="buy-btn" style="background: #39ff14; color:#000; flex:1; font-size:11px;" onclick="window.buyShadowItem('joker', 150, 'dust')">150 ✨</button>
-                    <button class="buy-btn" style="background: #ffd700; color:#000; flex:1; font-size:11px;" onclick="window.buyShadowItem('joker', 20, 'stars')">20 ⭐️</button>
-                </div>
-            </div>
-        `;
+                <div style="font-size: 30px;">🧬</div><div class="shop-item-name">Ген Мутации</div><div style="font-size:10px;color:#ccc;margin-bottom:10px;">Джокер для синтеза</div>
+                <div style="display:flex; gap:5px; width:100%;"><button class="buy-btn" style="background: #39ff14; color:#000; flex:1; font-size:11px;" onclick="window.buyShadowItem('joker', 150, 'dust')">150 ✨</button><button class="buy-btn" style="background: #ffd700; color:#000; flex:1; font-size:11px;" onclick="window.buyShadowItem('joker', 20, 'stars')">20 ⭐️</button></div>
+            </div>`;
         return;
     }
     
     if (currentShopTab === 'premium') {
         c.innerHTML = `
-            <div class="shop-item" style="grid-column: span 2; background: rgba(0, 163, 255, 0.1); border: 1px solid #00A3FF;">
-                <div style="font-size: 30px;">👑</div>
-                <div class="shop-item-name">Focus PRO (30 дней)</div>
-                <div style="font-size:12px;color:#ccc;margin-bottom:10px;">+20% к монетам, коронка в Пати</div>
-                <button class="buy-btn" style="${window.isVip() ? 'background:#555' : 'background: #00A3FF;'}" onclick="window.buyPremium('pro', 150)">${window.isVip() ? 'Продлить (150 ⭐️)' : '150 ⭐️'}</button>
-            </div>
-            <div class="shop-item" style="grid-column: span 2; background: rgba(52, 199, 89, 0.1); border: 1px solid #34c759;">
-                <div style="font-size: 30px;">🥚</div>
-                <div class="shop-item-name">Второй Инкубатор</div>
-                <div style="font-size:12px;color:#ccc;margin-bottom:10px;">Расти 2 яйца оффлайн одновременно</div>
-                <button class="buy-btn" style="${hasSecondSlot ? 'background:#555; pointer-events:none;' : 'background: #00A3FF;'}" onclick="window.buyPremium('slot', 100)">${hasSecondSlot ? 'Куплено навсегда' : '100 ⭐️'}</button>
-            </div>
-        `;
+            <div class="shop-item" style="grid-column: span 2; background: rgba(0, 163, 255, 0.1); border: 1px solid #00A3FF;"><div style="font-size: 30px;">👑</div><div class="shop-item-name">Focus PRO (30 дней)</div><div style="font-size:12px;color:#ccc;margin-bottom:10px;">+20% к монетам, коронка в Пати</div><button class="buy-btn" style="${window.isVip() ? 'background:#555' : 'background: #00A3FF;'}" onclick="window.buyPremium('pro', 150)">${window.isVip() ? 'Продлить (150 ⭐️)' : '150 ⭐️'}</button></div>
+            <div class="shop-item" style="grid-column: span 2; background: rgba(52, 199, 89, 0.1); border: 1px solid #34c759;"><div style="font-size: 30px;">🥚</div><div class="shop-item-name">Второй Инкубатор</div><div style="font-size:12px;color:#ccc;margin-bottom:10px;">Расти 2 яйца оффлайн одновременно</div><button class="buy-btn" style="${hasSecondSlot ? 'background:#555; pointer-events:none;' : 'background: #00A3FF;'}" onclick="window.buyPremium('slot', 100)">${hasSecondSlot ? 'Куплено навсегда' : '100 ⭐️'}</button></div>`;
         return;
     }
 
     SHOP_DATA[currentShopTab].forEach(item => {
-        if (item.isPremium) {
-            return; 
-        }
+        if (item.isPremium) return; 
         
         const d = document.createElement('div'); 
         d.className = 'shop-item';
-        
         let btnHTML = '';
         
         if (currentShopTab === 'boosters') {
-            let pCoins = item.baseCoins + Math.floor(walletBalance * 0.05);
+            let pCoins = item.baseCoins + Math.floor(walletBalance * 0.05); 
             let pStars = item.baseStars;
-            
-            btnHTML = `
-                <div style="display:flex; gap:5px; width:100%;">
-                    <button class="buy-btn" style="flex:1; font-size:10px;" onclick="window.buyItem('${item.id}', ${pCoins}, 'coins')">${window.formatNumber(pCoins)} 💰</button>
-                    <button class="buy-btn" style="flex:1; background:#ffd700; color:#000; font-size:10px;" onclick="window.buyItem('${item.id}', ${pStars}, 'stars')">${window.formatNumber(pStars)} ⭐️</button>
-                </div>`;
-                
+            btnHTML = `<div style="display:flex; gap:5px; width:100%;"><button class="buy-btn" style="flex:1; font-size:10px;" onclick="window.buyItem('${item.id}', ${pCoins}, 'coins')">${window.formatNumber(pCoins)} 💰</button><button class="buy-btn" style="flex:1; background:#ffd700; color:#000; font-size:10px;" onclick="window.buyItem('${item.id}', ${pStars}, 'stars')">${window.formatNumber(pStars)} ⭐️</button></div>`;
             let iconContent = item.icon.includes('.png') ? `<img src="${item.icon}" class="shop-icon-img">` : `<div style="font-size: 50px; margin-bottom: 10px;">${item.icon}</div>`;
             d.innerHTML = `${iconContent}<div class="shop-item-name">${item.name}</div><div style="font-size:10px;color:#888;margin-bottom:10px;">${item.desc}</div>${btnHTML}`;
-        } 
-        else if (currentShopTab === 'eggs') {
-            const owned = ownedItems.eggs.includes(item.id); 
-            const active = activeEggSkin === item.id;
-            let cls = owned ? "buy-btn owned" : "buy-btn"; 
-            
-            if (!owned && walletBalance < item.price) {
-                cls += " locked"; 
-            }
-            
-            let txt = owned ? (active ? "Выбрано" : "Выбрать") : `${window.formatNumber(item.price)} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
-            btnHTML = `<button class="${cls}" onclick="window.buyItem('${item.id}',${item.price}, 'coins')">${txt}</button>`;
-            d.innerHTML = `<img src="${item.img}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div>${btnHTML}`;
-        } 
-        else {
-            const owned = ownedItems.themes.includes(item.id); 
-            const active = activeTheme === item.id;
+        } else {
+            const owned = ownedItems[currentShopTab].includes(item.id); 
+            const active = (currentShopTab === 'themes') ? (activeTheme === item.id) : (activeEggSkin === item.id);
             let cls = owned ? "buy-btn owned" : "buy-btn"; 
             
             if (!owned && walletBalance < item.price) {
@@ -2652,48 +2742,38 @@ window.renderShop = function() {
             let txt = owned ? (active ? "Выбрано" : "Выбрать") : `${window.formatNumber(item.price)} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle">`;
             btnHTML = `<button class="${cls}" onclick="window.buyItem('${item.id}',${item.price}, 'coins')">${txt}</button>`;
             
-            let icon = item.bgFile ? `<img src="${item.bgFile}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;margin-bottom:5px">` : `<div style="width:60px;height:60px;background:#333;border-radius:10px;margin-bottom:5px"></div>`;
-            d.innerHTML = `${icon}<div class="shop-item-name">${item.name}</div>${btnHTML}`;
+            if (currentShopTab === 'eggs') {
+                d.innerHTML = `<img src="${item.img}" class="shop-icon-img"><div class="shop-item-name">${item.name}</div>${btnHTML}`;
+            } else {
+                let icon = item.bgFile ? `<img src="${item.bgFile}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;margin-bottom:5px">` : `<div style="width:60px;height:60px;background:#333;border-radius:10px;margin-bottom:5px"></div>`;
+                d.innerHTML = `${icon}<div class="shop-item-name">${item.name}</div>${btnHTML}`;
+            }
         }
-        
         c.appendChild(d);
     });
 };
 
 window.buyShadowItem = function(type, price, currency) {
     if (currency === 'dust' && dustBalance >= price) {
-        dustBalance -= price;
-        
-        if (type === 'shard') {
-            pegasusShards++;
-        }
-        if (type === 'joker') {
-            userJokers++;
-        }
-        
-        window.saveData();
-        window.updateBalanceUI();
-        window.renderShop();
-        window.playSound('win');
+        dustBalance -= price; 
+        if (type === 'shard') pegasusShards++; 
+        if (type === 'joker') userJokers++;
+        window.saveData(); 
+        window.updateBalanceUI(); 
+        window.renderShop(); 
+        window.playSound('win'); 
         window.showToast("Товар куплен за Пыль!", "🌑");
     } else if (currency === 'stars' && userStars >= price) {
-        userStars -= price;
-        
-        if (type === 'shard') {
-            pegasusShards++;
-        }
-        if (type === 'joker') {
-            userJokers++;
-        }
-        
-        window.saveData();
-        window.updateBalanceUI();
-        window.renderShop();
-        window.playSound('money');
+        userStars -= price; 
+        if (type === 'shard') pegasusShards++; 
+        if (type === 'joker') userJokers++;
+        window.saveData(); 
+        window.updateBalanceUI(); 
+        window.renderShop(); 
+        window.playSound('money'); 
         window.showToast("Товар куплен за Звезды!", "⭐️");
     } else {
-        window.showToast("Недостаточно средств!", "❌");
-        
+        window.showToast("Недостаточно средств!", "❌"); 
         if (currency === 'stars') {
             window.openBuyStarsModal();
         }
@@ -2704,48 +2784,37 @@ window.buyPremium = function(type, price) {
     if (userStars >= price) {
         if (type === 'pro') {
             if (window.isVip()) {
-                vipEndTime += 30 * 24 * 60 * 60 * 1000;
+                vipEndTime += 30 * 24 * 60 * 60 * 1000; 
             } else {
                 vipEndTime = Date.now() + 30 * 24 * 60 * 60 * 1000;
             }
             window.showToast("Focus PRO активирован! 👑", "⭐️");
         } else if (type === 'slot') {
-            if (hasSecondSlot) {
-                return;
-            }
-            
-            hasSecondSlot = true;
-            window.showToast("Второй слот открыт!", "🥚");
+            if (hasSecondSlot) return;
+            hasSecondSlot = true; 
+            window.showToast("Второй слот открыт!", "🥚"); 
             window.updateSecondSlotUI();
         } else if (type === 'joker') {
-            userJokers++;
+            userJokers++; 
             window.showToast("Куплен Ген Мутации! 🧬", "⭐️");
         } else if (type === 'theme_matrix') {
-            if (ownedItems.themes.includes('matrix')) {
-                return;
-            }
-            
-            ownedItems.themes.push('matrix');
+            if (ownedItems.themes.includes('matrix')) return;
+            ownedItems.themes.push('matrix'); 
             window.showToast("Куплен премиум фон!", "⭐️");
         } else if (type === 'egg_holo') {
-            if (ownedItems.eggs.includes('holo')) {
-                return;
-            }
-            
-            ownedItems.eggs.push('holo');
+            if (ownedItems.eggs.includes('holo')) return;
+            ownedItems.eggs.push('holo'); 
             window.showToast("Куплено премиум яйцо!", "⭐️");
         }
-        
-        userStars -= price;
-        
-        window.saveData();
-        window.updateBalanceUI();
-        window.apiSyncGlobalProfile();
-        window.renderShop();
+        userStars -= price; 
+        window.saveData(); 
+        window.updateBalanceUI(); 
+        window.apiSyncGlobalProfile(); 
+        window.renderShop(); 
         window.playSound('money');
-    } else {
-        window.showToast("Недостаточно Звезд!", "❌");
-        window.openBuyStarsModal();
+    } else { 
+        window.showToast("Недостаточно Звезд!", "❌"); 
+        window.openBuyStarsModal(); 
     }
 };
 
@@ -2754,24 +2823,21 @@ window.buyItem = function(id, price, currency) {
         if (currency === 'coins' && walletBalance >= price) { 
             walletBalance -= price; 
             myBoosters[id] = (myBoosters[id] || 0) + 1; 
-            
             window.saveData(); 
             window.updateBalanceUI(); 
-            window.renderShop();
+            window.renderShop(); 
             window.showToast("Куплено за Монеты!", "🧪"); 
             window.playSound('money'); 
         } else if (currency === 'stars' && userStars >= price) {
             userStars -= price; 
             myBoosters[id] = (myBoosters[id] || 0) + 1; 
-            
             window.saveData(); 
             window.updateBalanceUI(); 
-            window.renderShop();
+            window.renderShop(); 
             window.showToast("Куплено за Звезды!", "🧪"); 
             window.playSound('money'); 
         } else {
-            window.showToast("Недостаточно средств", "🚫");
-            
+            window.showToast("Недостаточно средств", "🚫"); 
             if (currency === 'stars') {
                 window.openBuyStarsModal();
             }
@@ -2790,7 +2856,6 @@ window.buyItem = function(id, price, currency) {
             activeEggSkin = id; 
             window.applyEggSkin(); 
         }
-        
         window.saveData(); 
         window.renderShop(); 
         window.playSound('click');
@@ -2798,7 +2863,6 @@ window.buyItem = function(id, price, currency) {
         if (walletBalance >= price) {
             walletBalance -= price; 
             ownedItems[category].push(id);
-            
             if (category === 'themes') { 
                 activeTheme = id; 
                 window.applyTheme(); 
@@ -2806,21 +2870,19 @@ window.buyItem = function(id, price, currency) {
                 activeEggSkin = id; 
                 window.applyEggSkin(); 
             }
-            
             window.saveData(); 
             window.updateBalanceUI(); 
             window.renderShop(); 
             window.showToast("Куплено!", "🛍️"); 
             window.playSound('money');
-        } else {
-            window.showToast("Мало монет", "🚫");
+        } else { 
+            window.showToast("Мало монет", "🚫"); 
         }
     }
 };
 
 window.switchAchTab = function(t) { 
     currentAchTab = t; 
-    
     document.querySelectorAll('#achievements-modal .tab-btn').forEach(b => {
         b.classList.remove('active');
     }); 
@@ -2836,15 +2898,12 @@ window.switchAchTab = function(t) {
     } else if (t === 'titles') {
         window.renderTitles();
     }
-    
     window.playSound('click'); 
 };
 
 window.renderAch = function() {
     const c = window.getEl('achievements-list'); 
-    if (!c) {
-        return;
-    }
+    if (!c) return;
     
     c.innerHTML = ''; 
     let u = new Set(collection).size;
@@ -2864,88 +2923,60 @@ window.renderAch = function() {
         d.className = `achievement-card ${done ? 'unlocked' : ''}`;
         
         let btn = ''; 
-        if (done && !claimed) {
+        if (done && !claimed) { 
             btn = `<button class="buy-btn" onclick="window.claimAch('${a.id}',${a.reward})">Забрать ${window.formatNumber(a.reward)} <img src="assets/ui/coin.png" style="width:12px;vertical-align:middle"></button>`; 
-        } else if (claimed) {
+        } 
+        else if (claimed) { 
             btn = "✅"; 
-        } else {
-            btn = `<span style="font-size:12px;color:#888">Цель: ${window.formatNumber(a.goal)}</span>`;
+        } 
+        else { 
+            btn = `<span style="font-size:12px;color:#888">Цель: ${window.formatNumber(a.goal)}</span>`; 
         }
         
-        d.innerHTML = `
-            <div class="ach-icon">${done ? '<img src="assets/ui/icon-trophy.png">' : '<img src="assets/ui/icon-lock.png">'}</div>
-            <div class="ach-info">
-                <div class="ach-title">${a.title}</div>
-                <div class="ach-desc">${a.desc}</div>
-            </div>
-            <div>${btn}</div>
-        `;
-        
+        d.innerHTML = `<div class="ach-icon">${done ? '<img src="assets/ui/icon-trophy.png">' : '<img src="assets/ui/icon-lock.png">'}</div><div class="ach-info"><div class="ach-title">${a.title}</div><div class="ach-desc">${a.desc}</div></div><div>${btn}</div>`;
         c.appendChild(d);
     });
 };
 
 window.renderQuests = function() {
     const c = window.getEl('achievements-list'); 
-    if (!c) {
-        return;
-    }
+    if (!c) return;
     
     c.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">Обновляются каждый день</p>';
-    
-    if (!activeContracts.tasks) {
-        return;
-    }
+    if (!activeContracts.tasks) return;
 
     activeContracts.tasks.forEach((t, i) => {
-        const d = document.createElement('div');
+        const d = document.createElement('div'); 
         d.className = `achievement-card ${t.p >= t.g ? 'unlocked' : ''}`;
         
         let btn = '';
         if (t.c) {
-            btn = '✅';
+            btn = '✅'; 
         } else if (t.p >= t.g) {
-            btn = `<button class="buy-btn" onclick="window.claimContract(${i})">Забрать</button>`;
+            btn = `<button class="buy-btn" onclick="window.claimContract(${i})">Забрать</button>`; 
         } else {
             btn = `<span style="font-size:12px;color:#888">${window.formatNumber(t.p)}/${window.formatNumber(t.g)}</span>`;
         }
         
         let icon = t.r.t === 'money' ? '💰' : (t.r.t === 'stars' ? '⭐️' : '🎁');
         let rewardText = `${window.formatNumber(t.r.v)} ` + (t.r.t === 'money' ? 'Монет' : (t.r.t === 'stars' ? 'Звезд' : 'Бустер'));
-
-        d.innerHTML = `
-            <div class="ach-icon" style="font-size:24px;">${icon}</div>
-            <div class="ach-info">
-                <div class="ach-title">${t.d}</div>
-                <div class="ach-desc">Награда: ${rewardText}</div>
-            </div>
-            <div>${btn}</div>
-        `;
         
+        d.innerHTML = `<div class="ach-icon" style="font-size:24px;">${icon}</div><div class="ach-info"><div class="ach-title">${t.d}</div><div class="ach-desc">Награда: ${rewardText}</div></div><div>${btn}</div>`;
         c.appendChild(d);
     });
 };
 
-// === РЕНДЕР ТИТУЛОВ В МОДАЛКЕ ===
 window.renderTitles = function() {
     const c = window.getEl('achievements-list'); 
-    if (!c) {
-        return;
-    }
+    if (!c) return;
     
     c.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">Особые звания за великие заслуги</p>';
     
     TITLES_DATA.forEach(t => {
         let current = 0;
-        if (t.type === 'focus') {
-            current = Math.floor(focusHours);
-        }
-        if (t.type === 'mythic') {
-            current = mythicsCrafted;
-        }
-        if (t.type === 'reactor') {
-            current = reactorWins;
-        }
+        if (t.type === 'focus') current = Math.floor(focusHours);
+        if (t.type === 'mythic') current = mythicsCrafted;
+        if (t.type === 'reactor') current = reactorWins;
         
         let isUnlocked = unlockedTitles.includes(t.id);
         let isEquipped = equippedTitle === t.title;
@@ -2973,7 +3004,6 @@ window.renderTitles = function() {
             </div>
             <div>${btn}</div>
         `;
-        
         c.appendChild(d);
     });
 };
@@ -2998,7 +3028,8 @@ window.equipTitle = function(title) {
     
     let pr = window.getEl('profile-rank');
     if (pr) {
-        pr.innerHTML = (equippedTitle ? `<span class="player-title" style="font-size: 14px; display: block; margin-bottom: 5px;">${equippedTitle}</span>` : '') + (RANKS[Math.floor(userLevel / 5)] || "Создатель");
+        let titleHtml = equippedTitle ? `<span class="player-title" style="font-size: 14px; display: block; margin-bottom: 5px;">${equippedTitle}</span>` : '';
+        pr.innerHTML = titleHtml + (RANKS[Math.floor(userLevel / 5)] || "Создатель");
         if (window.isVip()) {
             pr.innerHTML += ' <span style="color:#ffd700">👑 PRO</span>';
         }
@@ -3013,43 +3044,34 @@ window.clickLink = function(id, u, r) {
     }
     
     const b = window.getEl(`qbtn-${id}`); 
-    if (b) {
-        b.textContent = "Проверяю...";
-        b.disabled = true;
-        b.style.background = "#555";
-        
-        setTimeout(() => window.claimQuest(id, r), 4000);
+    if (b) { 
+        b.textContent = "Проверяю..."; 
+        b.disabled = true; 
+        b.style.background = "#555"; 
+        setTimeout(() => window.claimQuest(id, r), 4000); 
     }
 };
 
 window.claimAch = function(id, r) { 
-    if (claimedAchievements.includes(id)) {
-        return; 
-    }
-    
+    if (claimedAchievements.includes(id)) return; 
     claimedAchievements.push(id); 
     walletBalance += r; 
     
     window.saveData(); 
     window.updateBalanceUI(); 
     window.renderAch(); 
-    
     window.showToast(`Награда +${window.formatNumber(r)}`, 'img'); 
     window.playSound('money'); 
 };
 
 window.claimQuest = function(id, r) { 
-    if (claimedQuests.includes(id)) {
-        return; 
-    }
-    
+    if (claimedQuests.includes(id)) return; 
     claimedQuests.push(id); 
     walletBalance += r; 
     
     window.saveData(); 
     window.updateBalanceUI(); 
     window.renderQuests(); 
-    
     window.showToast(`Награда +${window.formatNumber(r)}`, 'img'); 
     window.playSound('money'); 
 };
@@ -3074,10 +3096,10 @@ window.handleShare = function() {
 };
 
 // =============================================================
-// FORBES (ТОП БОГАЧЕЙ)
+// ФОРБС И РУЛЕТКА
 // =============================================================
 window.openForbes = async function() {
-    window.playSound('click');
+    window.playSound('click'); 
     window.openModal('forbes-modal');
     
     let flc = window.getEl('forbes-list-container');
@@ -3099,7 +3121,7 @@ window.openForbes = async function() {
 };
 
 window.switchForbesTab = function(tab) {
-    window.playSound('click');
+    window.playSound('click'); 
     currentForbesTab = tab;
     
     document.querySelectorAll('#forbes-modal .tab-btn').forEach(b => {
@@ -3114,25 +3136,22 @@ window.switchForbesTab = function(tab) {
 };
 
 window.renderForbesList = function(tab) {
-    const container = window.getEl('forbes-list-container');
-    if (!container) {
-        return;
-    }
+    const container = window.getEl('forbes-list-container'); 
+    if (!container) return;
     
     container.innerHTML = '';
-    if (!forbesDataCache || !forbesDataCache[tab]) {
-        return;
-    }
+    
+    if (!forbesDataCache || !forbesDataCache[tab]) return;
     
     const list = forbesDataCache[tab];
-    if (list.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#888; padding: 20px;">Тут пока пусто</div>';
-        return;
+    if (list.length === 0) { 
+        container.innerHTML = '<div style="text-align:center; color:#888; padding: 20px;">Тут пока пусто</div>'; 
+        return; 
     }
 
     let html = '';
     list.forEach((p, index) => {
-        let rankNum = index + 1;
+        let rankNum = index + 1; 
         let rankClass = rankNum <= 3 ? `top-${rankNum}` : '';
         let isMe = p.user_id === String(window.getTgUser().id) ? 'me' : '';
         let encodedUser = encodeURIComponent(JSON.stringify(p));
@@ -3144,27 +3163,18 @@ window.renderForbesList = function(tab) {
                 <img src="${window.getPetImg(p.avatar)}" class="forbes-avatar" onerror="this.src='assets/ui/icon-profile.png'">
                 <div class="forbes-info">
                     ${titleHtml}
-                    <div class="forbes-name">
-                        ${p.name} 
-                        ${p.syndicate_tag ? `<span style="color:#ffd700; font-size:10px;">[${p.syndicate_tag}]</span>` : ''} 
-                        ${isMe ? '(Ты)' : ''}
-                    </div>
+                    <div class="forbes-name">${p.name} ${p.syndicate_tag ? `<span style="color:#ffd700; font-size:10px;">[${p.syndicate_tag}]</span>` : ''} ${isMe ? '(Ты)' : ''}</div>
                     <div class="forbes-lvl">Уровень ${p.level}</div>
                 </div>
                 <div class="forbes-val">${window.formatNumber(p.earned)} <img src="assets/ui/coin.png"></div>
-            </div>
-        `;
+            </div>`;
     });
-    
     container.innerHTML = html;
 };
 
-// =============================================================
-// РУЛЕТКА И РЕКЛАМА
-// =============================================================
 window.updateRouletteButtons = function() {
     let cost = 10; 
-    let reqAds = 1;
+    let reqAds = 1; 
     let ticketCount = 0;
     
     if (currentBoxType === 'base') {
@@ -3183,256 +3193,204 @@ window.updateRouletteButtons = function() {
     
     let paidBtn = window.getEl('roulette-paid-btn');
     if (paidBtn) {
-        if (ticketCount > 0) {
-            paidBtn.textContent = `Крутить за Билет 🎫 (${ticketCount} шт)`;
-            paidBtn.onclick = () => window.spinRoulette('ticket');
-        } else {
-            paidBtn.textContent = `Крутить за ${cost} ⭐️`;
-            paidBtn.onclick = () => window.spinRoulette('stars');
+        if (ticketCount > 0) { 
+            paidBtn.textContent = `Крутить за Билет 🎫 (${ticketCount} шт)`; 
+            paidBtn.onclick = () => window.spinRoulette('ticket'); 
+        } 
+        else { 
+            paidBtn.textContent = `Крутить за ${cost} ⭐️`; 
+            paidBtn.onclick = () => window.spinRoulette('stars'); 
         }
     }
     
     const today = new Date().toDateString();
-    let freeBtn = window.getEl('roulette-free-btn');
+    let freeBtn = window.getEl('roulette-free-btn'); 
     let adBtn = window.getEl('roulette-ad-btn');
 
     if (currentBoxType === 'base' && lastRouletteDate !== today) {
-        if (freeBtn) {
-            freeBtn.style.display = 'block';
-        }
-        if (adBtn) {
-            adBtn.style.display = 'none';
-        }
-        if (paidBtn) {
-            paidBtn.style.display = 'none';
-        }
+        if (freeBtn) freeBtn.style.display = 'block'; 
+        if (adBtn) adBtn.style.display = 'none'; 
+        if (paidBtn) paidBtn.style.display = 'none';
     } else {
-        if (freeBtn) {
-            freeBtn.style.display = 'none';
-        }
-        
+        if (freeBtn) freeBtn.style.display = 'none';
         if (adBtn) {
             adBtn.style.display = 'block';
-            if (currentBoxType !== 'base') {
-                let watched = boxAdsProgress[currentBoxType] || 0;
-                adBtn.textContent = `Смотреть рекламу 📺 (${watched}/${reqAds})`;
-            } else {
-                adBtn.textContent = `Смотреть рекламу 📺`;
+            if (currentBoxType !== 'base') { 
+                let watched = boxAdsProgress[currentBoxType] || 0; 
+                adBtn.textContent = `Смотреть рекламу 📺 (${watched}/${reqAds})`; 
+            } else { 
+                adBtn.textContent = `Смотреть рекламу 📺`; 
             }
         }
-        
-        if (paidBtn) {
-            paidBtn.style.display = 'block';
-        }
+        if (paidBtn) paidBtn.style.display = 'block';
     }
 };
 
 window.switchRouletteBox = function(type) {
-    window.playSound('click');
+    window.playSound('click'); 
     currentBoxType = type;
     
     document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => {
         b.classList.remove('active');
     });
     
-    let activeTab = window.getEl(`r-tab-${type}`);
+    let activeTab = window.getEl(`r-tab-${type}`); 
     if (activeTab) {
         activeTab.classList.add('active');
     }
     
     window.updateRouletteButtons();
     
-    let boxColor = '#fff';
-    if (type === 'epic') boxColor = '#00A3FF';
+    let boxColor = '#fff'; 
+    if (type === 'epic') boxColor = '#00A3FF'; 
     if (type === 'mythic') boxColor = '#ffd700';
     
-    let rBox = window.getEl('roulette-box');
-    if (rBox) {
-        rBox.style.filter = `drop-shadow(0 0 20px ${boxColor})`;
-        rBox.textContent = '🎁';
+    let rBox = window.getEl('roulette-box'); 
+    if (rBox) { 
+        rBox.style.filter = `drop-shadow(0 0 20px ${boxColor})`; 
+        rBox.textContent = '🎁'; 
     }
     
-    let resText = window.getEl('roulette-result-text');
+    let resText = window.getEl('roulette-result-text'); 
     if (resText) {
         resText.textContent = '';
     }
 };
 
-window.openRouletteModal = function() {
-    window.switchRouletteBox('base');
-    window.openModal('roulette-modal');
+window.openRouletteModal = function() { 
+    window.switchRouletteBox('base'); 
+    window.openModal('roulette-modal'); 
 };
 
 window.spinRouletteAd = function() {
     if (!window.gp || !window.gp.ads) {
-        window.showToast("Реклама еще загружается", "⏳");
-        return;
+        return window.showToast("Реклама еще загружается", "⏳");
     }
     
-    const btn = window.getEl('roulette-ad-btn');
-    if (!btn) {
-        return;
-    }
+    const btn = window.getEl('roulette-ad-btn'); 
+    if (!btn) return;
     
-    const orig = btn.textContent;
+    const orig = btn.textContent; 
     btn.disabled = true; 
     btn.textContent = "Поиск видео...";
-
-    let adTimeout = setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = orig;
-        window.showToast("Нет видео у провайдера", "⏳");
+    
+    let adTimeout = setTimeout(() => { 
+        btn.disabled = false; 
+        btn.textContent = orig; 
+        window.showToast("Нет видео у провайдера", "⏳"); 
     }, 8000);
 
     try {
         window.gp.ads.showRewardedVideo({
-            onStart: () => {
-                clearTimeout(adTimeout);
+            onStart: () => { 
+                clearTimeout(adTimeout); 
             },
             onRewarded: () => {
                 if (currentBoxType !== 'base') {
                     let req = currentBoxType === 'epic' ? 2 : 3;
-                    if (!boxAdsProgress[currentBoxType]) {
-                        boxAdsProgress[currentBoxType] = 0;
-                    }
-                    
+                    if (!boxAdsProgress[currentBoxType]) boxAdsProgress[currentBoxType] = 0;
                     boxAdsProgress[currentBoxType]++;
-                    
-                    if (boxAdsProgress[currentBoxType] >= req) {
-                        boxAdsProgress[currentBoxType] = 0;
-                        window.spinRoulette('ad');
-                    } else {
+                    if (boxAdsProgress[currentBoxType] >= req) { 
+                        boxAdsProgress[currentBoxType] = 0; 
+                        window.spinRoulette('ad'); 
+                    } 
+                    else { 
                         window.saveData(); 
                         window.switchRouletteBox(currentBoxType); 
-                        window.showToast(`Реклама просмотрена: ${boxAdsProgress[currentBoxType]}/${req}`, '📺');
+                        window.showToast(`Реклама просмотрена: ${boxAdsProgress[currentBoxType]}/${req}`, '📺'); 
                     }
-                } else {
+                } else { 
                     window.spinRoulette('ad'); 
                 }
             },
-            onClose: () => {
-                clearTimeout(adTimeout);
+            onClose: () => { 
+                clearTimeout(adTimeout); 
                 btn.disabled = false; 
-                btn.textContent = orig;
+                btn.textContent = orig; 
             },
-            onError: (err) => {
-                clearTimeout(adTimeout);
+            onError: (err) => { 
+                clearTimeout(adTimeout); 
                 btn.disabled = false; 
-                btn.textContent = orig;
-                window.showToast("Ошибка рекламы", "❌");
-                console.error(err);
+                btn.textContent = orig; 
+                window.showToast("Ошибка рекламы", "❌"); 
             }
         });
-    } catch (e) {
-        clearTimeout(adTimeout);
+    } catch (e) { 
+        clearTimeout(adTimeout); 
         btn.disabled = false; 
-        btn.textContent = orig;
-        window.showToast("Сбой сети", "❌");
+        btn.textContent = orig; 
+        window.showToast("Сбой сети", "❌"); 
     }
 };
 
 window.spinRoulette = function(method) {
-    let cost = 10;
-    
-    if (currentBoxType === 'epic') {
-        cost = 25;
-    }
-    if (currentBoxType === 'mythic') {
-        cost = 50;
-    }
+    let cost = 10; 
+    if (currentBoxType === 'epic') cost = 25; 
+    if (currentBoxType === 'mythic') cost = 50;
 
     if (method === 'ticket') {
-        if (currentBoxType === 'base') {
-            userStats.baseTickets--;
-        }
-        else if (currentBoxType === 'epic') {
-            userStats.epicTickets--;
-        }
-        else if (currentBoxType === 'mythic') {
-            mythicTickets--;
-        }
+        if (currentBoxType === 'base') userStats.baseTickets--;
+        else if (currentBoxType === 'epic') userStats.epicTickets--;
+        else if (currentBoxType === 'mythic') mythicTickets--;
         window.showToast("Использован Билет Рулетки!", "🎫");
     } else if (method === 'stars') {
-        if (userStars < cost) {
-            window.showToast("Недостаточно Звезд!", "❌");
-            window.openBuyStarsModal();
-            return;
+        if (userStars < cost) { 
+            window.showToast("Недостаточно Звезд!", "❌"); 
+            window.openBuyStarsModal(); 
+            return; 
         }
-        userStars -= cost;
+        userStars -= cost; 
         window.updateBalanceUI();
-    } else if (method === 'free' && currentBoxType === 'base') {
-        lastRouletteDate = new Date().toDateString();
+    } else if (method === 'free' && currentBoxType === 'base') { 
+        lastRouletteDate = new Date().toDateString(); 
     }
     
-    window.updateContract('roulette', 1);
+    window.updateContract('roulette', 1); 
     window.playSound('click'); 
     window.saveData();
     
-    const box = window.getEl('roulette-box');
-    const resText = window.getEl('roulette-result-text');
+    const box = window.getEl('roulette-box'); 
+    const resText = window.getEl('roulette-result-text'); 
+    if (!box || !resText) return;
     
-    if (!box || !resText) {
-        return;
-    }
+    if (window.getEl('roulette-free-btn')) window.getEl('roulette-free-btn').disabled = true;
+    if (window.getEl('roulette-ad-btn')) window.getEl('roulette-ad-btn').disabled = true;
+    if (window.getEl('roulette-paid-btn')) window.getEl('roulette-paid-btn').disabled = true;
+    document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => b.disabled = true);
     
-    if (window.getEl('roulette-free-btn')) {
-        window.getEl('roulette-free-btn').disabled = true;
-    }
-    if (window.getEl('roulette-ad-btn')) {
-        window.getEl('roulette-ad-btn').disabled = true;
-    }
-    if (window.getEl('roulette-paid-btn')) {
-        window.getEl('roulette-paid-btn').disabled = true;
-    }
-    
-    document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => {
-        b.disabled = true;
-    });
-    
-    box.className = 'roulette-box roulette-spinning';
+    box.className = 'roulette-box roulette-spinning'; 
     resText.textContent = "Крутим...";
     
     setTimeout(() => {
         box.className = 'roulette-box';
         
-        if (window.getEl('roulette-free-btn')) {
-            window.getEl('roulette-free-btn').disabled = false;
-        }
-        if (window.getEl('roulette-ad-btn')) {
-            window.getEl('roulette-ad-btn').disabled = false;
-        }
-        if (window.getEl('roulette-paid-btn')) {
-            window.getEl('roulette-paid-btn').disabled = false;
-        }
+        if (window.getEl('roulette-free-btn')) window.getEl('roulette-free-btn').disabled = false;
+        if (window.getEl('roulette-ad-btn')) window.getEl('roulette-ad-btn').disabled = false;
+        if (window.getEl('roulette-paid-btn')) window.getEl('roulette-paid-btn').disabled = false;
+        document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => b.disabled = false);
         
-        document.querySelectorAll('#roulette-modal .tab-btn').forEach(b => {
-            b.disabled = false;
-        });
-        
-        let rnd = Math.random() * 100;
-        let selectedPrize = null;
+        let rnd = Math.random() * 100; 
+        let selectedPrize = null; 
         let pool = ROULETTE_PRIZES[currentBoxType];
         
-        for (let p of pool) {
+        for (let p of pool) { 
             if (rnd < p.p) { 
                 selectedPrize = p; 
                 break; 
-            }
-            rnd -= p.p;
+            } 
+            rnd -= p.p; 
         }
         
-        if (!selectedPrize) {
-            selectedPrize = pool[0];
-        }
+        if (!selectedPrize) selectedPrize = pool[0];
         
         window.playSound('win'); 
         window.fireConfetti();
         
         if (selectedPrize.t === 'legendary_random') {
             const randLeg = petDatabase.legendary[Math.floor(Math.random() * petDatabase.legendary.length)];
-            collection.push(randLeg);
+            collection.push(randLeg); 
             window.showToast(`СУПЕР ПРИЗ! Легендарный ${PET_NAMES[randLeg]}!`, "🏆");
-            box.textContent = "🐲";
+            box.textContent = "🐲"; 
             resText.textContent = `ДЖЕКПОТ: ${PET_NAMES[randLeg]}`;
         }
         else if (selectedPrize.t === 'xp') {
@@ -3444,9 +3402,9 @@ window.spinRoulette = function(method) {
                 window.showToast(`Lvl UP: ${userLevel} 🏆`, "🎉"); 
                 window.playSound('win'); 
             }
-            window.updateLevelUI();
+            window.updateLevelUI(); 
             window.showToast(`Вы выиграли +${gainedXP} XP!`, "🌟");
-            box.textContent = "🌟";
+            box.textContent = "🌟"; 
             resText.textContent = `Выпало: ${gainedXP} Опыта`;
         }
         else if (selectedPrize.t === 'money') { 
@@ -3493,109 +3451,106 @@ window.spinRoulette = function(method) {
         }
 
         window.saveData(); 
-        window.updateBalanceUI();
+        window.updateBalanceUI(); 
         window.updateRouletteButtons(); 
     }, 2000);
 };
 
 // =============================================================
-// ПОКУПКА РЕАЛЬНЫХ ЗВЕЗД TELEGRAM (API)
+// ПОКУПКА ЗВЕЗД И ПРОМОКОДЫ
 // =============================================================
-window.openBuyStarsModal = function() {
-    window.openModal('buy-stars-modal');
+window.openBuyStarsModal = function() { 
+    window.openModal('buy-stars-modal'); 
 };
 
 window.buyStars = async function(amount) {
-    window.playSound('click');
-    const btn = event.target;
+    window.playSound('click'); 
+    const btn = event.target; 
     const originalText = btn.textContent;
     
-    btn.textContent = "Загрузка...";
+    btn.textContent = "Загрузка..."; 
     btn.disabled = true;
 
     try {
         const res = await fetch(`${API_URL}/payment/invoice`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ amount: amount, user_id: window.getTgUser().id })
         });
-        
         const data = await res.json();
         
         if (data.status === 'success' && data.invoice_link) {
             window.Telegram.WebApp.openInvoice(data.invoice_link, (status) => {
                 if (status === 'paid') {
-                    window.playSound('win');
-                    userStars += amount;
-                    window.saveData();
+                    window.playSound('win'); 
+                    userStars += amount; 
+                    window.saveData(); 
                     window.updateBalanceUI();
-                    window.showToast(`Успешно куплено ${amount} Звезд!`, '⭐️');
+                    window.showToast(`Успешно куплено ${amount} Звезд!`, '⭐️'); 
                     window.closeModal('buy-stars-modal');
-                } else if (status === 'cancelled') {
-                    window.showToast("Оплата отменена", "❌");
-                } else {
-                    window.showToast("Ошибка оплаты", "❌");
+                } else if (status === 'cancelled') { 
+                    window.showToast("Оплата отменена", "❌"); 
+                } else { 
+                    window.showToast("Ошибка оплаты", "❌"); 
                 }
             });
-        } else {
-            window.showToast("Ошибка создания чека: " + (data.detail || ""), "❌");
+        } else { 
+            window.showToast("Ошибка создания чека: " + (data.detail || ""), "❌"); 
         }
-    } catch(e) {
-        window.showToast("Ошибка сети", "❌");
+    } catch(e) { 
+        window.showToast("Ошибка сети", "❌"); 
     }
     
-    btn.textContent = originalText;
+    btn.textContent = originalText; 
     btn.disabled = false;
 };
 
-// =============================================================
-// СЕРВЕРНЫЕ ПРОМОКОДЫ
-// =============================================================
 window.openPromo = function() { 
     window.openModal('promo-modal'); 
 };
 
 window.activatePromo = async function() {
-    window.playSound('click');
-    const input = window.getEl('promo-input');
-    const code = input.value.toUpperCase().trim();
-    if (!code) {
-        return;
-    }
-
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = "Проверка...";
+    window.playSound('click'); 
+    const input = window.getEl('promo-input'); 
+    const code = input.value.toUpperCase().trim(); 
+    
+    if (!code) return;
+    
+    const btn = event.target; 
+    const originalText = btn.textContent; 
+    
+    btn.textContent = "Проверка..."; 
     btn.disabled = true;
 
     try {
         const res = await fetch(`${API_URL}/promo/activate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ user_id: window.getTgUser().id, code: code })
         });
+        
         const data = await res.json();
         
         if (data.status === 'success') {
             if (data.type === 'money') { 
                 walletBalance += data.val; 
                 window.showToast(`+${window.formatNumber(data.val)} Монет`, 'img'); 
-            } else if (data.type === 'speed') { 
-                if (!myBoosters.speed) {
-                    myBoosters.speed = 0; 
-                }
+            } 
+            else if (data.type === 'speed') { 
+                if (!myBoosters.speed) myBoosters.speed = 0; 
                 myBoosters.speed += data.val; 
                 window.showToast(`+${data.val} Ускоритель`, '⚡️'); 
-            } else if (data.type === 'luck') { 
-                if (!myBoosters.luck) {
-                    myBoosters.luck = 0; 
-                }
+            } 
+            else if (data.type === 'luck') { 
+                if (!myBoosters.luck) myBoosters.luck = 0; 
                 myBoosters.luck += data.val; 
                 window.showToast(`+${data.val} Удача`, '🧪'); 
-            } else if (data.type === 'stars') { 
+            } 
+            else if (data.type === 'stars') { 
                 userStars += data.val; 
                 window.showToast(`+${data.val} Звезд!`, '⭐️'); 
-            } else if (data.type === 'joker') { 
+            } 
+            else if (data.type === 'joker') { 
                 userJokers += data.val; 
                 window.showToast(`+${data.val} Ген Мутации!`, '🧬'); 
             }
@@ -3609,70 +3564,657 @@ window.activatePromo = async function() {
             window.playSound('win'); 
             window.closeModal('promo-modal'); 
             input.value = "";
-        } else {
-            window.showToast(data.detail, "❌");
+        } else { 
+            window.showToast(data.detail, "❌"); 
         }
-    } catch (e) {
-        window.showToast("Ошибка сети", "❌");
+    } catch (e) { 
+        window.showToast("Ошибка сети", "❌"); 
     }
     
-    btn.textContent = originalText;
+    btn.textContent = originalText; 
     btn.disabled = false;
 };
 
-// =============================================================
-// АДМИН-ПАНЕЛЬ
-// =============================================================
 window.generateRandomPromo = function() {
-    window.playSound('click');
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    window.playSound('click'); 
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; 
     let code = 'FH-';
     
-    for(let i=0; i<6; i++) {
-        if (i===3) code += '-';
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    for(let i=0; i<6; i++) { 
+        if (i===3) code += '-'; 
+        code += chars.charAt(Math.floor(Math.random() * chars.length)); 
     }
     window.getEl('admin-promo-code').value = code;
 };
 
 window.adminSubmitPromo = async function() {
     window.playSound('click');
-    const code = window.getEl('admin-promo-code').value.trim().toUpperCase();
+    const code = window.getEl('admin-promo-code').value.trim().toUpperCase(); 
     const type = window.getEl('admin-promo-type').value;
-    const val = parseInt(window.getEl('admin-promo-val').value) || 0;
-    const limit = parseInt(window.getEl('admin-promo-limit').value) || 0;
+    const val = parseInt(window.getEl('admin-promo-val').value) || 0; 
+    const limit = window.getEl('admin-promo-limit').value ? parseInt(window.getEl('admin-promo-limit').value) : 0;
     const pwd = window.getEl('admin-password').value.trim();
     
     if (!code || val <= 0 || !pwd) {
         return window.showToast("Заполни все поля и пароль!", "❌");
     }
     
-    const btn = event.target;
-    const origText = btn.textContent;
-    btn.textContent = "Создаем...";
+    const btn = event.target; 
+    const origText = btn.textContent; 
+    btn.textContent = "Создаем..."; 
     btn.disabled = true;
     
     try {
         const res = await fetch(`${API_URL}/admin/promo/create`, {
-            method: 'POST',
+            method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: pwd, code: code, type: type, val: val, max_uses: limit })
         });
+        
         const data = await res.json();
         
-        if (data.status === 'success') {
-            window.showToast("Промокод создан!", "✅");
-            window.closeModal('admin-modal');
-            window.getEl('admin-promo-code').value = '';
-        } else {
-            window.showToast(data.detail, "❌");
+        if (data.status === 'success') { 
+            window.showToast("Промокод создан!", "✅"); 
+            window.closeModal('admin-modal'); 
+            window.getEl('admin-promo-code').value = ''; 
+        } else { 
+            window.showToast(data.detail, "❌"); 
         }
-    } catch(e) {
-        window.showToast("Ошибка сети", "❌");
+    } catch(e) { 
+        window.showToast("Ошибка сети", "❌"); 
     }
     
-    btn.textContent = origText;
+    btn.textContent = origText; 
     btn.disabled = false;
+};
+
+// =============================================================
+// ИНВЕНТАРЬ (ЧИСТАЯ КОЛЛЕКЦИЯ - ТОЛЬКО ПРОСМОТР И ПРОДАЖА)
+// =============================================================
+window.openInventory = function() {
+    const container = document.getElementById('collection-container'); 
+    if (!container) return; 
+    
+    container.innerHTML = ''; 
+    
+    ALL_PETS_FLAT.forEach(pet => {
+        const count = collection.filter(p => p === pet).length; 
+        const r = window.getPetRarity(pet); 
+        const d = document.createElement('div');
+        
+        let starLevel = petStars[pet] || 1; 
+        let starBadge = starLevel > 1 ? `<div class="star-badge">⭐️${starLevel}</div>` : '';
+        
+        if (count > 0) {
+            d.className = `pet-slot ${r}`; 
+            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">${starBadge}`;
+            
+            if (count > 1) { 
+                const b = document.createElement('div'); 
+                b.className = 'slot-count'; 
+                b.textContent = `x${count}`; 
+                d.appendChild(b); 
+            }
+            d.onclick = () => window.openPetModal(pet, true);
+        } else {
+            d.className = `pet-slot locked`; 
+            if (r === 'mythic' || r === 'mutant' || r === 'glitch') { 
+                let col = '#8a2be2'; 
+                if (r === 'mutant') col = '#39ff14'; 
+                if (r === 'glitch') col = '#00ffff';
+                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" style="filter:brightness(0) opacity(0.5);" onerror="this.src='assets/eggs/egg-default.png'"> <div style="position:absolute; font-size: 24px; font-weight:bold; color:${col}; text-shadow: 0 0 5px #000;">?</div>`; 
+            } else {
+                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`; 
+            }
+            d.onclick = () => window.openPetModal(pet, false);
+        }
+        container.appendChild(d);
+    });
+    window.openModal('inventory-modal');
+};
+
+window.openPetModal = function(pet, owned) {
+    selectedPet = pet; 
+    const r = window.getPetRarity(pet); 
+    const p = PRICES[r] || 0; 
+    const petName = PET_NAMES[pet] || "Питомец";
+    let currentStar = petStars[pet] || 1;
+    let starStr = currentStar > 1 ? ` <span style="color:#ffd700; font-size:16px;">${'⭐️'.repeat(currentStar)}</span>` : '';
+    let pdv = window.getEl('pet-detail-view');
+    
+    if (pdv) {
+        if (owned) {
+            pdv.innerHTML = `
+                <img src="assets/pets/pet-${pet}.png" class="pet-img-big" onerror="this.src='assets/eggs/egg-default.png'">
+                <h3 class="pet-name">${petName}${starStr}</h3>
+                <p class="pet-rarity ${r}">${r}</p>
+                <p class="pet-price">Цена: ${window.formatNumber(p)} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
+                <button class="btn sell-action" onclick="window.sellPet()">Продать ${window.formatNumber(p)}</button>
+            `;
+        } else {
+            pdv.innerHTML = `
+                <img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)" onerror="this.src='assets/eggs/egg-default.png'">
+                <h3 class="pet-name">???</h3>
+                <p class="pet-rarity ${r}">${r}</p>
+                <button class="btn" style="background:#333" onclick="window.closeModal('pet-modal')">Закрыть</button>
+            `;
+        }
+    }
+    window.openModal('pet-modal');
+};
+
+window.sellPet = function() {
+    if (!selectedPet) return; 
+    const idx = collection.indexOf(selectedPet); 
+    if (idx === -1) return;
+    
+    let basePrice = PRICES[window.getPetRarity(selectedPet)] || 0; 
+    let finalPrice = window.isVip() ? Math.floor(basePrice * 1.2) : basePrice;
+    
+    walletBalance += finalPrice; 
+    userStats.earned += finalPrice; 
+    collection.splice(idx, 1); 
+    window.updateContract('sell', 1);
+    
+    window.saveData(); 
+    window.updateBalanceUI(); 
+    window.closeModal('pet-modal'); 
+    window.showToast(`Продано +${window.formatNumber(finalPrice)}`, 'img'); 
+    window.playSound('money'); 
+    window.openInventory(); 
+};
+
+// =============================================================
+// ЛАБОРАТОРИЯ (ПРОКАЧКА, РАСЩЕПЛЕНИЕ, МИФИКИ И МУТАТОР)
+// =============================================================
+window.switchLabTab = function(tab) {
+    currentLabTab = tab;
+    
+    document.querySelectorAll('#craft-modal .tab-btn').forEach(b => {
+        b.classList.remove('active');
+    });
+    
+    let activeBtn = window.getEl(`lab-tab-${tab}`);
+    if(activeBtn) {
+        activeBtn.classList.add('active');
+    }
+
+    window.getEl('lab-upgrade-view').style.display = 'none';
+    window.getEl('lab-splinter-view').style.display = 'none';
+    window.getEl('lab-mythic-view').style.display = 'none';
+    window.getEl('lab-mutate-view').style.display = 'none';
+
+    if(tab === 'upgrade') {
+        window.getEl('lab-upgrade-view').style.display = 'block';
+        window.renderLabUpgrade();
+    } else if(tab === 'splinter') {
+        window.getEl('lab-splinter-view').style.display = 'block';
+        window.renderLabSplinter();
+    } else if(tab === 'mythic') {
+        window.getEl('lab-mythic-view').style.display = 'block';
+    } else if(tab === 'mutate') {
+        window.getEl('lab-mutate-view').style.display = 'block';
+        window.renderMutator();
+    }
+    window.playSound('click');
+};
+
+window.openCraft = function() {
+    let psc = window.getEl('pegasus-shards-count'); 
+    if(psc) psc.textContent = pegasusShards;
+    
+    let jcd = window.getEl('joker-count-display'); 
+    if(jcd) jcd.textContent = userJokers;
+    
+    let cmb = window.getEl('craft-mythic-btn');
+    if(cmb) {
+        if(pegasusShards >= 10) { 
+            cmb.className = "btn"; 
+            cmb.style.background = "#8a2be2"; 
+            cmb.style.boxShadow = "0 0 15px rgba(138,43,226,0.8)"; 
+        }
+        else { 
+            cmb.className = "btn locked"; 
+            cmb.style.boxShadow = "none"; 
+        }
+    }
+
+    window.switchLabTab('upgrade');
+    window.openModal('craft-modal');
+};
+
+window.renderLabUpgrade = function() {
+    const c = window.getEl('lab-upgrade-list'); 
+    if(!c) return;
+    
+    c.innerHTML = '';
+    const uniquePets = [...new Set(collection)];
+    
+    if(uniquePets.length === 0) { 
+        c.innerHTML = '<p style="grid-column: span 4; color: #888; font-size: 12px; text-align:center;">Нет питомцев для прокачки.</p>'; 
+        return; 
+    }
+
+    uniquePets.forEach(pet => {
+        const count = collection.filter(p => p === pet).length;
+        const r = window.getPetRarity(pet);
+        let currentStar = petStars[pet] || 1;
+        let cost = currentStar === 1 ? 3 : (currentStar === 2 ? 5 : (currentStar === 3 ? 10 : 0));
+        
+        if(cost > 0) {
+            const d = document.createElement('div');
+            d.className = `pet-slot ${r}`;
+            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'"><div class="slot-count" style="background:#333;">${count}/${cost+1}</div>`;
+            
+            if(count >= cost + 1) {
+                d.style.borderColor = '#34c759';
+                d.onclick = () => window.upgradePet(pet, cost);
+            } else if(count > 0 && userJokers >= (cost + 1 - count)) {
+                d.style.borderColor = '#00A3FF';
+                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'"><div class="slot-count" style="background:#00A3FF;">+${cost+1-count} 🧬</div>`;
+                d.onclick = () => window.upgradePetWithJoker(pet, cost, cost + 1 - count);
+            } else {
+                d.style.opacity = '0.5';
+                d.onclick = () => window.showToast(`Нужно еще ${cost+1-count} ${PET_NAMES[pet]} или Генов!`, '❌');
+            }
+            c.appendChild(d);
+        }
+    });
+};
+
+window.upgradePet = function(pet, cost) {
+    let removed = 0; 
+    collection = collection.filter(p => { 
+        if (p === pet && removed < cost) { 
+            removed++; 
+            return false; 
+        } 
+        return true; 
+    });
+    
+    petStars[pet] = (petStars[pet] || 1) + 1;
+    
+    window.saveData(); 
+    window.updateBalanceUI(); 
+    window.playSound('win'); 
+    window.showToast(`${PET_NAMES[pet]} улучшен до ⭐️${petStars[pet]}!`, '🌟');
+    
+    window.renderLabUpgrade();
+};
+
+window.upgradePetWithJoker = function(pet, cost, jokersNeeded) {
+    if(confirm(`Использовать ${jokersNeeded} 🧬 Генов для улучшения ${PET_NAMES[pet]}?`)) {
+        userJokers -= jokersNeeded;
+        window.upgradePet(pet, cost - jokersNeeded); 
+        
+        let jcd = window.getEl('joker-count-display'); 
+        if(jcd) jcd.textContent = userJokers;
+    }
+};
+
+window.renderLabSplinter = function() {
+    const c = window.getEl('lab-splinter-list'); 
+    if(!c) return;
+    
+    c.innerHTML = '';
+    const uniquePets = [...new Set(collection)];
+    
+    if(uniquePets.length === 0) { 
+        c.innerHTML = '<p style="grid-column: span 4; color: #888; font-size: 12px; text-align:center;">Нет питомцев.</p>'; 
+        return; 
+    }
+
+    uniquePets.forEach(pet => {
+        const count = collection.filter(p => p === pet).length;
+        const r = window.getPetRarity(pet);
+        
+        if(count > 0) {
+            const d = document.createElement('div');
+            d.className = `pet-slot ${r}`;
+            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'"><div class="slot-count">x${count}</div>`;
+            
+            d.onclick = () => {
+                if(r === 'common' || r === 'rare' || r === 'epic') {
+                    let dustGain = r === 'common' ? 10 : (r === 'rare' ? 30 : 100);
+                    if(confirm(`Распылить ${PET_NAMES[pet]} за +${dustGain} ✨?`)) {
+                        window.dustPet(pet, dustGain);
+                    }
+                } else if (r === 'legendary') {
+                    if(confirm(`Расщепить ${PET_NAMES[pet]} на Осколки Пегаса?`)) {
+                        window.splinterPet(pet, 'legendary');
+                    }
+                } else {
+                    window.showToast("Этого пета нельзя расщепить!", "❌");
+                }
+            };
+            c.appendChild(d);
+        }
+    });
+};
+
+window.dustPet = function(pet, amount) {
+    const idx = collection.indexOf(pet);
+    if (idx > -1) {
+        collection.splice(idx, 1); 
+        dustBalance += amount;
+        
+        window.saveData(); 
+        window.updateBalanceUI(); 
+        window.playSound('win'); 
+        window.showToast(`Распылено! +${amount} ✨`, '✨');
+        
+        window.renderLabSplinter();
+    }
+};
+
+window.splinterPet = function(pet, rarity) {
+    const idx = collection.indexOf(pet); 
+    if (idx === -1) return;
+    
+    collection.splice(idx, 1); 
+    window.playSound('click');
+    
+    if (rarity === 'legendary') {
+        let amount = Math.random() < 0.5 ? 1 : 2; 
+        pegasusShards += amount; 
+        window.showToast(`Успех! Получено ${amount} Осколков! 🧩`, "win");
+    }
+    
+    window.saveData(); 
+    window.updateBalanceUI(); 
+    window.renderLabSplinter();
+    
+    let psc = window.getEl('pegasus-shards-count'); 
+    if(psc) psc.textContent = pegasusShards;
+};
+
+window.startDnaPuzzle = function() {
+    if (pegasusShards < 10) return window.showToast("Не хватает осколков!", "❌");
+    
+    dnaGrid = [ 
+        [1, 1, 1], 
+        [1, 1, 1], 
+        [1, 1, 1] 
+    ];
+    
+    for (let i = 0; i < 15; i++) { 
+        let r = Math.floor(Math.random() * 3); 
+        let c = Math.floor(Math.random() * 3); 
+        window.toggleDnaNode(r, c, true); 
+    }
+    
+    if (window.checkDnaWin(true)) {
+        window.toggleDnaNode(0, 0, true);
+    }
+    
+    window.renderDnaGrid(); 
+    window.closeModal('craft-modal'); 
+    window.openModal('dna-modal');
+};
+
+window.toggleDnaNode = function(r, c, isScrambling=false) {
+    let coords = [[r,c], [r-1,c], [r+1,c], [r,c-1], [r,c+1]];
+    
+    coords.forEach(([nr, nc]) => { 
+        if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
+            dnaGrid[nr][nc] = dnaGrid[nr][nc] === 1 ? 0 : 1; 
+        }
+    });
+    
+    if (!isScrambling) {
+        window.playSound('click'); 
+        window.renderDnaGrid();
+        
+        if (window.checkDnaWin()) {
+            setTimeout(() => {
+                window.closeModal('dna-modal'); 
+                pegasusShards -= 10;
+                window.saveData(); 
+                window.updateBalanceUI(); 
+                window.craftMythicReal(); 
+            }, 500);
+        }
+    }
+};
+
+window.checkDnaWin = function(silent=false) {
+    for (let r = 0; r < 3; r++) { 
+        for (let c = 0; c < 3; c++) { 
+            if (dnaGrid[r][c] === 0) return false; 
+        } 
+    } 
+    return true;
+};
+
+window.renderDnaGrid = function() {
+    let container = window.getEl('dna-grid'); 
+    if (!container) return; 
+    
+    container.innerHTML = '';
+    
+    for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+            let d = document.createElement('div'); 
+            d.className = `dna-node ${dnaGrid[r][c] === 1 ? 'active' : ''}`;
+            d.onclick = () => window.toggleDnaNode(r, c); 
+            container.appendChild(d);
+        }
+    }
+};
+
+window.craftMythicReal = function() {
+    window.openModal('mythic-craft-modal'); 
+    window.playSound('legendary');
+    
+    let ms = window.getEl('mythic-silhouette'); 
+    if (ms) { 
+        ms.className = 'mythic-silhouette spinning'; 
+        ms.src = 'assets/eggs/egg-default.png'; 
+    }
+    
+    let pulseInterval = setInterval(() => { window.fireConfetti(); }, 800);
+    
+    setTimeout(() => {
+        clearInterval(pulseInterval);
+        
+        let pool = petDatabase.mythic; 
+        let dropped = pool[Math.floor(Math.random() * pool.length)]; 
+        collection.push(dropped);
+        
+        mythicsCrafted++; 
+        window.updateContract('craft', 1); 
+        window.saveData(); 
+        window.updateBalanceUI();
+        
+        if (ms) { 
+            ms.className = 'mythic-silhouette epic-flash'; 
+            ms.src = `assets/pets/pet-${dropped}.png`; 
+        }
+        
+        window.showToast(`МИФИК СОЗДАН: ${PET_NAMES[dropped]}! 🦄`, "🌟"); 
+        
+        for (let i = 0; i < 5; i++) {
+            setTimeout(window.fireConfetti, i * 300);
+        }
+        
+        setTimeout(() => { 
+            window.closeModal('mythic-craft-modal'); 
+            window.openCraft(); 
+        }, 4000);
+        
+    }, 3000);
+};
+
+// === СЕКРЕТНЫЙ МУТАТОР ===
+window.renderMutator = function() {
+    let s1 = window.getEl('mutator-slot-1');
+    let s2 = window.getEl('mutator-slot-2');
+    let scat = window.getEl('mutator-slot-cat');
+    let mBtn = window.getEl('mutate-btn');
+
+    if(mutatorSlot1) { 
+        s1.innerHTML = `<img src="assets/pets/pet-${mutatorSlot1}.png">`; 
+        s1.classList.add('filled'); 
+    } else { 
+        s1.innerHTML = '?'; 
+        s1.classList.remove('filled'); 
+    }
+    
+    if(mutatorSlot2) { 
+        s2.innerHTML = `<img src="assets/pets/pet-${mutatorSlot2}.png">`; 
+        s2.classList.add('filled'); 
+    } else { 
+        s2.innerHTML = '?'; 
+        s2.classList.remove('filled'); 
+    }
+    
+    if(mutatorCatalyst) { 
+        let catIcon = '';
+        if(mutatorCatalyst === 'joker') catIcon = '🧬';
+        else if(mutatorCatalyst === 'bio') catIcon = '💉';
+        else if(mutatorCatalyst === 'luck') catIcon = '<img src="assets/ui/booster-luck.png">';
+        
+        scat.innerHTML = catIcon; 
+        scat.classList.add('filled'); 
+    } else { 
+        scat.innerHTML = '🧪'; 
+        scat.classList.remove('filled'); 
+    }
+
+    if(mutatorSlot1 && mutatorSlot2 && mutatorCatalyst) {
+        mBtn.className = "btn"; 
+        mBtn.style.background = "linear-gradient(90deg, #ff3b30, #8a2be2)";
+    } else {
+        mBtn.className = "btn locked";
+    }
+};
+
+window.openMutatorSelect = function(slot) {
+    window.playSound('click');
+    currentMutatorSelecting = slot;
+    
+    const list = window.getEl('mutator-select-list'); 
+    if(!list) return;
+    
+    list.innerHTML = '';
+    window.getEl('mutator-select-title').textContent = slot === 'cat' ? "Выберите Катализатор" : "Выберите Питомца";
+
+    if(slot === 'cat') {
+        if(userJokers > 0) {
+            list.innerHTML += `<div class="pet-slot" style="border-color:#39ff14;" onclick="window.selectMutatorItem('joker')"><div style="font-size:30px;">🧬</div><div class="slot-count">x${userJokers}</div></div>`;
+        }
+        if(myBoosters.bio > 0) {
+            list.innerHTML += `<div class="pet-slot" style="border-color:#ff2d55;" onclick="window.selectMutatorItem('bio')"><div style="font-size:30px;">💉</div><div class="slot-count">x${myBoosters.bio}</div></div>`;
+        }
+        if(myBoosters.luck > 0) {
+            list.innerHTML += `<div class="pet-slot" style="border-color:#ffd700;" onclick="window.selectMutatorItem('luck')"><img src="assets/ui/booster-luck.png" style="width:50%;"><div class="slot-count">x${myBoosters.luck}</div></div>`;
+        }
+        
+        if(userJokers === 0 && myBoosters.bio === 0 && myBoosters.luck === 0) {
+            list.innerHTML = "<p style='color:#888; grid-column:span 4; text-align:center;'>Нет катализаторов!</p>";
+        }
+    } else {
+        const uniquePets = [...new Set(collection)];
+        if(uniquePets.length === 0) {
+            list.innerHTML = "<p style='color:#888; grid-column:span 4; text-align:center;'>Нет питомцев!</p>";
+        }
+        
+        uniquePets.forEach(pet => {
+            const count = collection.filter(p => p === pet).length;
+            const r = window.getPetRarity(pet);
+            const d = document.createElement('div');
+            d.className = `pet-slot ${r}`;
+            
+            let starLevel = petStars[pet] || 1;
+            let starBadge = starLevel > 1 ? `<div class="star-badge">⭐️${starLevel}</div>` : '';
+            
+            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'"><div class="slot-count">x${count}</div>${starBadge}`;
+            d.onclick = () => window.selectMutatorItem(pet);
+            list.appendChild(d);
+        });
+    }
+    window.openModal('mutator-select-modal');
+};
+
+window.selectMutatorItem = function(item) {
+    window.playSound('click');
+    
+    if(currentMutatorSelecting === 1) {
+        mutatorSlot1 = item;
+    } else if(currentMutatorSelecting === 2) {
+        mutatorSlot2 = item;
+    } else if(currentMutatorSelecting === 'cat') {
+        mutatorCatalyst = item;
+    }
+    
+    window.closeModal('mutator-select-modal');
+    window.renderMutator();
+};
+
+window.executeMutation = async function() {
+    if(!mutatorSlot1 || !mutatorSlot2 || !mutatorCatalyst) return;
+    
+    window.playSound('click');
+    let mBtn = window.getEl('mutate-btn');
+    mBtn.textContent = "Синтез..."; 
+    mBtn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/craft/mutate`, {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                pet1: mutatorSlot1, 
+                pet1_stars: petStars[mutatorSlot1] || 1,
+                pet2: mutatorSlot2, 
+                pet2_stars: petStars[mutatorSlot2] || 1,
+                catalyst: mutatorCatalyst
+            })
+        });
+        
+        const data = await res.json();
+        
+        if(data.status === 'success') {
+            collection.splice(collection.indexOf(mutatorSlot1), 1);
+            collection.splice(collection.indexOf(mutatorSlot2), 1);
+            
+            if(mutatorCatalyst === 'joker') userJokers--;
+            else if(mutatorCatalyst === 'bio') myBoosters.bio--;
+            else if(mutatorCatalyst === 'luck') myBoosters.luck--;
+
+            collection.push(data.result_pet);
+            window.playSound('legendary');
+            window.showToast(data.message, "🌟");
+            
+            window.getEl('craft-modal').querySelector('.modal-content').classList.add('shake-hard');
+            setTimeout(() => {
+                window.getEl('craft-modal').querySelector('.modal-content').classList.remove('shake-hard');
+            }, 1000);
+            
+            window.fireConfetti();
+            mutatorSlot1 = null; 
+            mutatorSlot2 = null; 
+            mutatorCatalyst = null;
+        } else {
+            if(mutatorCatalyst === 'joker') userJokers--;
+            else if(mutatorCatalyst === 'bio') myBoosters.bio--;
+            else if(mutatorCatalyst === 'luck') myBoosters.luck--;
+            
+            window.playSound('wrong');
+            window.showToast(data.message, "❌");
+            mutatorCatalyst = null;
+        }
+        
+        window.saveData(); 
+        window.updateBalanceUI(); 
+        window.renderMutator();
+        
+    } catch(e) {
+        window.showToast("Ошибка мутатора", "❌");
+    }
+    
+    mBtn.textContent = "Синтезировать ☣️"; 
+    mBtn.disabled = false;
 };
 
 // =============================================================
@@ -4374,7 +4916,6 @@ window.finishTimer = function(fromOffline = false) {
     let finalXP = Math.floor((baseXP + (baseXP * avatarBonus)) * streakMult * vipMult);
     userXP += finalXP; 
     
-    // === ДОБАВЛЕН ИНКРЕМЕНТ ЧАСОВ ФОКУСА ===
     let timeOnlineBase = (currentModeIndex === 2) ? customEggConfig.timeOnline : m.timeOnline;
     focusHours += (timeOnlineBase / 3600);
     
@@ -4489,483 +5030,64 @@ window.finishTimer = function(fromOffline = false) {
 };
 
 // =============================================================
-// ИНВЕНТАРЬ И ЛАБОРАТОРИЯ (ДНК, ПРОКАЧКА)
+// 9. МУЛЬТИПЛЕЕР И ПАТИ (ИНТЕГРАЦИЯ)
 // =============================================================
-window.openCraft = function() {
-    let psc = window.getEl('pegasus-shards-count'); 
-    if (psc) {
-        psc.textContent = pegasusShards;
-    }
-    
-    let jcd = window.getEl('joker-count-display'); 
-    if (jcd) {
-        jcd.textContent = userJokers;
-    }
-    
-    let cmb = window.getEl('craft-mythic-btn');
-    if (cmb) {
-        if (pegasusShards >= 10) {
-            cmb.className = "btn";
-            cmb.style.background = "#8a2be2";
-            cmb.style.color = "white";
-            cmb.style.boxShadow = "0 0 15px rgba(138, 43, 226, 0.8)";
-        } else {
-            cmb.className = "btn locked";
-            cmb.style.boxShadow = "none";
-        }
-    }
 
-    const c = window.getEl('craft-list'); 
-    if (!c) {
-        return;
-    }
-    
-    c.innerHTML = ''; 
-    let canCraft = false;
-    
-    [...petDatabase.common].forEach(pet => {
-        const count = collection.filter(p => p === pet).length;
-        if (count >= 5) {
-            canCraft = true; 
-            const r = window.getPetRarity(pet); 
-            const d = document.createElement('div'); 
-            d.className = `pet-slot ${r}`;
-            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'"><div class="slot-count" style="background:#ff3b30">${count}/5</div>`;
-            d.onclick = () => window.craftPet(pet, 0); 
-            c.appendChild(d);
-        } else if (count > 0 && count < 5 && userJokers >= (5 - count)) {
-            canCraft = true; 
-            const r = window.getPetRarity(pet); 
-            const d = document.createElement('div'); 
-            d.className = `pet-slot ${r}`;
-            d.style.borderColor = '#00A3FF';
-            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'"><div class="slot-count" style="background:#00A3FF">+${5-count} 🧬</div>`;
-            d.onclick = () => window.craftPet(pet, 5 - count); 
-            c.appendChild(d);
-        }
-    });
-    
-    if (!canCraft) {
-        c.innerHTML = '<p style="grid-column: span 4; color: #888; font-size: 12px;">Собери 5 одинаковых обычных петов или используй Ген Мутации!</p>';
-    }
-    
-    window.openModal('craft-modal');
-};
-
-window.upgradePet = function(pet, cost) {
-    let removed = 0; 
-    
-    collection = collection.filter(p => { 
-        if (p === pet && removed < cost) { 
-            removed++; 
-            return false; 
-        } 
-        return true; 
-    });
-    
-    petStars[pet] = (petStars[pet] || 1) + 1;
-    
-    window.saveData(); 
-    window.updateBalanceUI();
-    window.playSound('win'); 
-    window.showToast(`${PET_NAMES[pet]} улучшен до ⭐️${petStars[pet]}!`, '🌟');
-    
-    window.openPetModal(pet, true);
-    window.openInventory();
-};
-
-window.dustPet = function(pet, amount) {
-    if (!confirm(`Вы уверены, что хотите распылить ${PET_NAMES[pet]} за +${amount} ✨? Питомец навсегда исчезнет!`)) {
-        return;
-    }
-    
-    const idx = collection.indexOf(pet);
-    if (idx > -1) {
-        collection.splice(idx, 1);
-        dustBalance += amount;
-        
-        window.saveData();
-        window.updateBalanceUI();
-        window.playSound('win');
-        window.showToast(`Распылено! +${amount} ✨`, '✨');
-        
-        window.openPetModal(pet, true);
-        window.openInventory();
-    }
-};
-
-window.startDnaPuzzle = function() {
-    if (pegasusShards < 10) {
-        return window.showToast("Не хватает осколков!", "❌");
-    }
-    
-    dnaGrid = [
-        [1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 1]
-    ];
-    
-    for (let i = 0; i < 15; i++) {
-        let r = Math.floor(Math.random() * 3); 
-        let c = Math.floor(Math.random() * 3);
-        window.toggleDnaNode(r, c, true);
-    }
-    
-    if (window.checkDnaWin(true)) {
-        window.toggleDnaNode(0, 0, true);
-    }
-    
-    window.renderDnaGrid();
-    window.closeModal('craft-modal');
-    window.openModal('dna-modal');
-};
-
-window.toggleDnaNode = function(r, c, isScrambling=false) {
-    let coords = [[r,c], [r-1,c], [r+1,c], [r,c-1], [r,c+1]];
-    
-    coords.forEach(([nr, nc]) => {
-        if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
-            dnaGrid[nr][nc] = dnaGrid[nr][nc] === 1 ? 0 : 1;
-        }
-    });
-    
-    if (!isScrambling) {
-        window.playSound('click');
-        window.renderDnaGrid();
-        
-        if (window.checkDnaWin()) {
-            setTimeout(() => {
-                window.closeModal('dna-modal');
-                pegasusShards -= 10;
-                window.saveData(); 
-                window.updateBalanceUI();
-                window.craftMythicReal(); 
-            }, 500);
-        }
-    }
-};
-
-window.checkDnaWin = function(silent=false) {
-    for (let r = 0; r < 3; r++) { 
-        for (let c = 0; c < 3; c++) { 
-            if (dnaGrid[r][c] === 0) {
-                return false; 
-            }
-        } 
-    }
-    return true;
-};
-
-window.renderDnaGrid = function() {
-    let container = window.getEl('dna-grid'); 
-    if (!container) {
-        return; 
-    }
-    
-    container.innerHTML = '';
-    
-    for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-            let d = document.createElement('div');
-            d.className = `dna-node ${dnaGrid[r][c] === 1 ? 'active' : ''}`;
-            d.onclick = () => window.toggleDnaNode(r, c);
-            container.appendChild(d);
-        }
-    }
-};
-
-window.craftMythicReal = function() {
-    window.openModal('mythic-craft-modal'); 
-    window.playSound('legendary');
-    
-    let ms = window.getEl('mythic-silhouette');
-    if (ms) { 
-        ms.className = 'mythic-silhouette spinning'; 
-        ms.src = 'assets/eggs/egg-default.png'; 
-    }
-
-    let pulseInterval = setInterval(() => {
-        window.fireConfetti();
-    }, 800);
-    
-    setTimeout(() => {
-        clearInterval(pulseInterval);
-        
-        let pool = petDatabase.mythic; 
-        let dropped = pool[Math.floor(Math.random() * pool.length)]; 
-        collection.push(dropped);
-        
-        // === ДОБАВЛЕН ИНКРЕМЕНТ МИФИКОВ ===
-        mythicsCrafted++;
-        
-        window.updateContract('craft', 1);
-        window.saveData(); 
-        window.updateBalanceUI();
-        
-        if (ms) { 
-            ms.className = 'mythic-silhouette epic-flash'; 
-            ms.src = `assets/pets/pet-${dropped}.png`; 
-        }
-        
-        window.showToast(`МИФИК СОЗДАН: ${PET_NAMES[dropped]}! 🦄`, "🌟"); 
-        
-        for (let i = 0; i < 5; i++) {
-            setTimeout(window.fireConfetti, i * 300);
-        }
-        
-        setTimeout(() => { 
-            window.closeModal('mythic-craft-modal'); 
-            window.openInventory(); 
-        }, 4000);
-        
-    }, 3000);
-};
-
-window.craftPet = function(basePet, jokersUsed = 0) {
-    let msg = jokersUsed > 0 ? `Соединить ${5 - jokersUsed}x ${PET_NAMES[basePet]} и ${jokersUsed}x 🧬 Джокер?` : `Соединить 5x ${PET_NAMES[basePet]}?`;
-    
-    if (confirm(msg)) {
-        let removed = 0; 
-        
-        collection = collection.filter(p => { 
-            if (p === basePet && removed < (5 - jokersUsed)) { 
-                removed++; 
-                return false; 
-            } 
-            return true; 
-        });
-        
-        if (jokersUsed > 0) {
-            userJokers -= jokersUsed;
-        }
-        
-        let newPet = petDatabase.rare[Math.floor(Math.random() * petDatabase.rare.length)];
-        window.showToast(`Успех! Получен Редкий петомец`, '🧪'); 
-        window.playSound('win');
-        
-        collection.push(newPet); 
-        
-        if (!userStats.crafts) {
-            userStats.crafts = 0; 
-        }
-        userStats.crafts++;
-        
-        window.updateContract('craft', 1);
-        window.saveData(); 
-        window.updateBalanceUI(); 
-        window.openInventory(); 
-        window.openCraft();
-    }
-};
-
-window.splinterPet = function(pet, rarity) {
-    if (!confirm(`ВНИМАНИЕ! Питомец ${PET_NAMES[pet]} будет уничтожен в расщепителе. Продолжить?`)) {
-        return;
-    }
-    
-    const idx = collection.indexOf(pet); 
-    if (idx === -1) {
-        return;
-    }
-    
-    collection.splice(idx, 1); 
-    window.playSound('click');
-    
-    if (rarity === 'rare') {
-        if (Math.random() < 0.20) { 
-            pegasusShards += 1; 
-            window.showToast(`Успех! Получен 1 Осколок! 🧩`, "win"); 
-        } else { 
-            window.showToast(`Питомец расщеплен, но осколок не выпал... 💨`, "❌"); 
-        }
-    } else if (rarity === 'legendary') {
-        let amount = Math.random() < 0.5 ? 1 : 2; 
-        pegasusShards += amount; 
-        window.showToast(`Успех! Получено ${amount} Осколков! 🧩`, "win");
-    }
-    
-    window.saveData(); 
-    window.updateBalanceUI(); 
-    window.closeModal('pet-modal'); 
-    window.openInventory();
-};
-
-window.openInventory = function() {
-    const container = document.getElementById('collection-container'); 
-    if (!container) {
-        return; 
-    }
-    
-    container.innerHTML = ''; 
-    
-    ALL_PETS_FLAT.forEach(pet => {
-        const count = collection.filter(p => p === pet).length;
-        const r = window.getPetRarity(pet); 
-        const d = document.createElement('div');
-        
-        let starLevel = petStars[pet] || 1;
-        let starBadge = starLevel > 1 ? `<div class="star-badge">⭐️${starLevel}</div>` : '';
-        
-        if (count > 0) {
-            d.className = `pet-slot ${r}`; 
-            d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">${starBadge}`;
-            
-            if (count > 1) { 
-                const b = document.createElement('div'); 
-                b.className = 'slot-count'; 
-                b.textContent = `x${count}`; 
-                d.appendChild(b); 
-            }
-            d.onclick = () => window.openPetModal(pet, true);
-        } else {
-            d.className = `pet-slot locked`; 
-            
-            if (r === 'mythic' || r === 'mutant' || r === 'glitch') { 
-                let col = '#8a2be2';
-                if (r === 'mutant') {
-                    col = '#39ff14';
-                }
-                if (r === 'glitch') {
-                    col = '#00ffff';
-                }
-                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" style="filter:brightness(0) opacity(0.5);" onerror="this.src='assets/eggs/egg-default.png'"> <div style="position:absolute; font-size: 24px; font-weight:bold; color:${col}; text-shadow: 0 0 5px #000;">?</div>`; 
-            } else { 
-                d.innerHTML = `<img src="assets/pets/pet-${pet}.png" class="pet-img-slot" onerror="this.src='assets/eggs/egg-default.png'">`; 
-            }
-            
-            d.onclick = () => window.openPetModal(pet, false);
-        }
-        container.appendChild(d);
-    });
-    
-    window.openModal('inventory-modal');
-};
-
-window.openPetModal = function(pet, owned) {
-    selectedPet = pet; 
-    const r = window.getPetRarity(pet); 
-    const p = PRICES[r] || 0;
-    const petName = PET_NAMES[pet] || "Питомец";
-    
-    let currentStar = petStars[pet] || 1;
-    let cost = currentStar === 1 ? 3 : (currentStar === 2 ? 5 : (currentStar === 3 ? 10 : 0));
-    
-    const count = collection.filter(x => x === pet).length;
-    
-    let upgradeBtn = '';
-    if (owned && cost > 0) {
-        if (count >= cost + 1) {
-            upgradeBtn = `<button class="btn" style="background:#5856d6; font-size:14px; margin-top:5px;" onclick="window.upgradePet('${pet}', ${cost})">⬆️ Улучшить до ⭐️${currentStar+1} (${count}/${cost+1} шт)</button>`;
-        } else {
-            upgradeBtn = `<button class="btn locked" style="font-size:14px; margin-top:5px;">⬆️ Нужно ${cost+1} шт (есть ${count})</button>`;
-        }
-    }
-    
-    let splinterBtn = '';
-    if (owned) {
-        if (r === 'rare') {
-            splinterBtn = `<button class="btn" style="background:#ff9500; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,149,0,0.5);" onclick="window.splinterPet('${pet}', 'rare')">Расщепить (Шанс 20%) 🧩</button>`;
-        }
-        if (r === 'legendary') {
-            splinterBtn = `<button class="btn" style="background:#ff3b30; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,59,48,0.5);" onclick="window.splinterPet('${pet}', 'legendary')">Расщепить (100% 1-2 🧩)</button>`;
-        }
-    }
-    
-    let dustBtn = '';
-    if (owned && count > 1 && ['common', 'rare', 'epic'].includes(r)) {
-        let dustGain = r === 'common' ? 10 : (r === 'rare' ? 30 : 100);
-        dustBtn = `<button class="btn" style="background:#ff3b30; font-size:14px; margin-top:5px; box-shadow: 0 0 10px rgba(255,59,48,0.5);" onclick="window.dustPet('${pet}', ${dustGain})">Распылить дубликат (+${dustGain} ✨)</button>`;
-    }
-
-    let starStr = currentStar > 1 ? ` <span style="color:#ffd700; font-size:16px;">${'⭐️'.repeat(currentStar)}</span>` : '';
-
-    let pdv = window.getEl('pet-detail-view');
-    if (pdv) {
-        pdv.innerHTML = owned ? 
-            `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" onerror="this.src='assets/eggs/egg-default.png'">
-             <h3 class="pet-name">${petName}${starStr}</h3><p class="pet-rarity ${r}">${r}</p><p class="pet-price">Цена: ${window.formatNumber(p)} <img src="assets/ui/coin.png" style="width:16px;vertical-align:middle"></p>
-             <button class="btn sell-action" onclick="window.sellPet()">Продать ${window.formatNumber(p)}</button>
-             ${upgradeBtn}
-             ${splinterBtn}
-             ${dustBtn}` : 
-            `<img src="assets/pets/pet-${pet}.png" class="pet-img-big" style="filter:brightness(0) opacity(0.3)" onerror="this.src='assets/eggs/egg-default.png'">
-             <h3 class="pet-name">???</h3><p class="pet-rarity ${r}">${r}</p><button class="btn" style="background:#333" onclick="window.closeModal('pet-modal')">Закрыть</button>`;
-    }
-    
-    window.openModal('pet-modal');
-};
-
-window.sellPet = function() {
-    if (!selectedPet) {
-        return; 
-    }
-    
-    const idx = collection.indexOf(selectedPet); 
-    if (idx === -1) {
-        return;
-    }
-    
-    let basePrice = PRICES[window.getPetRarity(selectedPet)] || 0;
-    let finalPrice = window.isVip() ? Math.floor(basePrice * 1.2) : basePrice;
-    
-    walletBalance += finalPrice; 
-    userStats.earned += finalPrice;
-    
-    collection.splice(idx, 1); 
-    window.updateContract('sell', 1);
-    
-    window.saveData(); 
-    window.updateBalanceUI(); 
-    window.closeModal('pet-modal'); 
-    window.showToast(`Продано +${window.formatNumber(finalPrice)}`, 'img'); 
-    window.playSound('money'); 
-    window.openInventory(); 
-};
-
-// =============================================================
-// МУЛЬТИПЛЕЕР И БОСС-РЕЙД
-// =============================================================
 window.openPartyModal = function() {
-    let psv = window.getEl('party-setup-view');
+    let psv = window.getEl('party-setup-view'); 
     let pav = window.getEl('party-active-view');
     
-    if (currentPartyCode) {
-        if (psv) psv.style.display = 'none';
-        if (pav) pav.style.display = 'block';
+    if (currentPartyCode) { 
+        if (psv) {
+            psv.style.display = 'none'; 
+        }
+        if (pav) {
+            pav.style.display = 'block'; 
+        }
         window.startPartyPolling(); 
-    } else {
-        if (psv) psv.style.display = 'block';
-        if (pav) pav.style.display = 'none';
+    } 
+    else { 
+        if (psv) {
+            psv.style.display = 'block'; 
+        }
+        if (pav) {
+            pav.style.display = 'none'; 
+        }
     }
     
     window.openModal('party-modal');
 };
 
 window.apiCreateParty = async function(event) {
-    window.playSound('click');
+    window.playSound('click'); 
     const btn = event ? event.target : window.getEl('create-party-btn'); 
     
     if (btn) {
         btn.textContent = "Создаем сервер...";
     }
     
-    const user = window.getTgUser();
+    const user = window.getTgUser(); 
+    let finalName = user.name; 
     
-    let finalName = user.name;
     if (window.isVip()) {
         finalName += ' 👑';
     }
-
+    
     try {
-        const res = await fetch(`${API_URL}/party/create`, {
+        const res = await fetch(`${API_URL}/party/create`, { 
             method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin, equipped_title: equippedTitle })
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ 
+                user_id: user.id, 
+                name: finalName, 
+                avatar: selectedAvatar, 
+                egg_skin: activeEggSkin, 
+                equipped_title: equippedTitle 
+            }) 
         });
         
         const data = await res.json();
-        
-        currentPartyCode = data.partyCode;
+        currentPartyCode = data.partyCode; 
         
         let cpc = window.getEl('current-party-code'); 
         if (cpc) {
@@ -4974,7 +5096,7 @@ window.apiCreateParty = async function(event) {
         
         let psv = window.getEl('party-setup-view'); 
         if (psv) {
-            psv.style.display = 'none';
+            psv.style.display = 'none'; 
         }
         
         let pav = window.getEl('party-active-view'); 
@@ -4987,8 +5109,8 @@ window.apiCreateParty = async function(event) {
         if (typeof socket !== 'undefined' && socket) {
             socket.emit('joinRoom', { roomId: currentPartyCode });
         }
-        
         window.startPartyPolling();
+        
     } catch (e) { 
         window.showToast("Ошибка сервера", "❌"); 
     }
@@ -4999,30 +5121,36 @@ window.apiCreateParty = async function(event) {
 };
 
 window.apiJoinParty = async function(prefilledCode = null) {
-    window.playSound('click');
-    const input = window.getEl('party-code-input');
+    window.playSound('click'); 
+    const input = window.getEl('party-code-input'); 
     const code = prefilledCode || (input ? input.value.trim() : '');
     
     if (code.length < 4) {
         return window.showToast("Неверный код", "❌");
     }
     
-    const user = window.getTgUser();
-    let finalName = user.name;
-    
+    const user = window.getTgUser(); 
+    let finalName = user.name; 
     if (window.isVip()) {
         finalName += ' 👑';
     }
-
+    
     try {
-        const res = await fetch(`${API_URL}/party/join`, {
+        const res = await fetch(`${API_URL}/party/join`, { 
             method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: code, user_id: user.id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin, equipped_title: equippedTitle })
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ 
+                code: code, 
+                user_id: user.id, 
+                name: finalName, 
+                avatar: selectedAvatar, 
+                egg_skin: activeEggSkin, 
+                equipped_title: equippedTitle 
+            }) 
         });
         
         if (res.ok) {
-            currentPartyCode = code;
+            currentPartyCode = code; 
             
             let cpc = window.getEl('current-party-code'); 
             if (cpc) {
@@ -5031,7 +5159,7 @@ window.apiJoinParty = async function(prefilledCode = null) {
             
             let psv = window.getEl('party-setup-view'); 
             if (psv) {
-                psv.style.display = 'none';
+                psv.style.display = 'none'; 
             }
             
             let pav = window.getEl('party-active-view'); 
@@ -5044,7 +5172,6 @@ window.apiJoinParty = async function(prefilledCode = null) {
             if (typeof socket !== 'undefined' && socket) {
                 socket.emit('joinRoom', { roomId: currentPartyCode });
             }
-            
             window.startPartyPolling();
         } else {
             window.showToast("Пати не найдено", "❌");
@@ -5056,60 +5183,61 @@ window.apiJoinParty = async function(prefilledCode = null) {
 
 window.apiLeaveParty = async function(localOnly = false) {
     if (!localOnly) {
-        window.playSound('click');
+        window.playSound('click'); 
     }
-    
     const user = window.getTgUser();
     
-    if (!localOnly) {
-        try {
-            await fetch(`${API_URL}/party/leave`, {
+    if (!localOnly) { 
+        try { 
+            await fetch(`${API_URL}/party/leave`, { 
                 method: 'POST', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar, egg_skin: activeEggSkin, equipped_title: equippedTitle })
-            });
-        } catch(e) {}
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ 
+                    user_id: user.id, 
+                    name: user.name, 
+                    avatar: selectedAvatar, 
+                    egg_skin: activeEggSkin, 
+                    equipped_title: equippedTitle 
+                }) 
+            }); 
+        } catch(e) {} 
     }
-
+    
     currentPartyCode = null; 
-    isPartyLeader = false;
-    currentActiveGame = 'none';
+    isPartyLeader = false; 
+    currentActiveGame = 'none'; 
     isMegaRadarActive = false; 
     
     if (partyPollingInterval) {
-        clearInterval(partyPollingInterval);
+        clearInterval(partyPollingInterval); 
     }
-    
     if (bossTimerInterval) {
-        clearInterval(bossTimerInterval);
+        clearInterval(bossTimerInterval); 
     }
-    
     if (expeditionInterval) {
-        clearInterval(expeditionInterval);
+        clearInterval(expeditionInterval); 
     }
-    
     if (parasiteInterval) {
-        clearInterval(parasiteInterval);
+        clearInterval(parasiteInterval); 
     }
-    
     if (bonusSpawningInterval) {
         clearInterval(bonusSpawningInterval);
     }
-
-    ['boss-raid-modal', 'quantum-reactor-modal', 'expedition-modal'].forEach(m => {
+    
+    ['boss-raid-modal', 'quantum-reactor-modal', 'expedition-modal'].forEach(m => { 
         if (modalStack.includes(m)) {
-            window.closeModal(m);
+            window.closeModal(m); 
         }
     });
-
+    
     let psv = window.getEl('party-setup-view'); 
     if (psv) {
-        psv.style.display = 'block';
+        psv.style.display = 'block'; 
     }
     
     let pav = window.getEl('party-active-view'); 
     if (pav) {
-        pav.style.display = 'none';
+        pav.style.display = 'none'; 
     }
     
     let rgb = window.getEl('return-game-btn'); 
@@ -5121,27 +5249,28 @@ window.apiLeaveParty = async function(localOnly = false) {
 window.renderPartyPlayers = function(players) {
     const container = window.getEl('party-players-list'); 
     if (!container) {
-        return;
+        return; 
     }
     
-    container.innerHTML = '';
+    container.innerHTML = ''; 
     const header = window.getEl('party-players-header'); 
     
     if (header && players.length) {
         header.innerHTML = `Игроки: <span id="leader-badge" style="color: #ffd700; font-size: 12px; display: ${isPartyLeader ? 'inline' : 'none'};">(Вы Лидер 👑)</span>`;
     }
     
-    players.forEach(p => {
+    players.forEach(p => { 
         let titleHtml = p.equipped_title ? `<span class="player-title">${p.equipped_title}</span>` : '';
-        
         container.innerHTML += `
             <div class="player-slot">
-                <div class="player-avatar-circle"><img src="assets/pets/pet-${p.avatar}.png" onerror="this.src='assets/eggs/egg-default.png'"></div>
+                <div class="player-avatar-circle">
+                    <img src="assets/pets/pet-${p.avatar}.png" onerror="this.src='assets/eggs/egg-default.png'">
+                </div>
                 <div style="flex:1;">
                     <div class="player-name">${titleHtml}${p.name}</div>
                 </div>
             </div>
-        `;
+        `; 
     });
 };
 
@@ -5158,136 +5287,141 @@ window.startPartyPolling = function() {
         try {
             const res = await fetch(`${API_URL}/party/status/${currentPartyCode}`);
             
-            if (res.status === 404) {
-                window.showToast("Пати распущено", "⚠️");
-                window.apiLeaveParty(true);
-                return;
+            if (res.status === 404) { 
+                window.showToast("Пати распущено", "⚠️"); 
+                window.apiLeaveParty(true); 
+                return; 
             }
             
             const data = await res.json();
-            
-            isPartyLeader = (window.getTgUser().id === data.leader_id);
+            isPartyLeader = (window.getTgUser().id === data.leader_id); 
             currentPartyPlayersData = data.players; 
             isMegaRadarActive = data.mega_radar === 1; 
             
-            window.renderPartyPlayers(data.players);
+            window.renderPartyPlayers(data.players); 
             window.updatePartyUI();
-
-            if (data.active_game !== 'none' && currentActiveGame === 'none') {
-                currentActiveGame = data.active_game;
-                window.forceOpenMiniGame(currentActiveGame);
-            } else if (data.active_game === 'none' && currentActiveGame !== 'none') {
-                window.forceCloseMiniGame(currentActiveGame);
-                currentActiveGame = 'none';
-            } else {
-                currentActiveGame = data.active_game;
+            
+            if (data.active_game !== 'none' && currentActiveGame === 'none') { 
+                currentActiveGame = data.active_game; 
+                window.forceOpenMiniGame(currentActiveGame); 
+            } 
+            else if (data.active_game === 'none' && currentActiveGame !== 'none') { 
+                window.forceCloseMiniGame(currentActiveGame); 
+                currentActiveGame = 'none'; 
+            } 
+            else { 
+                currentActiveGame = data.active_game; 
             }
             
-            if (modalStack.includes('boss-raid-modal')) {
-                window.updateBossRaidUI(data.boss_hp, data.boss_max_hp, data.players);
+            if (modalStack.includes('boss-raid-modal')) { 
+                window.updateBossRaidUI(data.boss_hp, data.boss_max_hp, data.players); 
                 if (data.boss_hp <= 0 && !bossIsDead && currentActiveGame === 'tap_boss') {
-                    window.handleBossRaidEnd();
+                    window.handleBossRaidEnd(); 
                 }
             }
             
-            if (modalStack.includes('expedition-modal')) {
-                window.updateExpeditionUI(data.expedition_end, data.expedition_score, data.expedition_location, data.wolf_hp, data.wolf_max_hp, data.server_time);
+            if (modalStack.includes('expedition-modal')) { 
+                window.updateExpeditionUI(data.expedition_end, data.expedition_score, data.expedition_location, data.wolf_hp, data.wolf_max_hp, data.server_time); 
             }
+            
         } catch(e) {}
     }, 2000);
 };
 
 window.updatePartyUI = function() {
-    let plc = window.getEl('party-leader-controls');
-    let pmc = window.getEl('party-member-controls');
-    let cgb = window.getEl('cancel-game-btn');
+    let plc = window.getEl('party-leader-controls'); 
+    let pmc = window.getEl('party-member-controls'); 
+    let cgb = window.getEl('cancel-game-btn'); 
     let rgb = window.getEl('return-game-btn');
-
+    
     if (isPartyLeader) {
         if (plc) {
-            plc.style.display = 'block';
+            plc.style.display = 'block'; 
         }
         if (pmc) {
             pmc.style.display = 'none';
         }
         
-        if (currentActiveGame !== 'none') {
+        if (currentActiveGame !== 'none') { 
             if (cgb) {
-                cgb.style.display = 'block';
+                cgb.style.display = 'block'; 
             }
             if (plc) { 
                 plc.style.opacity = '0.5'; 
                 plc.style.pointerEvents = 'none'; 
-            }
-        } else {
+            } 
+        } 
+        else { 
             if (cgb) {
-                cgb.style.display = 'none';
+                cgb.style.display = 'none'; 
             }
             if (plc) { 
                 plc.style.opacity = '1'; 
                 plc.style.pointerEvents = 'auto'; 
-            }
+            } 
         }
     } else {
         if (plc) {
-            plc.style.display = 'none';
+            plc.style.display = 'none'; 
         }
         if (cgb) {
             cgb.style.display = 'none';
         }
         
-        if (pmc) {
-            pmc.style.display = 'block';
+        if (pmc) { 
+            pmc.style.display = 'block'; 
             if (currentActiveGame !== 'none') {
-                pmc.innerHTML = `Игра "<b>${window.getGameName(currentActiveGame)}</b>" запущена!`;
+                pmc.innerHTML = `Игра "<b>${window.getGameName(currentActiveGame)}</b>" запущена!`; 
             } else {
-                pmc.innerHTML = "⏳ Ожидание лидера...";
+                pmc.innerHTML = "⏳ Ожидание лидера..."; 
             }
         }
     }
     
-    if (currentActiveGame !== 'none' && !modalStack.includes(window.getModalIdForGame(currentActiveGame))) {
+    if (currentActiveGame !== 'none' && !modalStack.includes(window.getModalIdForGame(currentActiveGame))) { 
         if (rgb) {
-            rgb.style.display = 'block';
+            rgb.style.display = 'block'; 
         }
-    } else {
+    } 
+    else { 
         if (rgb) {
-            rgb.style.display = 'none';
+            rgb.style.display = 'none'; 
         }
     }
 };
 
-window.getGameName = function(type) {
-    if (type === 'tap_boss') return "Зараженное Яйцо";
-    if (type === 'quantum_reactor') return "Квантовый Реактор";
-    if (type === 'expedition') return "Экспедиция";
-    return "Неизвестно";
+window.getGameName = function(type) { 
+    if (type === 'tap_boss') return "Зараженное Яйцо"; 
+    if (type === 'quantum_reactor') return "Квантовый Реактор"; 
+    if (type === 'expedition') return "Экспедиция"; 
+    return "Неизвестно"; 
 };
 
-window.getModalIdForGame = function(type) {
-    if (type === 'tap_boss') return 'boss-raid-modal';
-    if (type === 'quantum_reactor') return 'quantum-reactor-modal';
-    if (type === 'expedition') return 'expedition-modal';
-    return '';
+window.getModalIdForGame = function(type) { 
+    if (type === 'tap_boss') return 'boss-raid-modal'; 
+    if (type === 'quantum_reactor') return 'quantum-reactor-modal'; 
+    if (type === 'expedition') return 'expedition-modal'; 
+    return ''; 
 };
 
 window.requestStartMiniGame = async function(gameType) {
     if (!isPartyLeader) {
-        return;
+        return; 
     }
+    
     window.playSound('click');
     
     try {
-        const res = await fetch(`${API_URL}/party/set_game`, {
+        const res = await fetch(`${API_URL}/party/set_game`, { 
             method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: currentPartyCode, user_id: window.getTgUser().id, game_name: gameType })
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ code: currentPartyCode, user_id: window.getTgUser().id, game_name: gameType }) 
         });
         
-        if (res.ok) {
+        if (res.ok) { 
             currentActiveGame = gameType; 
             window.forceOpenMiniGame(gameType); 
-            window.updatePartyUI();
+            window.updatePartyUI(); 
         }
     } catch(e) { 
         window.showToast("Ошибка сервера", "❌"); 
@@ -5296,16 +5430,18 @@ window.requestStartMiniGame = async function(gameType) {
 
 window.requestStopMiniGame = async function() {
     if (!isPartyLeader) {
-        return;
+        return; 
     }
+    
     window.playSound('click');
     
     try {
-        await fetch(`${API_URL}/party/set_game`, {
+        await fetch(`${API_URL}/party/set_game`, { 
             method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: currentPartyCode, user_id: window.getTgUser().id, game_name: 'none' })
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ code: currentPartyCode, user_id: window.getTgUser().id, game_name: 'none' }) 
         });
+        
         window.forceCloseMiniGame(currentActiveGame); 
         currentActiveGame = 'none'; 
         window.updatePartyUI();
@@ -5337,49 +5473,54 @@ window.forceOpenMiniGame = function(gameType) {
         bossTimerInterval = setInterval(() => {
             bossTimeLeft -= 0.1; 
             const timerEl = window.getEl('raid-timer'); 
+            
             if (timerEl) {
                 timerEl.textContent = bossTimeLeft.toFixed(1);
             }
+            
             if (bossTimeLeft <= 0 && !bossIsDead) { 
                 clearInterval(bossTimerInterval); 
+                
                 if (parasiteInterval) {
                     clearInterval(parasiteInterval); 
                 }
                 window.handleBossRaidEnd(); 
             }
         }, 100);
-
+        
         if (parasiteInterval) {
             clearInterval(parasiteInterval);
         }
+        
         parasiteInterval = setInterval(window.spawnParasite, 2500); 
     }
     
-    if (gameType === 'quantum_reactor') {
-        window.openModal('quantum-reactor-modal');
-        let testRole = isPartyLeader ? 'dispatcher' : 'engineer';
-        window.setupReactorRole(testRole, ['🔴', '🔵', '🟢', '🟡']);
+    if (gameType === 'quantum_reactor') { 
+        window.openModal('quantum-reactor-modal'); 
+        let testRole = isPartyLeader ? 'dispatcher' : 'engineer'; 
+        window.setupReactorRole(testRole, ['🔴', '🔵', '🟢', '🟡']); 
     }
     
     if (gameType === 'expedition') {
         window.calculatePreStartSynergy(); 
         
-        if (isPartyLeader) {
-            let locSel = window.getEl('leader-location-selector');
+        if (isPartyLeader) { 
+            let locSel = window.getEl('leader-location-selector'); 
             if (locSel) {
-                locSel.style.display = 'flex';
+                locSel.style.display = 'flex'; 
             }
             if (!currentExpeditionLocation) {
                 window.selectExpeditionLocation('forest'); 
             }
-        } else {
-            let locSel = window.getEl('leader-location-selector');
+        } 
+        else { 
+            let locSel = window.getEl('leader-location-selector'); 
             if (locSel) {
-                locSel.style.display = 'none';
+                locSel.style.display = 'none'; 
             }
         }
     }
-
+    
     if (modalId && !modalStack.includes(modalId)) {
         window.openModal(modalId);
     }
@@ -5408,11 +5549,15 @@ window.forceCloseMiniGame = function(gameType) {
         expeditionInterval = null; 
     }
     
-    if (modalId && modalStack.includes(modalId)) {
+    if (modalId && modalStack.includes(modalId)) { 
         window.closeModal(modalId); 
-        window.showToast("Лидер завершил игру", "ℹ️");
+        window.showToast("Лидер завершил игру", "ℹ️"); 
     }
 };
+
+// =============================================================
+// БОСС РЕЙД (ВНУТРЕННИЕ ФУНКЦИИ)
+// =============================================================
 
 window.spawnParasite = function() {
     if (bossTimeLeft <= 0 || bossIsDead || isStunned) {
@@ -5424,15 +5569,15 @@ window.spawnParasite = function() {
         return;
     }
     
-    const p = document.createElement('div');
+    const p = document.createElement('div'); 
     p.style.position = 'absolute'; 
     p.style.width = '40px'; 
-    p.style.height = '40px';
+    p.style.height = '40px'; 
     p.style.background = 'radial-gradient(circle, #39ff14, #004d00)'; 
-    p.style.borderRadius = '50%';
+    p.style.borderRadius = '50%'; 
     p.style.boxShadow = '0 0 10px #39ff14'; 
     p.style.top = `${20 + Math.random() * 60}%`; 
-    p.style.left = `${20 + Math.random() * 60}%`;
+    p.style.left = `${20 + Math.random() * 60}%`; 
     p.style.cursor = 'pointer'; 
     p.style.zIndex = '5'; 
     p.style.animation = 'pulseFast 0.5s infinite';
@@ -5469,19 +5614,21 @@ window.triggerStun = function() {
     if (overlay) {
         overlay.style.display = 'flex';
     }
-
-    const modalContent = document.querySelector('#boss-raid-modal .modal-content');
+    
+    const modalContent = document.querySelector('#boss-raid-modal .modal-content'); 
     if (modalContent) {
         modalContent.classList.add('shake-hard');
     }
     
     setTimeout(() => { 
         isStunned = false; 
+        
         if (overlay) {
             overlay.style.display = 'none'; 
         }
+        
         if (modalContent) {
-            modalContent.classList.remove('shake-hard');
+            modalContent.classList.remove('shake-hard'); 
         }
     }, 3000);
 };
@@ -5495,33 +5642,39 @@ window.tapRaidBoss = async function(event) {
         return window.showToast("Ты оглушен!", "❌");
     }
     
-    window.playSound('click');
+    window.playSound('click'); 
     let baseDamage = 1; 
     const r = window.getPetRarity(selectedAvatar); 
     
-    if (r === 'rare') baseDamage = 5; 
-    if (r === 'legendary') baseDamage = 20; 
-    if (r === 'mythic' || r === 'mutant') baseDamage = 50;
-
-    let stars = petStars[selectedAvatar] || 1;
+    if (r === 'rare') {
+        baseDamage = 5; 
+    }
+    if (r === 'legendary') {
+        baseDamage = 20; 
+    }
+    if (r === 'mythic' || r === 'mutant') {
+        baseDamage = 50;
+    }
+    
+    let stars = petStars[selectedAvatar] || 1; 
     baseDamage = baseDamage * stars;
-
-    let isCrit = Math.random() < 0.15;
+    
+    let isCrit = Math.random() < 0.15; 
     let damage = isCrit ? baseDamage * 2 : baseDamage;
-
-    const img = window.getEl('raid-boss-img');
+    
+    const img = window.getEl('raid-boss-img'); 
     if (img) { 
         img.classList.remove('boss-hit-anim'); 
         void img.offsetWidth; 
         img.classList.add('boss-hit-anim'); 
     }
-
+    
     if (event) {
         const ft = document.createElement('div'); 
         ft.textContent = `-${damage}`; 
         ft.style.position = 'fixed';
         
-        let offsetX = (Math.random() - 0.5) * 60;
+        let offsetX = (Math.random() - 0.5) * 60; 
         let offsetY = (Math.random() - 0.5) * 60;
         
         ft.style.left = `${event.clientX + offsetX}px`; 
@@ -5529,23 +5682,24 @@ window.tapRaidBoss = async function(event) {
         ft.style.fontWeight = 'bold'; 
         ft.style.pointerEvents = 'none'; 
         ft.style.zIndex = '9999';
-
-        if (isCrit) {
+        
+        if (isCrit) { 
             ft.style.color = '#ff3b30'; 
-            ft.style.fontSize = '36px';
-            ft.style.textShadow = '0 0 10px #ff0000';
-            ft.style.animation = 'critFly 1s ease-out forwards';
-        } else {
+            ft.style.fontSize = '36px'; 
+            ft.style.textShadow = '0 0 10px #ff0000'; 
+            ft.style.animation = 'critFly 1s ease-out forwards'; 
+        } 
+        else { 
             ft.style.color = '#ffd700'; 
-            ft.style.fontSize = '24px';
-            ft.style.textShadow = '0 0 5px #000';
-            ft.style.animation = 'damageFly 1s ease-out forwards';
+            ft.style.fontSize = '24px'; 
+            ft.style.textShadow = '0 0 5px #000'; 
+            ft.style.animation = 'damageFly 1s ease-out forwards'; 
         }
         
-        document.body.appendChild(ft);
+        document.body.appendChild(ft); 
         setTimeout(() => ft.remove(), 1000);
     }
-
+    
     try { 
         await fetch(`${API_URL}/party/damage`, { 
             method: 'POST', 
@@ -5570,14 +5724,14 @@ window.updateBossRaidUI = function(hp, maxHp, players) {
         return; 
     }
     
-    grid.innerHTML = '';
-    const myId = window.getTgUser().id;
+    grid.innerHTML = ''; 
+    const myId = window.getTgUser().id; 
     let sorted = [...players].sort((a,b) => b.boss_hp - a.boss_hp);
     
     sorted.forEach(p => {
-        const isMe = p.user_id === myId;
+        const isMe = p.user_id === myId; 
         let eggSkin = p.egg_skin || 'default'; 
-        const item = SHOP_DATA.eggs.find(x => x.id === eggSkin);
+        const item = SHOP_DATA.eggs.find(x => x.id === eggSkin); 
         const eggImg = item ? item.img : 'assets/eggs/egg-default.png';
         
         grid.innerHTML += `
@@ -5599,6 +5753,7 @@ window.handleBossRaidEnd = function() {
     if (bossTimerInterval) {
         clearInterval(bossTimerInterval); 
     }
+    
     if (parasiteInterval) {
         clearInterval(parasiteInterval);
     }
@@ -5606,7 +5761,7 @@ window.handleBossRaidEnd = function() {
     window.playSound('win');
     
     const myId = window.getTgUser().id; 
-    const me = currentPartyPlayersData.find(p => p.user_id === myId);
+    const me = currentPartyPlayersData.find(p => p.user_id === myId); 
     let winner = null;
     
     if (currentPartyPlayersData.length > 0) {
@@ -5620,7 +5775,8 @@ window.handleBossRaidEnd = function() {
         window.fireConfetti(); 
         window.showToast(`ТЫ MVP! +${window.formatNumber(prize)} монет`, "🏆"); 
         walletBalance += prize; 
-    } else { 
+    } 
+    else { 
         const myDmg = me ? me.boss_hp : 0; 
         const reward = Math.floor(myDmg * 0.5 * vipMult); 
         window.showToast(`Босс повержен! Твоя доля: +${window.formatNumber(reward)} монет`, "💰"); 
@@ -5638,105 +5794,107 @@ window.handleBossRaidEnd = function() {
 // =============================================================
 // МИНИ-ИГРА: КВАНТОВЫЙ РЕАКТОР
 // =============================================================
+
 window.setupReactorRole = function(role, secretCode = null) {
-    let rd = window.getEl('role-dispatcher');
-    let re = window.getEl('role-engineer');
+    let rd = window.getEl('role-dispatcher'); 
+    let re = window.getEl('role-engineer'); 
     let rs = window.getEl('role-stabilizer');
     
-    if (rd) rd.style.display = 'none';
-    if (re) re.style.display = 'none';
+    if (rd) rd.style.display = 'none'; 
+    if (re) re.style.display = 'none'; 
     if (rs) rs.style.display = 'none';
     
-    if (role === 'dispatcher') {
-        if (rd) rd.style.display = 'block';
-        window.renderDispatcherCode(secretCode || ['🔴','🔵','🟢','🟡']);
+    if (role === 'dispatcher') { 
+        if (rd) rd.style.display = 'block'; 
+        window.renderDispatcherCode(secretCode || ['🔴','🔵','🟢','🟡']); 
     } 
-    else if (role === 'engineer') {
-        if (re) re.style.display = 'block';
-        requiredCodeLength = secretCode ? secretCode.length : 4;
-        window.reactorClearInput();
+    else if (role === 'engineer') { 
+        if (re) re.style.display = 'block'; 
+        requiredCodeLength = secretCode ? secretCode.length : 4; 
+        window.reactorClearInput(); 
     }
-    else if (role === 'stabilizer') {
-        if (rs) rs.style.display = 'block';
+    else if (role === 'stabilizer') { 
+        if (rs) rs.style.display = 'block'; 
     }
 };
 
 window.renderDispatcherCode = function(codeArray) {
-    const container = window.getEl('dispatcher-secret-code');
-    if (!container) return;
+    const container = window.getEl('dispatcher-secret-code'); 
+    if (!container) return; 
+    
     container.innerHTML = '';
     
-    codeArray.forEach(gene => {
-        const span = document.createElement('span');
-        span.textContent = gene;
-        span.style.animation = "popIn 0.3s ease";
-        container.appendChild(span);
+    codeArray.forEach(gene => { 
+        const span = document.createElement('span'); 
+        span.textContent = gene; 
+        span.style.animation = "popIn 0.3s ease"; 
+        container.appendChild(span); 
     });
 };
 
 window.renderEngineerSlots = function() {
-    const container = window.getEl('engineer-input-slots');
-    if (!container) return;
+    const container = window.getEl('engineer-input-slots'); 
+    if (!container) return; 
+    
     container.innerHTML = '';
     
     for (let i = 0; i < requiredCodeLength; i++) {
-        const slot = document.createElement('div');
+        const slot = document.createElement('div'); 
         slot.style.width = '40px'; 
-        slot.style.height = '40px';
+        slot.style.height = '40px'; 
         slot.style.border = '2px dashed #555'; 
-        slot.style.borderRadius = '8px';
+        slot.style.borderRadius = '8px'; 
         slot.style.display = 'flex'; 
-        slot.style.justifyContent = 'center';
+        slot.style.justifyContent = 'center'; 
         slot.style.alignItems = 'center'; 
         slot.style.fontSize = '24px';
         
-        if (engineerCurrentInput[i]) {
-            slot.textContent = engineerCurrentInput[i];
-            slot.style.border = '2px solid #00A3FF';
-            slot.style.background = 'rgba(0, 163, 255, 0.1)';
+        if (engineerCurrentInput[i]) { 
+            slot.textContent = engineerCurrentInput[i]; 
+            slot.style.border = '2px solid #00A3FF'; 
+            slot.style.background = 'rgba(0, 163, 255, 0.1)'; 
         }
-        
         container.appendChild(slot);
     }
 };
 
 window.reactorTypeGene = function(gene) {
-    if (engineerCurrentInput.length >= requiredCodeLength) return;
+    if (engineerCurrentInput.length >= requiredCodeLength) {
+        return;
+    }
     
-    if (typeof playSound === 'function') window.playSound('click');
+    if (typeof playSound === 'function') {
+        window.playSound('click');
+    }
     
-    engineerCurrentInput.push(gene);
+    engineerCurrentInput.push(gene); 
     window.renderEngineerSlots();
     
     if (engineerCurrentInput.length === requiredCodeLength) {
-        socket.emit('submitCode', { 
-            roomId: currentPartyCode, 
-            code: engineerCurrentInput 
-        });
+        socket.emit('submitCode', { roomId: currentPartyCode, code: engineerCurrentInput });
         window.showToast("Код отправлен на проверку...", "📡");
     }
 };
 
-window.reactorClearInput = function() {
-    engineerCurrentInput = [];
-    window.renderEngineerSlots();
-    window.playSound('click');
+window.reactorClearInput = function() { 
+    engineerCurrentInput = []; 
+    window.renderEngineerSlots(); 
+    window.playSound('click'); 
 };
 
 window.triggerReactorPenalty = function() {
-    const overlay = window.getEl('reactor-danger-overlay');
-    if (overlay) {
-        overlay.style.display = 'block';
-        setTimeout(() => {
-            overlay.style.display = 'none';
-        }, 1000);
+    const overlay = window.getEl('reactor-danger-overlay'); 
+    if (overlay) { 
+        overlay.style.display = 'block'; 
+        setTimeout(() => overlay.style.display = 'none', 1000); 
     }
-    window.playSound('wrong');
+    window.playSound('wrong'); 
     window.reactorClearInput();
 };
 
 window.handleReactorEnd = function(result) {
     window.forceCloseMiniGame('quantum_reactor');
+    
     if (result === 'win') { 
         window.playSound('win'); 
         window.showToast("РЕАКТОР СТАБИЛИЗИРОВАН! +5000 Монет", "⚛️"); 
@@ -6269,9 +6427,6 @@ window.claimExpedition = async function() {
 // =============================================================
 // ГЛОБАЛЬНЫЙ РЫНОК (MARKET)
 // =============================================================
-let currentMarketTab = 'all';
-let selectedPetForSale = null;
-
 window.openMarketModal = async function() {
     window.playSound('click');
     window.openModal('market-modal');
@@ -6595,7 +6750,9 @@ window.checkMarketSales = async function() {
             window.updateBalanceUI();
             window.playSound('money');
         }
-    } catch(e) {}
+    } catch(e) {
+        console.error("Ошибка проверки рынка", e);
+    }
 };
 
 setInterval(window.checkMarketSales, 5000);
