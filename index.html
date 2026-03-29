@@ -159,7 +159,6 @@
         .pet-price { text-align: center; font-size: 18px; font-weight: bold; color: #ffd700; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; }
         .sell-action { background: linear-gradient(135deg, #34c759 0%, #28a745 100%); margin-top: 10px; }
 
-        /* ИСПРАВЛЕННЫЕ ДРУЗЬЯ (ШИРИНА 100%) */
         .achievement-card { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); width: 100%; box-sizing: border-box; }
         .achievement-card.unlocked { border-color: var(--success); background: rgba(52, 199, 89, 0.05); }
         .ach-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; flex-shrink: 0; }
@@ -206,7 +205,6 @@
         .tap-cell { background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); width: calc(33.33% - 5px); aspect-ratio: 1; pointer-events: none; }
         .tap-cell.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,163,255,0.2); }
         
-        /* ИСПРАВЛЕННЫЙ ТОП ФОРБС (ШИРИНА И ОТСТУПЫ) */
         .forbes-item { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 12px 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px; width: 100%; box-sizing: border-box; }
         .forbes-item.me { border-color: #00A3FF; background: rgba(0, 163, 255, 0.1); }
         .forbes-rank { font-weight: 800; font-size: 14px; color: #888; width: 24px; text-align: center; flex-shrink: 0; }
@@ -246,7 +244,6 @@
         @keyframes pulseDanger { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.5; } }
         .shake-lose { animation: shakeHard 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         
-        /* === СТИЛИ ДЛЯ BATTLE PASS (ПУТЬ ФОКУСА) === */
         .bp-horizontal-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; scroll-snap-type: x mandatory; }
         .bp-col { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 100px; scroll-snap-align: center; }
         .bp-card { width: 100px; height: 110px; background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 5px; position: relative; overflow: hidden; }
@@ -465,6 +462,7 @@
         <div class="modal-content" style="padding:0; overflow:hidden;">
             <div style="position:relative; background:linear-gradient(180deg, rgba(0,163,255,0.2) 0%, var(--panel) 100%); padding:25px 20px 15px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.05);">
                 <span class="close-btn" onclick="closeModal('syndicate-view-modal')" style="top:10px; right:10px; z-index:10;">×</span>
+                <span id="syn-settings-btn" class="close-btn" style="top:10px; right:50px; z-index:10; font-size:20px; display:none;">⚙️</span>
                 <img id="syn-view-avatar" src="" style="width:80px;height:80px;border-radius:16px; border:3px solid #00A3FF; background:#333; object-fit:contain; margin-bottom:10px; box-shadow: 0 5px 15px rgba(0,163,255,0.3);">
                 <h2 id="syn-view-name" style="margin-bottom:0;">Название</h2>
                 <div id="syn-view-tag" style="color:#00A3FF; font-weight:900; font-size:14px; letter-spacing:1px; margin-bottom:10px;">[TAG]</div>
@@ -481,7 +479,10 @@
             <div style="padding:15px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h3 style="font-size:14px; color:#888;">Участники (<span id="syn-view-count">1/50</span>)</h3>
-                    <button id="syn-invite-btn" class="btn small" style="background:rgba(255,255,255,0.1); border:1px solid #555;" onclick="copySynInvite()">Код приглашения</button>
+                    <div style="display:flex; gap: 5px;">
+                        <button class="btn small" style="background:#00A3FF;" onclick="openModal('syndicates-list-modal'); apiLoadTopSyndicates();">🏆 Топ</button>
+                        <button id="syn-invite-btn" class="btn small" style="background:rgba(255,255,255,0.1); border:1px solid #555;" onclick="copySynInvite()">Код</button>
+                    </div>
                 </div>
                 
                 <div id="syn-members-list" style="background:rgba(0,0,0,0.2); border-radius:12px; border:1px solid rgba(255,255,255,0.05); max-height: 40vh; overflow-y:auto; margin-bottom:15px;">
@@ -492,6 +493,29 @@
             </div>
         </div>
     </div>
+    
+    <div id="syndicate-settings-modal" class="modal" style="z-index: 1070;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('syndicate-settings-modal')">×</span>
+            <h2>Настройки Клана ⚙️</h2>
+            
+            <div style="text-align:center; margin-bottom: 15px;">
+                <img id="edit-syn-avatar-preview" src="assets/ui/icon-profile.png" style="width:70px;height:70px;border-radius:16px; border:2px solid var(--primary); background:#333; object-fit:contain; margin-bottom:10px; cursor: pointer;" onclick="openSynAvatarSelector()">
+                <div style="font-size:11px; color:#888;">(Нажми, чтобы сменить Лого)</div>
+            </div>
+            
+            <input type="text" id="edit-syn-name-input" placeholder="Новое название" maxlength="15" style="width:100%; padding:12px; border-radius:10px; background:#222; color:#fff; border:1px solid #444; margin-bottom:10px; outline:none; text-align:center;">
+            <input type="text" id="edit-syn-tag-input" placeholder="Новый ТЕГ" maxlength="4" style="width:100%; padding:12px; border-radius:10px; background:#222; color:#00A3FF; border:1px solid #444; margin-bottom:20px; outline:none; text-align:center; font-weight:bold; text-transform:uppercase;">
+            
+            <p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">Стоимость сохранения:</p>
+            <div style="display:flex; gap:10px; width: 100%; margin-bottom: 20px;">
+                <button class="btn" style="flex:1; background:#00A3FF; font-size:12px;" onclick="apiUpdateSyndicate('coins')">10k 💰</button>
+                <button class="btn" style="flex:1; background:#ffd700; color:#000; font-size:12px;" onclick="apiUpdateSyndicate('stars')">100 ⭐️</button>
+            </div>
+            
+            <button class="btn stop" style="width:100%; font-size:14px; background:transparent; border:1px solid #ff3b30;" onclick="apiLeaveSyndicate()">Удалить Синдикат ❌</button>
+        </div>
+    </div>
 
     <div id="syn-avatar-selector-modal" class="modal" style="z-index: 1080;">
         <div class="modal-content">
@@ -500,7 +524,6 @@
             <div id="syn-avatar-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:50vh; overflow-y:auto; overflow-x:hidden; padding-bottom:10px; width:100%; box-sizing: border-box;"></div>
         </div>
     </div>
-
 
     <div id="quantum-reactor-modal" class="modal" style="z-index:1001;">
         <div id="reactor-danger-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,59,48,0.3); pointer-events:none; display:none; animation: pulseDanger 1s infinite; z-index: 1;"></div>
