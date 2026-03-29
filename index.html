@@ -184,6 +184,18 @@
         .player-avatar-circle img { width: 80%; height: 80%; object-fit: contain; pointer-events: none; }
         .player-name { font-weight: bold; font-size: 14px; flex: 1; }
         
+        /* === ТИТУЛ ИГРОКА === */
+        .player-title {
+            display: block;
+            font-size: 10px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
         .dna-node { width: 100%; padding-bottom: 100%; background: #333; border-radius: 12px; cursor: pointer; position: relative; transition: 0.3s; border: 2px solid #555; }
         .dna-node.active { background: #8a2be2; border-color: #d1a3ff; box-shadow: 0 0 15px #8a2be2; }
         .mythic-silhouette { filter: brightness(0); opacity: 0.5; transition: 1s; }
@@ -481,7 +493,7 @@
                     <h3 style="font-size:14px; color:#888;">Участники (<span id="syn-view-count">1/50</span>)</h3>
                     <div style="display:flex; gap: 5px;">
                         <button class="btn small" style="background:#00A3FF;" onclick="openModal('syndicates-list-modal'); apiLoadTopSyndicates();">🏆 Топ</button>
-                        <button id="syn-invite-btn" class="btn small" style="background:rgba(255,255,255,0.1); border:1px solid #555;" onclick="copySynInvite()">Код</button>
+                        <button id="syn-invite-btn" class="btn small" style="background:rgba(255,255,255,0.1); border:1px solid #555;" onclick="copySynInvite()">Код приглашения</button>
                     </div>
                 </div>
                 
@@ -500,7 +512,7 @@
             <h2>Настройки Клана ⚙️</h2>
             
             <div style="text-align:center; margin-bottom: 15px;">
-                <img id="edit-syn-avatar-preview" src="assets/ui/icon-profile.png" style="width:70px;height:70px;border-radius:16px; border:2px solid var(--primary); background:#333; object-fit:contain; margin-bottom:10px; cursor: pointer;" onclick="openSynAvatarSelector()">
+                <img id="edit-syn-avatar-preview" src="assets/ui/icon-profile.png" style="width:70px;height:70px;border-radius:16px; border:2px solid var(--primary); background:#333; object-fit:contain; margin-bottom:10px; cursor: pointer;" onclick="openSynAvatarSelector(true)">
                 <div style="font-size:11px; color:#888;">(Нажми, чтобы сменить Лого)</div>
             </div>
             
@@ -509,8 +521,8 @@
             
             <p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">Стоимость сохранения:</p>
             <div style="display:flex; gap:10px; width: 100%; margin-bottom: 20px;">
-                <button class="btn" style="flex:1; background:#00A3FF; font-size:12px;" onclick="apiUpdateSyndicate('coins')">10k 💰</button>
-                <button class="btn" style="flex:1; background:#ffd700; color:#000; font-size:12px;" onclick="apiUpdateSyndicate('stars')">100 ⭐️</button>
+                <button class="btn" style="flex:1; background:#00A3FF; font-size:12px;" onclick="apiSaveSyndicateSettings('coins')">10k 💰</button>
+                <button class="btn" style="flex:1; background:#ffd700; color:#000; font-size:12px;" onclick="apiSaveSyndicateSettings('stars')">100 ⭐️</button>
             </div>
             
             <button class="btn stop" style="width:100%; font-size:14px; background:transparent; border:1px solid #ff3b30;" onclick="apiLeaveSyndicate()">Удалить Синдикат ❌</button>
@@ -664,10 +676,11 @@
     <div id="achievements-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('achievements-modal')">×</span>
-            <h2>Задания 📜</h2>
+            <h2>Задания и Титулы 📜</h2>
             <div class="tabs" style="width: 100%; box-sizing: border-box;">
                 <button class="tab-btn active" onclick="switchAchTab('achievements')">Достижения</button>
                 <button class="tab-btn" onclick="switchAchTab('quests')">Контракты</button>
+                <button class="tab-btn" onclick="switchAchTab('titles')" style="color:#ffd700;">Титулы 👑</button>
             </div>
             <div id="achievements-list" style="margin-top:15px; display:flex; flex-direction:column; gap:10px; padding-bottom:10px; width:100%; box-sizing: border-box;"></div>
         </div>
@@ -679,7 +692,9 @@
             <h2>Мой Профиль</h2>
             <div style="text-align:center; position:relative; margin-top:15px;">
                 <img id="profile-avatar" src="assets/ui/icon-profile.png" style="width:90px;height:90px;border-radius:50%;margin-bottom:10px; border:3px solid var(--primary); background:#333; object-fit:contain;">
+                
                 <div id="profile-rank" style="font-weight:900; font-size:22px; color:#fff;"></div>
+                
                 <div id="profile-level" style="color:#00A3FF; font-weight:bold; margin-top:5px;"></div>
             </div>
             
@@ -698,6 +713,7 @@
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Пыль:</span> <span id="total-dust" style="font-weight:bold; color:#a8a8a8;">✨ 0</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#888;">Приглашено:</span> <span id="stat-invites" style="font-weight:bold;">0</span></div>
                 
+                <button class="btn" style="width:100%; margin-top:10px; background:linear-gradient(90deg, #ff9500, #ff3b30);" onclick="openAch()">Достижения и Титулы 🏆</button>
                 <button class="btn" style="width:100%; margin-top:10px; background:linear-gradient(90deg, #8a2be2, #4b0082);" onclick="openShowcaseSetup()">Настроить Витрину 🏆</button>
                 <button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.1); border:1px solid #555;" onclick="openLevels()">Путь Фокуса 🏆</button>
                 <button class="btn" style="width:100%; margin-top:10px; background:#00A3FF;" onclick="openAvatarSelector()">Выбрать Аватар</button>
@@ -771,7 +787,9 @@
                 
                 <div style="text-align:center; position:relative; margin-top:10px; z-index:2;">
                     <img id="pub-avatar" src="assets/ui/icon-profile.png" style="width:70px;height:70px;border-radius:50%;margin-bottom:5px; border:2px solid var(--primary); background:#333; object-fit:contain; box-shadow:0 0 15px rgba(0,163,255,0.5);">
+                    
                     <div id="pub-name" style="font-weight:900; font-size:20px; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.8);">Игрок</div>
+                    
                     <div id="pub-level" style="color:#00A3FF; font-weight:bold; font-size:12px; text-shadow:0 1px 3px rgba(0,0,0,0.8);">Уровень 1</div>
                 </div>
 

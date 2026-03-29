@@ -12,7 +12,7 @@ window.onerror = function(msg, source, lineno) {
 };
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-var audioCtx = null;
+let audioCtx = null;
 
 try {
     audioCtx = new AudioContext();
@@ -91,7 +91,7 @@ window.playNote = function(freq, time, duration) {
 };
 
 // =============================================================
-// 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (Исправлено на var для избежания ReferenceError)
+// 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 // =============================================================
 var API_URL = "https://focushatcher-ondey.amvera.io/api"; 
 var botLink = "https://t.me/FocusHatcher_Ondey_bot/game"; 
@@ -99,6 +99,7 @@ var botLink = "https://t.me/FocusHatcher_Ondey_bot/game";
 var socket = io("https://focushatcher-ondey.amvera.io");
 
 var modalStack = [];
+
 // Основной прогресс
 var collection = [];
 var userXP = 0;
@@ -115,6 +116,13 @@ var lastHatchDate = "";
 var claimedRewards = [];
 var mythicTickets = 0;
 
+// === ДОСТИЖЕНИЯ И ТИТУЛЫ ===
+var focusHours = 0;
+var mythicsCrafted = 0;
+var reactorWins = 0;
+var equippedTitle = "";
+var unlockedTitles = [];
+
 // Инвентарь и настройки
 var ownedItems = { themes: ['default'], eggs: ['default'] };
 var activeTheme = 'default';
@@ -128,13 +136,12 @@ var usedCodes = [];
 var isVibrationOn = true;
 var isSoundOn = false;
 
-// Друзья, Синдикаты и Витрина
+// Друзья, Витрина и Синдикаты
 var currentFriendsList = [];
 var currentViewingFriendId = null;
 var currentPublicUser = null;
 var userShowcase = { center: null, left: null, right: null };
 var currentShowcaseSlot = null;
-
 var mySyndicateId = null;
 var createSynSelectedAvatar = 'default';
 var isEditingSyndicate = false;
@@ -323,7 +330,7 @@ for (let i = 1; i <= 100; i++) {
         pro = { type: 'bundle_100', icon: '🎁', name: 'Матрица + 150⭐️ + Неон Дракон', dustVal: 1000 }; 
     }
 
-    BATTLE_PASS_REWARDS.push({ level: i, free, pro });
+    BATTLE_PASS_REWARDS.push({ level: i, free: free, pro: pro });
 }
 
 const ACHIEVEMENTS_DATA = [
@@ -342,7 +349,13 @@ const QUESTS_DATA = [
     { id: 'invite_friends', title: 'Друзья', desc: 'Пригласи 5 друзей', reward: 2000, type: 'invite', goal: 5 }
 ];
 
-// ОБНОВЛЕННЫЕ ЦЕНЫ С ДИНАМИКОЙ
+// === НОВЫЕ ТИТУЛЫ ===
+const TITLES_DATA = [
+    { id: 'time_lord', req: 100, type: 'focus', title: '👑 Повелитель Времени', desc: '100 часов фокуса' },
+    { id: 'mad_scientist', req: 5, type: 'mythic', title: '☢️ Безумный Ученый', desc: 'Скрафтить 5 мификов' },
+    { id: 'quantum_eng', req: 10, type: 'reactor', title: '⚡ Квантовый Инженер', desc: '10 побед в Реакторе' }
+];
+
 const SHOP_DATA = {
     themes: [
         { id: 'default', name: 'Тьма', price: 0, bgFile: null },
@@ -386,7 +399,6 @@ window.getDailyRewardsConfig = function() {
     ];
 };
 
-// === РУЛЕТКИ С XP ===
 const ROULETTE_PRIZES = {
     base: [
         { n: "1 000 Монет", t: 'money', v: 1000, p: 40 },
@@ -446,15 +458,12 @@ window.isVip = function() {
 
 window.openModal = function(id) {
     window.playSound('click');
-    
     if (modalStack.length > 0 && modalStack[modalStack.length - 1] === id) {
         return;
     }
     
     if (modalStack.length > 0) {
         let prevId = modalStack[modalStack.length - 1];
-        
-        // Оставляем открытыми фоном: бургер, просмотр синдиката и витрину
         if (prevId !== 'more-modal' && prevId !== 'syndicate-view-modal' && prevId !== 'showcase-setup-modal' && id !== 'syn-avatar-selector-modal' && id !== 'syndicate-settings-modal') {
             const prevEl = window.getEl(prevId);
             if (prevEl) {
@@ -465,11 +474,8 @@ window.openModal = function(id) {
     
     const el = window.getEl(id);
     if (el) { 
-        // 🔥 ФИКС: Если бургер-меню открыто, динамически выносим новое окно поверх него!
-        if (modalStack.includes('more-modal')) {
-            el.style.zIndex = '1060';
-        }
-        
+        let newZIndex = 1060 + (modalStack.length * 10);
+        el.style.zIndex = newZIndex.toString();
         el.style.display = 'flex'; 
         modalStack.push(id); 
     }
@@ -557,7 +563,7 @@ window.fireConfetti = function() {
 };
 
 // =============================================================
-// КОНТРАКТЫ И ЕЖЕДНЕВНЫЕ НАГРАДЫ
+// КОНТРАКТЫ И НАГРАДЫ
 // =============================================================
 window.checkContracts = function() {
     const today = new Date().toDateString();
@@ -795,7 +801,7 @@ window.claimDaily = function() {
 };
 
 // =============================================================
-// 7. ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЕ В ОБЛАКО
+// ИНИЦИАЛИЗАЦИЯ И СОХРАНЕНИЕ 
 // =============================================================
 window.initGame = function() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -853,6 +859,13 @@ window.initGame = function() {
             
             customEggConfig = window.safeParse(localStorage.getItem('customEggConfig'), { target: 'all', timeOnline: 3600, timeOffline: 5 * 3600 });
             userShowcase = window.safeParse(localStorage.getItem('userShowcase'), { center: null, left: null, right: null });
+            
+            // Титулы
+            focusHours = parseFloat(localStorage.getItem('focusHours')) || 0;
+            mythicsCrafted = parseInt(localStorage.getItem('mythicsCrafted')) || 0;
+            reactorWins = parseInt(localStorage.getItem('reactorWins')) || 0;
+            equippedTitle = localStorage.getItem('equippedTitle') || "";
+            unlockedTitles = window.safeParse(localStorage.getItem('unlockedTitles'), []);
         }
     } catch(e) { 
         console.error("Local Load Error", e); 
@@ -900,7 +913,7 @@ window.loadFromCloud = function() {
         'vipEndTime', 'hasSecondSlot', 'secondSlotEndTime', 'userJokers', 
         'lastRouletteDate', 'lastSaveTime', 'boxAdsProgress', 'petStars', 'activeContracts',
         'hatchStreak', 'lastHatchDate', 'dustBalance', 'claimedRewards', 'mythicTickets', 
-        'customEggConfig', 'userShowcase'
+        'customEggConfig', 'userShowcase', 'focusHours', 'mythicsCrafted', 'reactorWins', 'equippedTitle', 'unlockedTitles'
     ];
     
     Telegram.WebApp.CloudStorage.getItems(keys, (err, values) => {
@@ -998,6 +1011,12 @@ window.loadFromCloud = function() {
                 if (values.activeContracts) {
                     activeContracts = window.safeParse(values.activeContracts, { date: '', allClaimed: false, tasks: [] });
                 }
+                
+                if (values.focusHours) focusHours = parseFloat(values.focusHours);
+                if (values.mythicsCrafted) mythicsCrafted = parseInt(values.mythicsCrafted);
+                if (values.reactorWins) reactorWins = parseInt(values.reactorWins);
+                if (values.equippedTitle) equippedTitle = values.equippedTitle;
+                if (values.unlockedTitles) unlockedTitles = window.safeParse(values.unlockedTitles, []);
 
                 let profileBtn = window.getEl('header-profile-btn');
                 if (selectedAvatar !== 'default' && profileBtn) { 
@@ -1073,6 +1092,12 @@ window.saveData = function(skipTimeUpdate = false) {
     localStorage.setItem('boxAdsProgress', JSON.stringify(boxAdsProgress));
     localStorage.setItem('petStars', JSON.stringify(petStars));
     localStorage.setItem('activeContracts', JSON.stringify(activeContracts));
+    
+    localStorage.setItem('focusHours', focusHours);
+    localStorage.setItem('mythicsCrafted', mythicsCrafted);
+    localStorage.setItem('reactorWins', reactorWins);
+    localStorage.setItem('equippedTitle', equippedTitle);
+    localStorage.setItem('unlockedTitles', JSON.stringify(unlockedTitles));
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
         Telegram.WebApp.CloudStorage.setItem('lastSaveTime', localSaveTime.toString());
@@ -1104,11 +1129,17 @@ window.saveData = function(skipTimeUpdate = false) {
         Telegram.WebApp.CloudStorage.setItem('boxAdsProgress', JSON.stringify(boxAdsProgress));
         Telegram.WebApp.CloudStorage.setItem('petStars', JSON.stringify(petStars));
         Telegram.WebApp.CloudStorage.setItem('activeContracts', JSON.stringify(activeContracts));
+        
+        Telegram.WebApp.CloudStorage.setItem('focusHours', focusHours.toString());
+        Telegram.WebApp.CloudStorage.setItem('mythicsCrafted', mythicsCrafted.toString());
+        Telegram.WebApp.CloudStorage.setItem('reactorWins', reactorWins.toString());
+        Telegram.WebApp.CloudStorage.setItem('equippedTitle', equippedTitle);
+        Telegram.WebApp.CloudStorage.setItem('unlockedTitles', JSON.stringify(unlockedTitles));
     }
 };
 
 // =============================================================
-// ПРОФИЛЬ, ДРУЗЬЯ И BATTLE PASS
+// 8. ПРОФИЛЬ, ДРУЗЬЯ И ТИТУЛЫ
 // =============================================================
 window.apiSyncGlobalProfile = async function() {
     const user = window.getTgUser(); 
@@ -1165,7 +1196,12 @@ window.apiSyncGlobalProfile = async function() {
                 claimed_rewards: JSON.stringify(claimedRewards),
                 mythic_tickets: mythicTickets,
                 active_theme: activeTheme,
-                showcase: JSON.stringify(userShowcase)
+                showcase: JSON.stringify(userShowcase),
+                focus_hours: focusHours,
+                mythics_crafted: mythicsCrafted,
+                reactor_wins: reactorWins,
+                equipped_title: equippedTitle,
+                unlocked_titles: JSON.stringify(unlockedTitles)
             })
         });
     } catch(e) {}
@@ -1281,7 +1317,7 @@ window.openProfile = function() {
     
     let pr = window.getEl('profile-rank'); 
     if (pr) {
-        pr.textContent = RANKS[Math.floor(userLevel / 5)] || "Создатель";
+        pr.innerHTML = (equippedTitle ? `<span class="player-title" style="font-size: 14px; display: block; margin-bottom: 5px;">${equippedTitle}</span>` : '') + (RANKS[Math.floor(userLevel / 5)] || "Создатель");
         if (window.isVip()) {
             pr.innerHTML += ' <span style="color:#ffd700">👑 PRO</span>';
         }
@@ -1454,11 +1490,13 @@ window.apiLoadFriends = async function() {
         
         data.friends.forEach(f => {
             const encodedFriend = encodeURIComponent(JSON.stringify(f));
+            let titleHtml = f.equipped_title ? `<span class="player-title">${f.equipped_title}</span>` : '';
             
             container.innerHTML += `
                 <div class="achievement-card" style="cursor: pointer;" onclick="window.openPublicProfileObj('${encodedFriend}')">
                     <div class="ach-icon"><img src="${window.getPetImg(f.avatar)}" onerror="this.src='assets/ui/icon-profile.png'"></div>
                     <div class="ach-info">
+                        ${titleHtml}
                         <div class="ach-title">${f.name} <span style="color:#ffd700; font-size:10px;">${f.syndicate_tag ? `[${f.syndicate_tag}]` : ''}</span></div>
                         <div class="ach-desc">Уровень ${f.level}</div>
                     </div>
@@ -1687,12 +1725,14 @@ window.apiLoadSyndicateInfo = async function(synId) {
                 let bgStyle = isMe ? 'background: rgba(0, 163, 255, 0.1);' : '';
                 
                 let encodedUser = encodeURIComponent(JSON.stringify(m));
+                let titleHtml = m.equipped_title ? `<span class="player-title">${m.equipped_title}</span>` : '';
                 
                 mList.innerHTML += `
                     <div class="syndicate-member" style="${bgStyle} cursor:pointer;" onclick="window.openPublicProfileObj('${encodedUser}')">
                         <div style="color:#888; font-size:12px; font-weight:bold; width:15px;">${rank}</div>
                         <img src="${window.getPetImg(m.avatar)}" style="width:30px; height:30px; border-radius:50%; background:#333; object-fit:contain;">
                         <div style="flex:1; overflow:hidden;">
+                            ${titleHtml}
                             <div style="font-size:13px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                 ${m.name} <span style="color:#ffd700; font-size:10px;">${s.tag ? `[${s.tag}]` : ''}</span> ${isMe ? '(Ты)' : ''}
                             </div>
@@ -1952,7 +1992,8 @@ window.openPublicProfileObj = function(encodedUser) {
 
     let pName = window.getEl('pub-name'); 
     if (pName) {
-        pName.innerHTML = `${u.name} <span style="color:#ffd700; font-size:12px;">${u.syndicate_tag ? `[${u.syndicate_tag}]` : ''}</span>`;
+        let titleHtml = u.equipped_title ? `<span class="player-title">${u.equipped_title}</span>` : '';
+        pName.innerHTML = `${titleHtml}${u.name} <span style="color:#ffd700; font-size:12px;">${u.syndicate_tag ? `[${u.syndicate_tag}]` : ''}</span>`;
     }
     
     let pLevel = window.getEl('pub-level'); 
@@ -2373,6 +2414,17 @@ window.checkAchievements = function() {
         }
     }
     
+    TITLES_DATA.forEach(t => {
+        let current = 0;
+        if (t.type === 'focus') current = Math.floor(focusHours);
+        if (t.type === 'mythic') current = mythicsCrafted;
+        if (t.type === 'reactor') current = reactorWins;
+        
+        if (current >= t.req && !unlockedTitles.includes(t.id)) {
+            hasAch = true;
+        }
+    });
+    
     let hasBpReward = false;
     
     BATTLE_PASS_REWARDS.forEach(bp => {
@@ -2779,8 +2831,10 @@ window.switchAchTab = function(t) {
     
     if (t === 'achievements') {
         window.renderAch(); 
-    } else {
+    } else if (t === 'quests') {
         window.renderQuests(); 
+    } else if (t === 'titles') {
+        window.renderTitles();
     }
     
     window.playSound('click'); 
@@ -2870,6 +2924,85 @@ window.renderQuests = function() {
         
         c.appendChild(d);
     });
+};
+
+// === РЕНДЕР ТИТУЛОВ В МОДАЛКЕ ===
+window.renderTitles = function() {
+    const c = window.getEl('achievements-list'); 
+    if (!c) {
+        return;
+    }
+    
+    c.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">Особые звания за великие заслуги</p>';
+    
+    TITLES_DATA.forEach(t => {
+        let current = 0;
+        if (t.type === 'focus') {
+            current = Math.floor(focusHours);
+        }
+        if (t.type === 'mythic') {
+            current = mythicsCrafted;
+        }
+        if (t.type === 'reactor') {
+            current = reactorWins;
+        }
+        
+        let isUnlocked = unlockedTitles.includes(t.id);
+        let isEquipped = equippedTitle === t.title;
+        let isCompleted = current >= t.req;
+        
+        const d = document.createElement('div');
+        d.className = `achievement-card ${isUnlocked ? 'unlocked' : ''}`;
+        
+        let btn = '';
+        if (isEquipped) {
+            btn = `<button class="buy-btn" style="background:#ff3b30;" onclick="window.equipTitle('')">Снять</button>`;
+        } else if (isUnlocked) {
+            btn = `<button class="buy-btn" style="background:#00A3FF;" onclick="window.equipTitle('${t.title}')">Надеть</button>`;
+        } else if (isCompleted) {
+            btn = `<button class="buy-btn" style="background:#ffd700; color:#000;" onclick="window.claimTitle('${t.id}')">Забрать</button>`;
+        } else {
+            btn = `<span style="font-size:12px;color:#888">${window.formatNumber(current)}/${window.formatNumber(t.req)}</span>`;
+        }
+        
+        d.innerHTML = `
+            <div class="ach-icon" style="font-size:24px;">${isUnlocked ? '👑' : '🔒'}</div>
+            <div class="ach-info">
+                <div class="ach-title" style="color:#FFD700;">${t.title}</div>
+                <div class="ach-desc">${t.desc}</div>
+            </div>
+            <div>${btn}</div>
+        `;
+        
+        c.appendChild(d);
+    });
+};
+
+window.claimTitle = function(id) {
+    if (!unlockedTitles.includes(id)) {
+        unlockedTitles.push(id);
+        window.saveData();
+        window.renderTitles();
+        window.playSound('win');
+        window.showToast("Титул разблокирован!", "👑");
+    }
+};
+
+window.equipTitle = function(title) {
+    equippedTitle = title;
+    window.saveData();
+    window.apiSyncGlobalProfile();
+    window.renderTitles();
+    window.playSound('click');
+    window.showToast(title === '' ? "Титул снят" : "Титул надет!", "👑");
+    
+    let pr = window.getEl('profile-rank');
+    if (pr) {
+        pr.innerHTML = (equippedTitle ? `<span class="player-title" style="font-size: 14px; display: block; margin-bottom: 5px;">${equippedTitle}</span>` : '') + (RANKS[Math.floor(userLevel / 5)] || "Создатель");
+        if (window.isVip()) {
+            pr.innerHTML += ' <span style="color:#ffd700">👑 PRO</span>';
+        }
+    }
 };
 
 window.clickLink = function(id, u, r) { 
@@ -3003,12 +3136,14 @@ window.renderForbesList = function(tab) {
         let rankClass = rankNum <= 3 ? `top-${rankNum}` : '';
         let isMe = p.user_id === String(window.getTgUser().id) ? 'me' : '';
         let encodedUser = encodeURIComponent(JSON.stringify(p));
+        let titleHtml = p.equipped_title ? `<span class="player-title">${p.equipped_title}</span>` : '';
         
         html += `
             <div class="forbes-item ${isMe}" style="cursor:pointer;" onclick="window.openPublicProfileObj('${encodedUser}')">
                 <div class="forbes-rank ${rankClass}">${rankNum}</div>
                 <img src="${window.getPetImg(p.avatar)}" class="forbes-avatar" onerror="this.src='assets/ui/icon-profile.png'">
                 <div class="forbes-info">
+                    ${titleHtml}
                     <div class="forbes-name">
                         ${p.name} 
                         ${p.syndicate_tag ? `<span style="color:#ffd700; font-size:10px;">[${p.syndicate_tag}]</span>` : ''} 
@@ -4239,9 +4374,11 @@ window.finishTimer = function(fromOffline = false) {
     let finalXP = Math.floor((baseXP + (baseXP * avatarBonus)) * streakMult * vipMult);
     userXP += finalXP; 
     
-    // ОТПРАВКА МИНУТ В СИНДИКАТ
-    let baseTimeForSyn = (currentModeIndex === 2) ? customEggConfig.timeOnline : m.timeOnline;
-    let synMinutes = Math.max(1, Math.floor(baseTimeForSyn / 60));
+    // === ДОБАВЛЕН ИНКРЕМЕНТ ЧАСОВ ФОКУСА ===
+    let timeOnlineBase = (currentModeIndex === 2) ? customEggConfig.timeOnline : m.timeOnline;
+    focusHours += (timeOnlineBase / 3600);
+    
+    let synMinutes = Math.max(1, Math.floor(timeOnlineBase / 60));
     window.sendSyndicateMinutes(synMinutes);
     
     while (userXP >= userLevel * 200) { 
@@ -4558,6 +4695,9 @@ window.craftMythicReal = function() {
         let dropped = pool[Math.floor(Math.random() * pool.length)]; 
         collection.push(dropped);
         
+        // === ДОБАВЛЕН ИНКРЕМЕНТ МИФИКОВ ===
+        mythicsCrafted++;
+        
         window.updateContract('craft', 1);
         window.saveData(); 
         window.updateBalanceUI();
@@ -4820,7 +4960,7 @@ window.apiCreateParty = async function(event) {
         const res = await fetch(`${API_URL}/party/create`, {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin })
+            body: JSON.stringify({ user_id: user.id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin, equipped_title: equippedTitle })
         });
         
         const data = await res.json();
@@ -4878,7 +5018,7 @@ window.apiJoinParty = async function(prefilledCode = null) {
         const res = await fetch(`${API_URL}/party/join`, {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: code, user_id: user.id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin })
+            body: JSON.stringify({ code: code, user_id: user.id, name: finalName, avatar: selectedAvatar, egg_skin: activeEggSkin, equipped_title: equippedTitle })
         });
         
         if (res.ok) {
@@ -4926,7 +5066,7 @@ window.apiLeaveParty = async function(localOnly = false) {
             await fetch(`${API_URL}/party/leave`, {
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar, egg_skin: activeEggSkin })
+                body: JSON.stringify({ user_id: user.id, name: user.name, avatar: selectedAvatar, egg_skin: activeEggSkin, equipped_title: equippedTitle })
             });
         } catch(e) {}
     }
@@ -4992,7 +5132,16 @@ window.renderPartyPlayers = function(players) {
     }
     
     players.forEach(p => {
-        container.innerHTML += `<div class="player-slot"><div class="player-avatar-circle"><img src="assets/pets/pet-${p.avatar}.png" onerror="this.src='assets/eggs/egg-default.png'"></div><div class="player-name">${p.name}</div></div>`;
+        let titleHtml = p.equipped_title ? `<span class="player-title">${p.equipped_title}</span>` : '';
+        
+        container.innerHTML += `
+            <div class="player-slot">
+                <div class="player-avatar-circle"><img src="assets/pets/pet-${p.avatar}.png" onerror="this.src='assets/eggs/egg-default.png'"></div>
+                <div style="flex:1;">
+                    <div class="player-name">${titleHtml}${p.name}</div>
+                </div>
+            </div>
+        `;
     });
 };
 
@@ -5487,9 +5636,178 @@ window.handleBossRaidEnd = function() {
 };
 
 // =============================================================
+// МИНИ-ИГРА: КВАНТОВЫЙ РЕАКТОР
+// =============================================================
+window.setupReactorRole = function(role, secretCode = null) {
+    let rd = window.getEl('role-dispatcher');
+    let re = window.getEl('role-engineer');
+    let rs = window.getEl('role-stabilizer');
+    
+    if (rd) rd.style.display = 'none';
+    if (re) re.style.display = 'none';
+    if (rs) rs.style.display = 'none';
+    
+    if (role === 'dispatcher') {
+        if (rd) rd.style.display = 'block';
+        window.renderDispatcherCode(secretCode || ['🔴','🔵','🟢','🟡']);
+    } 
+    else if (role === 'engineer') {
+        if (re) re.style.display = 'block';
+        requiredCodeLength = secretCode ? secretCode.length : 4;
+        window.reactorClearInput();
+    }
+    else if (role === 'stabilizer') {
+        if (rs) rs.style.display = 'block';
+    }
+};
+
+window.renderDispatcherCode = function(codeArray) {
+    const container = window.getEl('dispatcher-secret-code');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    codeArray.forEach(gene => {
+        const span = document.createElement('span');
+        span.textContent = gene;
+        span.style.animation = "popIn 0.3s ease";
+        container.appendChild(span);
+    });
+};
+
+window.renderEngineerSlots = function() {
+    const container = window.getEl('engineer-input-slots');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    for (let i = 0; i < requiredCodeLength; i++) {
+        const slot = document.createElement('div');
+        slot.style.width = '40px'; 
+        slot.style.height = '40px';
+        slot.style.border = '2px dashed #555'; 
+        slot.style.borderRadius = '8px';
+        slot.style.display = 'flex'; 
+        slot.style.justifyContent = 'center';
+        slot.style.alignItems = 'center'; 
+        slot.style.fontSize = '24px';
+        
+        if (engineerCurrentInput[i]) {
+            slot.textContent = engineerCurrentInput[i];
+            slot.style.border = '2px solid #00A3FF';
+            slot.style.background = 'rgba(0, 163, 255, 0.1)';
+        }
+        
+        container.appendChild(slot);
+    }
+};
+
+window.reactorTypeGene = function(gene) {
+    if (engineerCurrentInput.length >= requiredCodeLength) return;
+    
+    if (typeof playSound === 'function') window.playSound('click');
+    
+    engineerCurrentInput.push(gene);
+    window.renderEngineerSlots();
+    
+    if (engineerCurrentInput.length === requiredCodeLength) {
+        socket.emit('submitCode', { 
+            roomId: currentPartyCode, 
+            code: engineerCurrentInput 
+        });
+        window.showToast("Код отправлен на проверку...", "📡");
+    }
+};
+
+window.reactorClearInput = function() {
+    engineerCurrentInput = [];
+    window.renderEngineerSlots();
+    window.playSound('click');
+};
+
+window.triggerReactorPenalty = function() {
+    const overlay = window.getEl('reactor-danger-overlay');
+    if (overlay) {
+        overlay.style.display = 'block';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 1000);
+    }
+    window.playSound('wrong');
+    window.reactorClearInput();
+};
+
+window.handleReactorEnd = function(result) {
+    window.forceCloseMiniGame('quantum_reactor');
+    if (result === 'win') { 
+        window.playSound('win'); 
+        window.showToast("РЕАКТОР СТАБИЛИЗИРОВАН! +5000 Монет", "⚛️"); 
+        walletBalance += 5000; 
+        
+        // === ИНКРЕМЕНТ ПОБЕД В РЕАКТОРЕ ===
+        reactorWins++;
+        
+    } else { 
+        window.playSound('wrong'); 
+        window.showToast("ВЗРЫВ! Реактор уничтожен", "💥"); 
+    }
+    
+    window.saveData(); 
+    window.updateBalanceUI();
+};
+
+socket.on('timerUpdate', (timeLeft) => {
+    const timerEl = document.getElementById('reactor-timer');
+    if (timerEl) {
+        timerEl.textContent = timeLeft.toFixed(1);
+        if (timeLeft <= 10) {
+            timerEl.style.color = '#ff3b30';
+        } else {
+            timerEl.style.color = '#fff';
+        }
+    }
+});
+
+socket.on('correctCode', (data) => {
+    window.reactorClearInput(); 
+    window.playSound('win');
+    
+    const progressText = document.getElementById('reactor-progress-text');
+    const progressBar = document.getElementById('reactor-progress-bar');
+    
+    if (progressText) {
+        progressText.textContent = data.progress;
+    }
+    if (progressBar) {
+        progressBar.style.width = `${(data.progress / 3) * 100}%`;
+    }
+    
+    if (document.getElementById('role-dispatcher').style.display === 'block') {
+        window.renderDispatcherCode(data.newCode);
+    }
+    
+    window.showToast("Код подошел! Продолжаем!", "✅");
+});
+
+socket.on('wrongCode', (data) => {
+    window.triggerReactorPenalty(); 
+    window.showToast("-5 секунд за ошибку!", "❌");
+    
+    const timerEl = document.getElementById('reactor-timer');
+    if (timerEl) {
+        timerEl.textContent = data.newTimeLeft.toFixed(1);
+    }
+});
+
+socket.on('gameWon', () => {
+    window.handleReactorEnd('win'); 
+});
+
+socket.on('gameOver', () => {
+    window.handleReactorEnd('lose'); 
+});
+
+// =============================================================
 // МИНИ-ИГРА: ЭКСПЕДИЦИЯ
 // =============================================================
-
 window.selectExpeditionLocation = function(loc) {
     currentExpeditionLocation = loc;
     document.querySelectorAll('#leader-location-selector .tab-btn').forEach(b => {
@@ -6231,7 +6549,59 @@ window.submitSellPet = async function() {
     btn.disabled = false;
     btn.textContent = "Опубликовать";
 };
+
+// =============================================================
+// НАСТРОЙКИ И ФОНОВЫЕ ПРОЦЕССЫ (РЫНОК)
+// =============================================================
+window.openSettings = function() {
+    window.openModal('settings-modal');
+    window.playSound('click');
+};
+
+window.checkMarketSales = async function() {
+    try {
+        const uid = String(window.getTgUser().id);
+        let res = await fetch(`${API_URL}/market/rewards/${uid}`);
+        
+        if (!res.ok) {
+            res = await fetch(`${API_URL}/api/market/rewards/${uid}`);
+        }
+        
+        const data = await res.json();
+        
+        if (data.rewards && data.rewards.length > 0) {
+            let gotCoins = 0;
+            let gotStars = 0;
+            
+            data.rewards.forEach(r => {
+                if (r.currency === 'coins') {
+                    gotCoins += r.amount;
+                }
+                if (r.currency === 'stars') {
+                    gotStars += r.amount;
+                }
+            });
+            
+            if (gotCoins > 0) { 
+                walletBalance += gotCoins; 
+                window.showToast(`Вашего пета купили! +${window.formatNumber(gotCoins)} 💰`, "🎉"); 
+            }
+            if (gotStars > 0) { 
+                userStars += gotStars; 
+                window.showToast(`Вашего пета купили! +${window.formatNumber(gotStars)} ⭐️`, "🎉"); 
+            }
+            
+            window.saveData();
+            window.updateBalanceUI();
+            window.playSound('money');
+        }
+    } catch(e) {}
+};
+
+setInterval(window.checkMarketSales, 5000);
+setTimeout(window.checkMarketSales, 1000);
+
 // =============================================================
 // ЗАПУСК ИГРЫ
 // =============================================================
-window.onload = initGame;
+window.onload = window.initGame;
